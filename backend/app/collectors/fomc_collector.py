@@ -5,12 +5,36 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from ..core.upsert import upsert_rows
 from ..models.indicators import FomcEvent, FedWatch, InterestRate
 from .fomc_utils import estimate_policy_probs, parse_meeting_date, parse_price
 
 logger = logging.getLogger(__name__)
 
 FED_CALENDAR_URL = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+
+
+def _upsert_fedwatch(
+    db: Session,
+    observation_date: datetime,
+    meeting_date: datetime,
+    prob_hike: float,
+    prob_hold: float,
+    prob_cut: float,
+):
+    upsert_rows(
+        db,
+        FedWatch,
+        [{
+            "date": observation_date,
+            "meeting_date": meeting_date,
+            "prob_hike": prob_hike,
+            "prob_hold": prob_hold,
+            "prob_cut": prob_cut,
+        }],
+        conflict_columns=["meeting_date", "date"],
+        update_columns=["prob_hike", "prob_hold", "prob_cut"],
+    )
 
 
 def collect_fomc_calendar(db: Session):
@@ -59,6 +83,7 @@ def collect_fedwatch(db: Session):
                 return
             data = resp.json()
         now = datetime.now().replace(microsecond=0)
+        observation_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
         next_meeting = db.query(FomcEvent).filter(
             FomcEvent.meeting_date >= now
         ).order_by(FomcEvent.meeting_date).first()
@@ -85,20 +110,16 @@ def collect_fedwatch(db: Session):
                 implied_rate=implied_rate,
             )
 
-            if not db.query(FedWatch).filter(
-                FedWatch.date >= now.replace(hour=0, minute=0, second=0),
-                FedWatch.meeting_date == next_meeting.meeting_date
-            ).first():
-                db.add(FedWatch(
-                    date=now,
-                    meeting_date=next_meeting.meeting_date,
-                    prob_hike=prob_hike,
-                    prob_hold=prob_hold,
-                    prob_cut=prob_cut,
-                ))
-                db.commit()
+            _upsert_fedwatch(
+                db,
+                observation_date=observation_date,
+                meeting_date=next_meeting.meeting_date,
+                prob_hike=prob_hike,
+                prob_hold=prob_hold,
+                prob_cut=prob_cut,
+            )
+            db.commit()
         logger.info("Collected FedWatch probabilities")
     except Exception as e:
         db.rollback()
         logger.error(f"FedWatch error: {e}")
-

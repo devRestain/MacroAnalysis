@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from fredapi import Fred
 from sqlalchemy.orm import Session
 from ..core.config import settings
+from ..core.upsert import upsert_rows
 from ..models.indicators import InterestRate, MacroIndicator, CreditSpread
 
 logger = logging.getLogger(__name__)
@@ -45,17 +46,21 @@ def collect_rates(db: Session):
     for series_id, label in RATE_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start=cutoff)
-            for date, value in data.dropna().items():
-                exists = db.query(InterestRate).filter(
-                    InterestRate.series_key == series_id,
-                    InterestRate.date == date.to_pydatetime()
-                ).first()
-                if not exists:
-                    db.add(InterestRate(
-                        date=date.to_pydatetime(),
-                        series_key=series_id,
-                        value=float(value),
-                    ))
+            rows = [
+                {
+                    "date": date.to_pydatetime(),
+                    "series_key": series_id,
+                    "value": float(value),
+                }
+                for date, value in data.dropna().items()
+            ]
+            upsert_rows(
+                db,
+                InterestRate,
+                rows,
+                conflict_columns=["series_key", "date"],
+                update_columns=["value"],
+            )
             db.commit()
             logger.info(f"Collected {series_id} ({label})")
         except Exception as e:
@@ -69,17 +74,21 @@ def collect_macro(db: Session):
     for series_id, label in MACRO_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start=cutoff)
-            for date, value in data.dropna().items():
-                exists = db.query(MacroIndicator).filter(
-                    MacroIndicator.series_key == series_id,
-                    MacroIndicator.date == date.to_pydatetime()
-                ).first()
-                if not exists:
-                    db.add(MacroIndicator(
-                        date=date.to_pydatetime(),
-                        series_key=series_id,
-                        value=float(value),
-                    ))
+            rows = [
+                {
+                    "date": date.to_pydatetime(),
+                    "series_key": series_id,
+                    "value": float(value),
+                }
+                for date, value in data.dropna().items()
+            ]
+            upsert_rows(
+                db,
+                MacroIndicator,
+                rows,
+                conflict_columns=["series_key", "date"],
+                update_columns=["value"],
+            )
             db.commit()
             logger.info(f"Collected macro {series_id} ({label})")
         except Exception as e:
@@ -93,17 +102,21 @@ def collect_credit_spreads(db: Session):
     for series_id, key in CREDIT_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start=cutoff)
-            for date, value in data.dropna().items():
-                exists = db.query(CreditSpread).filter(
-                    CreditSpread.series_key == key,
-                    CreditSpread.date == date.to_pydatetime()
-                ).first()
-                if not exists:
-                    db.add(CreditSpread(
-                        date=date.to_pydatetime(),
-                        series_key=key,
-                        value=float(value),
-                    ))
+            rows = [
+                {
+                    "date": date.to_pydatetime(),
+                    "series_key": key,
+                    "value": float(value),
+                }
+                for date, value in data.dropna().items()
+            ]
+            upsert_rows(
+                db,
+                CreditSpread,
+                rows,
+                conflict_columns=["series_key", "date"],
+                update_columns=["value"],
+            )
             db.commit()
             logger.info(f"Collected credit spread {key}")
         except Exception as e:

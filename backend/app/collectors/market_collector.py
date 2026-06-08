@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 import yfinance as yf
 from sqlalchemy.orm import Session
+from ..core.upsert import upsert_rows
 from ..models.indicators import EquityIndex, SectorPerformance, RealEconomyIndicator
 
 logger = logging.getLogger(__name__)
@@ -51,18 +52,19 @@ def collect_equity_indices(db: Session):
             change_1d = float(latest["Close"] - prev["Close"]) if prev is not None else 0.0
             change_1d_pct = (change_1d / float(prev["Close"]) * 100) if prev is not None else 0.0
 
-            exists = db.query(EquityIndex).filter(
-                EquityIndex.ticker == ticker,
-                EquityIndex.date == date
-            ).first()
-            if not exists:
-                db.add(EquityIndex(
-                    date=date,
-                    ticker=ticker,
-                    close=close,
-                    change_1d=change_1d,
-                    change_1d_pct=change_1d_pct,
-                ))
+            upsert_rows(
+                db,
+                EquityIndex,
+                [{
+                    "date": date,
+                    "ticker": ticker,
+                    "close": close,
+                    "change_1d": change_1d,
+                    "change_1d_pct": change_1d_pct,
+                }],
+                conflict_columns=["ticker", "date"],
+                update_columns=["close", "change_1d", "change_1d_pct"],
+            )
             db.commit()
             logger.info(f"Collected {ticker} ({name}): {close:.2f}")
         except Exception as e:
@@ -94,21 +96,29 @@ def collect_sectors(db: Session):
             else:
                 ytd_pct = 0.0
 
-            exists = db.query(SectorPerformance).filter(
-                SectorPerformance.ticker == ticker,
-                SectorPerformance.date == date
-            ).first()
-            if not exists:
-                db.add(SectorPerformance(
-                    date=date,
-                    ticker=ticker,
-                    sector_name=name,
-                    close=close,
-                    change_1d_pct=pct(1),
-                    change_1m_pct=pct(21),
-                    change_3m_pct=pct(63),
-                    change_ytd_pct=ytd_pct,
-                ))
+            upsert_rows(
+                db,
+                SectorPerformance,
+                [{
+                    "date": date,
+                    "ticker": ticker,
+                    "sector_name": name,
+                    "close": close,
+                    "change_1d_pct": pct(1),
+                    "change_1m_pct": pct(21),
+                    "change_3m_pct": pct(63),
+                    "change_ytd_pct": ytd_pct,
+                }],
+                conflict_columns=["ticker", "date"],
+                update_columns=[
+                    "sector_name",
+                    "close",
+                    "change_1d_pct",
+                    "change_1m_pct",
+                    "change_3m_pct",
+                    "change_ytd_pct",
+                ],
+            )
             db.commit()
             logger.info(f"Collected sector {ticker} ({name})")
         except Exception as e:
@@ -141,9 +151,10 @@ def collect_real_economy(db: Session):
 
 
 def _upsert_real(db: Session, date: datetime, key: str, value: float):
-    exists = db.query(RealEconomyIndicator).filter(
-        RealEconomyIndicator.series_key == key,
-        RealEconomyIndicator.date == date
-    ).first()
-    if not exists:
-        db.add(RealEconomyIndicator(date=date, series_key=key, value=value))
+    upsert_rows(
+        db,
+        RealEconomyIndicator,
+        [{"date": date, "series_key": key, "value": value}],
+        conflict_columns=["series_key", "date"],
+        update_columns=["value"],
+    )

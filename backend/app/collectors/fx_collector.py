@@ -4,6 +4,7 @@ import httpx
 from datetime import datetime
 from sqlalchemy.orm import Session
 from ..core.config import settings
+from ..core.upsert import upsert_rows
 from ..models.indicators import ExchangeRate
 
 logger = logging.getLogger(__name__)
@@ -63,9 +64,11 @@ def _collect_free_rates(db: Session):
 
 
 def _upsert_rate(db: Session, date: datetime, pair: str, value: float):
-    exists = db.query(ExchangeRate).filter(
-        ExchangeRate.pair == pair,
-        ExchangeRate.date >= date.replace(hour=0, minute=0, second=0)
-    ).first()
-    if not exists:
-        db.add(ExchangeRate(date=date, pair=pair, value=value))
+    normalized_date = date.replace(hour=0, minute=0, second=0, microsecond=0)
+    upsert_rows(
+        db,
+        ExchangeRate,
+        [{"date": normalized_date, "pair": pair, "value": value}],
+        conflict_columns=["pair", "date"],
+        update_columns=["value"],
+    )

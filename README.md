@@ -102,6 +102,12 @@ SENTIMENT_BATCH_SIZE=20
 INERTIA_ALPHA=0.05
 DIVERGENCE_WARNING_THRESHOLD=0.25
 DIVERGENCE_ALERT_THRESHOLD=0.40
+COLLECTION_SUCCESS_LOG_RETENTION_DAYS=90
+COLLECTION_FAILURE_LOG_RETENTION_DAYS=180
+RAW_RESPONSE_RETENTION_DAYS=30
+DEBUG_LOG_RETENTION_DAYS=30
+SCHEDULER_LOG_RETENTION_DAYS=30
+ENABLE_RAW_RESPONSE_STORAGE=false
 APP_ENV=production
 FRONTEND_PORT=8080
 ```
@@ -154,6 +160,82 @@ make down     # 종료
 | FOMC 캘린더 | 매주 월요일 |
 
 > FedWatch 확률은 공식 CME 상세 확률표가 아니라 공개 Fed Funds futures 가격과 최신 DFF 기준의 추정값입니다.
+
+## Observation 저장 정책
+
+- 반복 수집되는 시계열 observation 성격의 테이블은 지표 키와 관측 날짜 기준으로 `UNIQUE` 제약을 둡니다.
+- 같은 지표와 같은 날짜 데이터를 다시 수집하면 새 row를 추가하지 않고 기존 row를 `upsert`로 갱신합니다.
+- 따라서 revision이나 장중 재수집으로 값이 바뀌면 기존 row의 값이 최신 수집 결과로 업데이트됩니다.
+- 중복 row 정리와 upsert는 적용되어 있으며, retention/cleanup은 비시계열 파생 데이터에만 제한적으로 적용됩니다.
+
+## DB Retention
+
+- `interest_rates`, `macro_indicators`, `credit_spreads`, `equity_indices`, `sector_performance`, `exchange_rates`, `real_economy`, `fed_watch` 같은 observation 시계열 데이터는 장기 보관합니다.
+- 수집 로그/파생 임시 데이터 성격의 테이블은 retention 정책에 따라 정리합니다.
+- 현재 프로젝트에는 별도 `raw_responses` 영구 저장 테이블이 없으므로, `ENABLE_RAW_RESPONSE_STORAGE=false`가 기본이며 raw response cleanup 대상도 현재는 `0`건입니다.
+- `news_items`는 현재 스키마에서 반복 수집으로 계속 증가하는 대표적인 비시계열 수집 payload 테이블이라 retention 대상으로 취급합니다.
+- `change_snapshots`, `sentiment_signals`, `divergence_events`, `divergence_reports`, `ai_summaries`는 재생성 가능하거나 파생 성격이 강하므로 retention 대상으로 정리합니다.
+
+기본값:
+
+- `COLLECTION_SUCCESS_LOG_RETENTION_DAYS=90`
+- `COLLECTION_FAILURE_LOG_RETENTION_DAYS=180`
+- `RAW_RESPONSE_RETENTION_DAYS=30`
+- `DEBUG_LOG_RETENTION_DAYS=30`
+- `SCHEDULER_LOG_RETENTION_DAYS=30`
+- `ENABLE_RAW_RESPONSE_STORAGE=false`
+
+정리 기준 timestamp:
+
+- `news_items`: `collected_at`
+- `change_snapshots`: `snapshot_date`
+- `sentiment_signals`: `extracted_at`
+- `divergence_events`: `detected_at`
+- `divergence_reports`: `generated_at`
+- `ai_summaries`: `created_at`
+
+운영 메모:
+
+- raw response 저장은 기본적으로 꺼두는 것을 권장합니다.
+- 배포 환경에서는 retention 외에도 DB storage limit과 backup 정책을 별도로 점검해야 합니다.
+- 로컬 개발 환경은 Colima 위 Docker 컨테이너 실행을 전제로 합니다.
+- `docker compose down -v`는 DB volume을 삭제할 수 있으므로 사용에 주의해야 합니다.
+- `colima stop`, `colima start`, `colima restart`는 사용자가 직접 판단해 실행해야 하며 자동 테스트 절차에 포함하지 않습니다.
+
+수동 cleanup 실행:
+
+```bash
+cd backend
+../.venv/bin/python -m app.services.cleanup_service
+```
+
+Docker 컨테이너 내부 cleanup 실행:
+
+```bash
+docker compose exec worker python -m app.services.cleanup_service
+```
+
+Docker/Colima 기준 검증 절차:
+
+```bash
+# 1. 로컬 단위 테스트
+cd backend
+../.venv/bin/python -m unittest discover -s tests
+
+# 2. 컨테이너 상태 확인
+docker compose ps
+
+# 3. backend 컨테이너 내부 테스트
+docker compose exec backend python -m unittest discover -s tests
+
+# 4. worker 컨테이너에서 cleanup 수동 실행
+docker compose exec worker python -m app.services.cleanup_service
+```
+
+후속 TODO:
+
+- 현재 raw response 영구 저장 구조는 없으므로, 필요 시 별도 테이블과 opt-in 저장 전략을 3차 작업에서 검토합니다.
+- DB stats API/CLI와 고급 storage 모니터링은 3차 작업으로 넘깁니다.
 
 ## 확인 결과
 

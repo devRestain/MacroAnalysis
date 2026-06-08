@@ -24,7 +24,10 @@ class InterestRate(Base):
     series_key = Column(String(50), nullable=False)   # DFF, DGS2, DGS10, DGS30
     value = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_ir_key_date", "series_key", "date"),)
+    __table_args__ = (
+        Index("ix_ir_key_date", "series_key", "date"),
+        UniqueConstraint("series_key", "date", name="uq_interest_rates_series_key_date"),
+    )
 
 
 class MacroIndicator(Base):
@@ -34,7 +37,10 @@ class MacroIndicator(Base):
     series_key = Column(String(50), nullable=False)   # CPI, PCE, GDP, UNRATE, etc.
     value = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_macro_key_date", "series_key", "date"),)
+    __table_args__ = (
+        Index("ix_macro_key_date", "series_key", "date"),
+        UniqueConstraint("series_key", "date", name="uq_macro_indicators_series_key_date"),
+    )
 
 
 class ExchangeRate(Base):
@@ -44,7 +50,10 @@ class ExchangeRate(Base):
     pair = Column(String(20), nullable=False)          # USDKRW, EURUSD, DXY, etc.
     value = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_fx_pair_date", "pair", "date"),)
+    __table_args__ = (
+        Index("ix_fx_pair_date", "pair", "date"),
+        UniqueConstraint("pair", "date", name="uq_exchange_rates_pair_date"),
+    )
 
 
 class EquityIndex(Base):
@@ -56,7 +65,10 @@ class EquityIndex(Base):
     change_1d = Column(Float)
     change_1d_pct = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_eq_ticker_date", "ticker", "date"),)
+    __table_args__ = (
+        Index("ix_eq_ticker_date", "ticker", "date"),
+        UniqueConstraint("ticker", "date", name="uq_equity_indices_ticker_date"),
+    )
 
 
 class SectorPerformance(Base):
@@ -71,7 +83,10 @@ class SectorPerformance(Base):
     change_3m_pct = Column(Float)
     change_ytd_pct = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_sec_ticker_date", "ticker", "date"),)
+    __table_args__ = (
+        Index("ix_sec_ticker_date", "ticker", "date"),
+        UniqueConstraint("ticker", "date", name="uq_sector_performance_ticker_date"),
+    )
 
 
 class CreditSpread(Base):
@@ -81,7 +96,10 @@ class CreditSpread(Base):
     series_key = Column(String(50), nullable=False)    # HY_OAS, IG_OAS
     value = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_cs_key_date", "series_key", "date"),)
+    __table_args__ = (
+        Index("ix_cs_key_date", "series_key", "date"),
+        UniqueConstraint("series_key", "date", name="uq_credit_spreads_series_key_date"),
+    )
 
 
 class SentimentIndicator(Base):
@@ -101,7 +119,10 @@ class RealEconomyIndicator(Base):
     series_key = Column(String(50), nullable=False)    # BDI, COPPER_GOLD, WTI_BRENT_SPREAD
     value = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_re_key_date", "series_key", "date"),)
+    __table_args__ = (
+        Index("ix_re_key_date", "series_key", "date"),
+        UniqueConstraint("series_key", "date", name="uq_real_economy_series_key_date"),
+    )
 
 
 class FomcEvent(Base):
@@ -124,7 +145,10 @@ class FedWatch(Base):
     prob_hold = Column(Float)
     prob_cut = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_fw_date_meeting", "date", "meeting_date"),)
+    __table_args__ = (
+        Index("ix_fw_date_meeting", "date", "meeting_date"),
+        UniqueConstraint("meeting_date", "date", name="uq_fed_watch_meeting_date_date"),
+    )
 
 
 class ChangeSnapshot(Base):

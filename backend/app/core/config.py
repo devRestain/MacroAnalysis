@@ -1,5 +1,15 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from functools import lru_cache
+
+
+RETENTION_DEFAULTS = {
+    "COLLECTION_SUCCESS_LOG_RETENTION_DAYS": 90,
+    "COLLECTION_FAILURE_LOG_RETENTION_DAYS": 180,
+    "RAW_RESPONSE_RETENTION_DAYS": 30,
+    "DEBUG_LOG_RETENTION_DAYS": 30,
+    "SCHEDULER_LOG_RETENTION_DAYS": 30,
+}
 
 
 class Settings(BaseSettings):
@@ -29,6 +39,31 @@ class Settings(BaseSettings):
     INERTIA_ALPHA: float = 0.05
     DIVERGENCE_WARNING_THRESHOLD: float = 0.25
     DIVERGENCE_ALERT_THRESHOLD: float = 0.40
+
+    # Retention / Cleanup
+    COLLECTION_SUCCESS_LOG_RETENTION_DAYS: int = RETENTION_DEFAULTS["COLLECTION_SUCCESS_LOG_RETENTION_DAYS"]
+    COLLECTION_FAILURE_LOG_RETENTION_DAYS: int = RETENTION_DEFAULTS["COLLECTION_FAILURE_LOG_RETENTION_DAYS"]
+    RAW_RESPONSE_RETENTION_DAYS: int = RETENTION_DEFAULTS["RAW_RESPONSE_RETENTION_DAYS"]
+    DEBUG_LOG_RETENTION_DAYS: int = RETENTION_DEFAULTS["DEBUG_LOG_RETENTION_DAYS"]
+    SCHEDULER_LOG_RETENTION_DAYS: int = RETENTION_DEFAULTS["SCHEDULER_LOG_RETENTION_DAYS"]
+    ENABLE_RAW_RESPONSE_STORAGE: bool = False
+
+    @field_validator(
+        "COLLECTION_SUCCESS_LOG_RETENTION_DAYS",
+        "COLLECTION_FAILURE_LOG_RETENTION_DAYS",
+        "RAW_RESPONSE_RETENTION_DAYS",
+        "DEBUG_LOG_RETENTION_DAYS",
+        "SCHEDULER_LOG_RETENTION_DAYS",
+        mode="before",
+    )
+    @classmethod
+    def validate_retention_days(cls, value, info):
+        default = RETENTION_DEFAULTS[info.field_name]
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+        return parsed if parsed > 0 else default
 
     class Config:
         env_file = ".env"

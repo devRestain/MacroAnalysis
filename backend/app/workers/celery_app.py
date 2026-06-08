@@ -10,6 +10,7 @@ from ..collectors.market_collector import collect_equity_indices, collect_sector
 from ..collectors.fx_collector import collect_exchange_rates
 from ..collectors.news_collector import collect_finnhub_news, collect_fed_rss
 from ..collectors.fomc_collector import collect_fomc_calendar, collect_fedwatch
+from ..services.cleanup_service import run_cleanup
 from .snapshot_worker import compute_snapshots
 from .ai_worker import generate_daily_summary
 from .sentiment_worker import run_daily_sentiment_pipeline
@@ -79,6 +80,11 @@ celery.conf.update(
         "daily-sentiment-pipeline": {
             "task": "app.workers.celery_app.task_sentiment_pipeline",
             "schedule": crontab(hour=22, minute=45),
+        },
+        # Cleanup — 03:05 KST (18:05 UTC prev day)
+        "cleanup-retention-data": {
+            "task": "app.workers.celery_app.task_cleanup_retention",
+            "schedule": crontab(hour=18, minute=5),
         },
     },
 )
@@ -161,3 +167,8 @@ def task_ai_summary():
 def task_sentiment_pipeline():
     """일일 sentiment 배치 파이프라인 (extract → update → detect chain)."""
     run_daily_sentiment_pipeline()
+
+
+@celery.task(name="app.workers.celery_app.task_cleanup_retention")
+def task_cleanup_retention():
+    _with_db(run_cleanup)
