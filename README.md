@@ -5,7 +5,9 @@
 ## 빠른 시작
 
 ```bash
-
+# 1. 로컬 전용 .env 파일 설정
+# 이 저장소는 .env.example을 사용하지 않습니다.
+# .env는 Git에 커밋하지 말고 로컬에만 유지하세요.
 
 # 2. VM 기반 Docker 런타임 시작 (권장: Colima)
 colima start --cpu 4 --memory 8 --disk 60
@@ -21,6 +23,23 @@ make collect
 접속:
 - 대시보드: http://localhost:8080
 - API 문서: http://localhost:8000/api/docs
+
+`.env`에 최소한 아래 값들을 둘 수 있습니다. API 키는 필요한 기능만 채우면 됩니다.
+
+```dotenv
+POSTGRES_PASSWORD=macropass
+FRED_API_KEY=
+FINNHUB_API_KEY=
+EXCHANGERATE_API_KEY=
+OPENAI_API_KEY=
+AI_MODEL=gpt-4o-mini
+SENTIMENT_BATCH_SIZE=20
+INERTIA_ALPHA=0.05
+DIVERGENCE_WARNING_THRESHOLD=0.25
+DIVERGENCE_ALERT_THRESHOLD=0.40
+APP_ENV=production
+FRONTEND_PORT=8080
+```
 
 > 프런트 포트는 `.env`의 `FRONTEND_PORT`로 변경할 수 있습니다. VM/Colima 환경에서는 기본값 `8080`이 호스트의 privileged port 80 충돌을 피하기 좋습니다.
 

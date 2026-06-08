@@ -1,4 +1,4 @@
-.PHONY: help doctor check-docker up down build logs shell-backend shell-db seed collect
+.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect
 
 COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
@@ -19,6 +19,7 @@ help:
 doctor: check-docker
 	@echo "  Docker daemon: ok"
 	@echo "  Compose: $(COMPOSE)"
+	@test -f .env && echo "  .env: ok" || echo "  .env: missing"
 
 check-docker:
 	@docker info >/dev/null 2>&1 || ( \
@@ -32,8 +33,17 @@ check-docker:
 		exit 1; \
 	)
 
-up: check-docker
-	@cp -n .env.example .env 2>/dev/null || true
+check-env:
+	@test -f .env || ( \
+		echo ""; \
+		echo "  .env 파일이 없습니다."; \
+		echo "  이 프로젝트는 .env.example을 사용하지 않습니다."; \
+		echo "  로컬 전용 .env 파일을 직접 만들고 API 키와 포트를 설정한 뒤 다시 실행하세요."; \
+		echo ""; \
+		exit 1; \
+	)
+
+up: check-docker check-env
 	$(COMPOSE) up -d
 	@echo ""
 	@echo "  ✓ MacroWatch started"
@@ -44,13 +54,13 @@ up: check-docker
 down: check-docker
 	$(COMPOSE) down
 
-build: check-docker
+build: check-docker check-env
 	$(COMPOSE) build --no-cache
 
 logs: check-docker
 	$(COMPOSE) logs -f
 
-collect: check-docker
+collect: check-docker check-env
 	@echo ">>> 데이터 즉시 수집 실행..."
 	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_fred
 	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_equity
