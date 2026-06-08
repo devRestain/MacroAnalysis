@@ -234,8 +234,52 @@ docker compose exec worker python -m app.services.cleanup_service
 
 후속 TODO:
 
-- 현재 raw response 영구 저장 구조는 없으므로, 필요 시 별도 테이블과 opt-in 저장 전략을 3차 작업에서 검토합니다.
-- DB stats API/CLI와 고급 storage 모니터링은 3차 작업으로 넘깁니다.
+- 현재 raw response 영구 저장 구조는 없으므로, 필요 시 별도 테이블과 opt-in 저장 전략을 후속 작업에서 검토합니다.
+- 고급 storage 모니터링과 장기 추세 분석은 후속 작업으로 넘깁니다.
+
+## DB Operations
+
+- 운영 정보는 보안상 인증 없는 admin API로 노출하지 않습니다.
+- 현재는 CLI와 Makefile 방식만 제공합니다.
+- 상세 운영 가이드는 [docs/db-management.md](/Users/yuk/DevFolder/CodePractice/WorkingProject/MacroAnalysis/docs/db-management.md) 를 참고하세요.
+
+주요 명령:
+
+```bash
+make db-size
+make db-stats
+make db-cleanup
+make db-deduplicate-check
+```
+
+- `make db-size`: 전체 DB 크기와 큰 테이블 요약
+- `make db-stats`: 테이블별 크기, 인덱스 크기, row 수 추정치, 최근 cleanup 결과
+- `make db-cleanup`: retention cleanup 수동 실행
+- `make db-deduplicate-check`: unique key 기준 중복 후보 read-only 점검
+
+로컬 검증 명령 순서:
+
+```bash
+docker compose up -d
+make migrate
+make collect
+make collect
+make db-deduplicate-check
+make db-size
+make db-stats
+make db-cleanup
+make test
+```
+
+- `docker compose up -d`: 로컬 Docker/Colima 스택 기동
+- `make migrate`: 최신 Alembic migration 반영
+- `make collect`: 수집 실행
+- `make collect` 다시 실행: 중복 방지/upsert 재확인
+- `make db-deduplicate-check`: 중복 후보가 남아 있는지 read-only 점검
+- `make db-size`: 전체 DB 크기와 큰 테이블 확인
+- `make db-stats`: 테이블별 세부 DB 상태 확인
+- `make db-cleanup`: retention cleanup 수동 실행
+- `make test`: backend 테스트 실행
 
 ## 확인 결과
 

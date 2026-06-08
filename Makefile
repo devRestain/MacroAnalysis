@@ -1,4 +1,4 @@
-.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed shell
+.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed shell migrate test db-stats db-size db-cleanup db-deduplicate-check
 
 COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
@@ -13,6 +13,12 @@ help:
 	@echo "  make logs        전체 로그 출력"
 	@echo "  make collect     데이터 수집 즉시 실행"
 	@echo "  make collect-fed  FED 데이터 수집 즉시 실행"
+	@echo "  make migrate     Alembic migration 적용"
+	@echo "  make test        backend 테스트 실행"
+	@echo "  make db-stats    DB 상태 상세 요약"
+	@echo "  make db-size     DB 크기와 큰 테이블 요약"
+	@echo "  make db-cleanup  retention cleanup 수동 실행"
+	@echo "  make db-deduplicate-check  중복 후보 read-only 점검"
 	@echo "  make shell       백엔드 컨테이너 쉘 접속"
 	@echo "  make shell-db    PostgreSQL 접속"
 	@echo ""
@@ -45,7 +51,7 @@ check-env:
 	)
 
 up: check-docker check-env
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d --build
 	@echo ""
 	@echo "  ✓ MacroWatch started"
 	@echo "  → Frontend: http://localhost:8080"
@@ -82,3 +88,22 @@ shell: check-docker
 
 shell-db: check-docker
 	$(COMPOSE) exec postgres psql -U macro -d macrodb
+
+migrate: check-docker check-env
+	$(COMPOSE) exec backend alembic -c alembic.ini upgrade head
+
+test: check-docker check-env
+	$(COMPOSE) exec backend python -m unittest discover -s tests
+
+db-stats: check-docker check-env
+	$(COMPOSE) exec backend python -m app.commands.db_stats --top 10
+
+db-size: check-docker check-env
+	$(COMPOSE) exec backend python -m app.commands.db_stats --size-only --top 10
+
+db-cleanup: check-docker check-env
+	@echo ">>> retention cleanup 실행 (observation 시계열 데이터는 삭제하지 않음)"
+	$(COMPOSE) exec backend python -m app.commands.db_cleanup
+
+db-deduplicate-check: check-docker check-env
+	$(COMPOSE) exec backend python -m app.commands.db_deduplicate_check --sample-limit 5

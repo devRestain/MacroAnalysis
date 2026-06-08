@@ -13,6 +13,7 @@ from ..core.database import SessionLocal
 from ..models.indicators import (
     AiSummary,
     ChangeSnapshot,
+    CleanupRun,
     DivergenceEvent,
     DivergenceReport,
     InterestRate,
@@ -150,10 +151,31 @@ def run_cleanup(
                 AiSummary.created_at,
                 scheduler_cutoff,
             )
+        if _table_exists(table_names, CleanupRun.__tablename__):
+            _delete_in_batches(
+                db,
+                CleanupRun,
+                CleanupRun.created_at,
+                scheduler_cutoff,
+            )
 
         # Explicitly excluded: core observation time series such as interest_rates and peers.
         if _table_exists(table_names, InterestRate.__tablename__):
             db.query(InterestRate.id).limit(1).all()
+
+        if _table_exists(table_names, CleanupRun.__tablename__):
+            db.add(
+                CleanupRun(
+                    started_at=started_at,
+                    finished_at=started_at,
+                    collection_success_logs_deleted=result["collection_success_logs_deleted"],
+                    collection_failure_logs_deleted=result["collection_failure_logs_deleted"],
+                    raw_responses_deleted=result["raw_responses_deleted"],
+                    debug_logs_deleted=result["debug_logs_deleted"],
+                    scheduler_logs_deleted=result["scheduler_logs_deleted"],
+                    result_json=result,
+                )
+            )
 
         db.commit()
         db.expire_all()
@@ -163,6 +185,13 @@ def run_cleanup(
 
     finished_at = _utcnow_naive()
     result["finished_at"] = finished_at.isoformat()
+    if _table_exists(table_names, CleanupRun.__tablename__):
+        latest = db.query(CleanupRun).order_by(CleanupRun.id.desc()).first()
+        if latest:
+            latest.finished_at = finished_at
+            latest.result_json = result
+            db.commit()
+            db.expire(latest)
     logger.info("cleanup completed: %s", json.dumps(result, ensure_ascii=False))
     return result
 

@@ -376,3 +376,24 @@ class Signal(Base):
         Index("ix_signal_indicator_date", "indicator_id", "signal_date"),
         Index("ix_signal_type_level", "signal_type", "signal_level"),
     )
+
+
+class CleanupRun(Base):
+    """Latest cleanup execution summaries for operators."""
+    __tablename__ = "cleanup_runs"
+
+    id = Column(Integer, primary_key=True)
+    started_at = Column(DateTime, nullable=False)
+    finished_at = Column(DateTime, nullable=False)
+    collection_success_logs_deleted = Column(Integer, nullable=False, default=0, server_default="0")
+    collection_failure_logs_deleted = Column(Integer, nullable=False, default=0, server_default="0")
+    raw_responses_deleted = Column(Integer, nullable=False, default=0, server_default="0")
+    debug_logs_deleted = Column(Integer, nullable=False, default=0, server_default="0")
+    scheduler_logs_deleted = Column(Integer, nullable=False, default=0, server_default="0")
+    result_json = Column(JSON, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_cleanup_runs_started_at", "started_at"),
+        Index("ix_cleanup_runs_created_at", "created_at"),
+    )
