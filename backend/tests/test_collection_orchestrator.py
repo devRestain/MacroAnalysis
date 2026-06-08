@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
+from datetime import date
 import unittest
 from unittest.mock import patch
 
+from app.models.indicators import DailyInsight
 from app.services.collection_orchestrator import (
+    _enqueue_daily_insight_if_missing,
     run_evening_batch,
     run_morning_batch,
     run_noon_batch,
@@ -99,6 +103,35 @@ class CollectionOrchestratorTests(unittest.TestCase):
             run_evening_batch(object())
 
         self.assertEqual(mocked_enqueue.call_count, 2)
+
+    def test_batch_result_is_json_serializable_and_invalidates_cache_once(self):
+        with patch("app.services.collection_orchestrator.run_with_guard", side_effect=_run_with_guard_side_effect), \
+             patch("app.services.collection_orchestrator._enqueue_daily_insight_if_missing", return_value=_queue_result()), \
+             patch("app.services.collection_orchestrator._invalidate_dashboard_cache") as mocked_invalidate:
+            result = run_morning_batch(object())
+
+        json.dumps(result)
+        mocked_invalidate.assert_called_once()
+
+    def test_enqueue_helper_skips_when_success_exists(self):
+        existing = DailyInsight(as_of_date=date(2026, 6, 9), status="success")
+        with patch("app.services.collection_orchestrator.get_today_kst", return_value=date(2026, 6, 9)), \
+             patch("app.services.collection_orchestrator.get_existing_daily_insight", return_value=existing), \
+             patch("app.services.collection_orchestrator.settings.AI_DAILY_INSIGHT_ENABLED", True):
+            result = _enqueue_daily_insight_if_missing(object())
+
+        self.assertEqual(result["status"], "skipped")
+        self.assertEqual(result["reason"], "already_succeeded_today")
+
+    def test_enqueue_helper_queues_when_success_missing(self):
+        with patch("app.services.collection_orchestrator.get_today_kst", return_value=date(2026, 6, 9)), \
+             patch("app.services.collection_orchestrator.get_existing_daily_insight", return_value=None), \
+             patch("app.services.collection_orchestrator.settings.AI_DAILY_INSIGHT_ENABLED", True), \
+             patch("app.workers.celery_app.celery.send_task") as mocked_send_task:
+            result = _enqueue_daily_insight_if_missing(object())
+
+        self.assertEqual(result["status"], "queued")
+        mocked_send_task.assert_called_once_with("app.workers.celery_app.task_ensure_daily_insight")
 
 
 def _run_with_guard_side_effect(_db, job_key, provider, min_interval_minutes, fn):

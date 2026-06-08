@@ -69,6 +69,14 @@ MacroAnalysis/
 4. `worker`와 `beat`는 Celery 스케줄에 따라 수집기와 후처리 태스크를 실행합니다.
 5. 초기 데이터는 비어 있으므로, 실제 화면 데이터를 보려면 `make collect` 또는 batched 수동 명령 실행이 필요합니다.
 
+## DB Source Of Truth
+
+- 백엔드 API의 기본 source of truth는 `series/indicator metadata + observations` 구조입니다.
+- dashboard, history, AI context는 `backend/app/services/observation_query_service.py`를 통해 observation 중심으로 조회합니다.
+- legacy 지표별 테이블(`interest_rates`, `macro_indicators`, `exchange_rates`, `equity_indices` 등)은 기본 API source가 아닙니다.
+- legacy fallback이 필요할 때만 `LEGACY_TABLE_FALLBACK_ENABLED=true`로 켤 수 있으며 기본값은 `false`입니다.
+- `observation_query_service`는 latest 조회, history 조회, category별 latest, dashboard payload, AI context payload를 공통으로 제공합니다.
+
 ## 중복되거나 미완성인 코드
 
 현재 기준으로 눈에 띄는 항목은 아래와 같습니다.
@@ -87,7 +95,7 @@ MacroAnalysis/
 
 ## 실행 방법
 
-`.env`는 저장소 루트에 직접 둡니다. 이 저장소는 `.env.example`을 사용하지 않습니다.
+`.env`는 저장소 루트에 직접 두고, 기본값은 [.env.example](/Users/yuk/DevFolder/CodePractice/WorkingProject/MacroAnalysis/.env.example) 를 참고합니다.
 
 최소 예시는 아래와 같습니다.
 
@@ -109,6 +117,24 @@ DEBUG_LOG_RETENTION_DAYS=30
 SCHEDULER_LOG_RETENTION_DAYS=30
 ENABLE_RAW_RESPONSE_STORAGE=false
 LEGACY_TABLE_FALLBACK_ENABLED=false
+COLLECTION_GUARD_ENABLED=true
+COLLECTION_LOCK_BACKEND=postgres
+COLLECTION_BATCH_MODE=time_window
+MORNING_BATCH_ENABLED=true
+NOON_BATCH_ENABLED=true
+EVENING_BATCH_ENABLED=true
+WEEKLY_BATCH_ENABLED=true
+FRED_MIN_INTERVAL_MINUTES=1440
+FX_MIN_INTERVAL_MINUTES=360
+NEWS_MIN_INTERVAL_MINUTES=360
+EQUITY_MIN_INTERVAL_MINUTES=720
+FEDWATCH_MIN_INTERVAL_MINUTES=720
+FOMC_MIN_INTERVAL_MINUTES=10080
+SNAPSHOT_MIN_INTERVAL_MINUTES=180
+AI_DAILY_INSIGHT_ENABLED=true
+AI_DAILY_INSIGHT_TIMEZONE=Asia/Seoul
+AI_DAILY_INSIGHT_TRIGGER_IN_MORNING_BATCH=true
+AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED=true
 APP_ENV=production
 FRONTEND_PORT=8080
 ```
@@ -127,6 +153,7 @@ docker compose up --build -d
 # 3. 상태 확인
 docker compose ps
 docker compose logs -f backend worker frontend
+docker compose logs beat
 
 # 4. 초기 데이터 수집
 make collect
@@ -146,6 +173,7 @@ make up       # compose up -d
 make logs     # 전체 로그
 make collect  # morning -> noon -> evening batch 순차 실행
 make collect-weekly
+make ensure-ai-insight
 make down     # 종료
 ```
 
@@ -157,15 +185,17 @@ make down     # 종료
 - 개별 collector task는 디버깅/수동 실행 용도로 남아 있지만, 기본 운영 schedule에는 사용하지 않습니다.
 - 같은 job은 최근 `success` run이 최소 간격 안에 있으면 `skipped` 처리됩니다.
 - worker 재시작, 수동 실행, 중복 beat 상황에서도 동일 `job_key`는 advisory lock 또는 local lock으로 중복 실행을 피합니다.
+- 이 프로젝트는 실시간 트레이딩 시스템이 아니라 거시경제 지표 추적 및 시사점 정리 대시보드입니다.
+- 따라서 수집 실시간성보다 유지보수성, 호출량 절감, 예측 가능한 운영을 우선합니다.
 
 ## 수집 스케줄 (KST)
 
 | Batch | 시각 | 포함 작업 |
 |---|---|
-| Morning batch | 매일 07:30 | 전일 미국장/글로벌 데이터, FRED rates/macro/credit, sector, FedWatch, FX, news, snapshot, daily insight ensure |
-| Noon batch | 매일 12:30 | news, FX, snapshot |
-| Evening batch | 매일 18:30 | KR/Asia market data, FX, news, snapshot |
-| Weekly batch | 매주 월요일 08:00 | FOMC calendar, event/maintenance hook |
+| Morning batch | 매일 07:30 | 전일 미국장/글로벌 데이터, FRED rates/macro/credit, sector, FedWatch, FX, Fed/Finnhub news, snapshot refresh, daily insight ensure trigger |
+| Noon batch | 매일 12:30 | news, 주요 FX, snapshot refresh, 당일 success insight가 없을 때 ensure trigger |
+| Evening batch | 매일 18:30 | KR/Asia market data, 주요 FX, news, snapshot refresh, 당일 success insight가 없을 때 ensure trigger |
+| Weekly batch | 매주 월요일 08:00 | FOMC calendar, event calendar/maintenance hook |
 | Cleanup schedule | 매일 03:05 | retention cleanup |
 
 > FedWatch 확률은 공식 CME 상세 확률표가 아니라 공개 Fed Funds futures 가격과 최신 DFF 기준의 추정값입니다.
@@ -195,14 +225,19 @@ Celery 설정 메모:
 - `failed` run만 있는 경우에는 재실행을 허용합니다.
 - lock 획득에 실패하면 `failed`가 아니라 `skipped`로 기록합니다.
 - 수동 실행과 batch 연속 실행(`make collect-all-batched`)에서도 guard가 중복 호출을 막습니다.
+- 실제 provider 호출 여부의 최종 판단은 schedule이 아니라 collection_guard가 담당합니다.
 
 ## Daily Insight Ensure
 
 - AI 시사점은 고정 시각 실행보다 `KST 날짜 기준 success row 존재 여부`를 우선합니다.
 - `daily_insights`에 당일 `success` row가 있으면 OpenAI를 다시 호출하지 않습니다.
-- 당일 row가 없으면 morning batch나 dashboard 접근 경로에서 ensure task를 트리거할 수 있습니다.
+- morning batch가 우선 trigger입니다.
+- noon/evening batch와 dashboard 접근 경로는 당일 `success` row가 없을 때만 보정 trigger를 걸 수 있습니다.
+- 당일 row가 없으면 morning/noon/evening batch나 dashboard 접근 경로에서 ensure task를 트리거할 수 있습니다.
 - dashboard API는 OpenAI를 동기 호출하지 않고 Celery task enqueue만 수행합니다.
 - 실패 row가 있어도 다음 ensure 실행에서 재시도할 수 있습니다.
+- force 재생성은 수동 경로 또는 admin/manual endpoint로 분리합니다.
+- AI context는 legacy table이 아니라 `observation_query_service`를 통해 구성합니다.
 
 ## Observation 저장 정책
 
@@ -219,19 +254,57 @@ make collect-noon
 make collect-evening
 make collect-weekly
 make collect-all-batched
+make ensure-ai-insight
 ```
 
 - `make collect`: `morning -> noon -> evening` batch를 순차 실행합니다.
 - `make collect-weekly`: FOMC calendar와 주간 maintenance hook만 실행합니다.
 - 개별 batch를 연속 실행해도 guard가 같은 provider를 과도하게 재호출하지 않도록 설계되어 있습니다.
+- `make ensure-ai-insight`: 오늘 KST 기준 daily insight ensure를 수동 실행합니다.
+
+## Docker / Colima 검증
+
+권장 흐름:
+
+```bash
+# 1. Docker context 확인
+docker context ls
+docker context use colima
+
+# 2. Compose 설정 검증
+docker compose config
+
+# 3. 스택 기동
+docker compose up -d --build
+
+# 4. Migration 적용
+docker compose exec backend alembic -c alembic.ini upgrade head
+
+# 5. 테스트 실행
+docker compose exec backend pytest
+
+# 6. 로그 확인
+docker compose logs worker
+docker compose logs beat
+```
+
+운영 메모:
+
+- 이 저장소는 Colima 위 Docker 컨테이너 실행을 기본 전제로 합니다.
+- beat schedule 로딩 여부는 `docker compose logs beat`에서 확인합니다.
+- 테스트는 외부 provider API나 OpenAI API를 실제 호출하지 않도록 mock 기반으로 유지합니다.
+- 환경변수가 비어 있을 때는 collector가 skip되거나 fallback을 사용하도록 설계되어 있습니다.
 
 ## DB Retention
 
-- `interest_rates`, `macro_indicators`, `credit_spreads`, `equity_indices`, `sector_performance`, `exchange_rates`, `real_economy`, `fed_watch` 같은 observation 시계열 데이터는 장기 보관합니다.
+- `observations`와 `indicators` metadata는 장기 보관합니다.
+- `interest_rates`, `macro_indicators`, `credit_spreads`, `equity_indices`, `sector_performance`, `exchange_rates`, `real_economy`, `fed_watch` 같은 legacy/보조 시계열 테이블도 cleanup 대상이 아닙니다.
 - 수집 로그/파생 임시 데이터 성격의 테이블은 retention 정책에 따라 정리합니다.
 - 현재 프로젝트에는 별도 `raw_responses` 영구 저장 테이블이 없으므로, `ENABLE_RAW_RESPONSE_STORAGE=false`가 기본이며 raw response cleanup 대상도 현재는 `0`건입니다.
 - `news_items`는 현재 스키마에서 반복 수집으로 계속 증가하는 대표적인 비시계열 수집 payload 테이블이라 retention 대상으로 취급합니다.
 - `change_snapshots`, `sentiment_signals`, `divergence_events`, `divergence_reports`, `ai_summaries`는 재생성 가능하거나 파생 성격이 강하므로 retention 대상으로 정리합니다.
+- `daily_insights`는 운영상 의미가 있어 현재는 보존하는 쪽을 기본 정책으로 둡니다.
+- `collection_runs`는 운영 이력 성격이라 현재는 자동 cleanup 대상에 포함하지 않고 주간 maintenance hook만 남겨 둡니다.
 
 기본값:
 
@@ -254,6 +327,7 @@ make collect-all-batched
 운영 메모:
 
 - raw response 저장은 기본적으로 꺼두는 것을 권장합니다.
+- observation 시계열 값 자체를 cleanup 대상으로 삭제하지 않습니다.
 - 배포 환경에서는 retention 외에도 DB storage limit과 backup 정책을 별도로 점검해야 합니다.
 - 로컬 개발 환경은 Colima 위 Docker 컨테이너 실행을 전제로 합니다.
 - `docker compose down -v`는 DB volume을 삭제할 수 있으므로 사용에 주의해야 합니다.
@@ -277,15 +351,24 @@ Docker/Colima 기준 검증 절차:
 ```bash
 # 1. 로컬 단위 테스트
 cd backend
-../.venv/bin/python -m unittest discover -s tests
+../.venv/bin/python -m pytest
 
 # 2. 컨테이너 상태 확인
 docker compose ps
 
-# 3. backend 컨테이너 내부 테스트
-docker compose exec backend python -m unittest discover -s tests
+# 3. docker context / compose config 확인
+docker context ls
+docker compose config
 
-# 4. worker 컨테이너에서 cleanup 수동 실행
+# 4. backend 컨테이너 내부 migration / 테스트
+docker compose exec backend alembic -c alembic.ini upgrade head
+docker compose exec backend pytest
+
+# 5. worker/beat 로그 확인
+docker compose logs worker
+docker compose logs beat
+
+# 6. worker 컨테이너에서 cleanup 수동 실행
 docker compose exec worker python -m app.services.cleanup_service
 ```
 

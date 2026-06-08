@@ -144,9 +144,6 @@ async def get_chart(
 
     history = get_observation_history(db, indicator_key, start_date=cutoff.date(), limit=500)
     history["period"] = period
-    if not history["data"]:
-        raise HTTPException(status_code=404, detail=f"No data for {indicator_key}")
-
     return adapt_history_to_chart_response(history)
 
 
@@ -306,6 +303,8 @@ def _daily_insight_headline(insight: DailyInsight | None) -> str | None:
 
 
 def _enqueue_daily_insight_if_missing() -> None:
+    if not settings.AI_DAILY_INSIGHT_ENABLED or not settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED:
+        return
     try:
         celery.send_task("app.workers.celery_app.task_ensure_daily_insight")
     except Exception as exc:

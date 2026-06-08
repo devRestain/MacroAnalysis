@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import threading
+import uuid
 import zlib
 from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
@@ -11,6 +12,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from openai import OpenAI
+import redis
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -20,7 +22,6 @@ from .observation_query_service import get_ai_context_payload
 
 logger = logging.getLogger(__name__)
 
-KST = ZoneInfo("Asia/Seoul")
 _LOCAL_LOCK = threading.Lock()
 _LOCKED_DATES: set[str] = set()
 
@@ -30,7 +31,7 @@ SYSTEM_PROMPT = """당신은 거시경제 분석 전문가입니다.
 
 
 def get_today_kst() -> date:
-    return datetime.now(KST).date()
+    return datetime.now(ZoneInfo(settings.AI_DAILY_INSIGHT_TIMEZONE)).date()
 
 
 def get_existing_daily_insight(db: Session, as_of_date) -> DailyInsight | None:
@@ -66,7 +67,10 @@ def build_ai_context_from_observations(db: Session, as_of_date) -> dict[str, Any
         for item in available_series
     ]
 
-    day_start = datetime.combine(normalized_date, datetime.min.time()).replace(tzinfo=KST)
+    day_start = datetime.combine(
+        normalized_date,
+        datetime.min.time(),
+    ).replace(tzinfo=ZoneInfo(settings.AI_DAILY_INSIGHT_TIMEZONE))
     prev_start = day_start - timedelta(days=1)
     news_items = (
         db.query(NewsItem)
@@ -114,6 +118,13 @@ def build_ai_context_from_observations(db: Session, as_of_date) -> dict[str, Any
 
 
 def ensure_daily_insight(db: Session, as_of_date=None, force: bool = False) -> DailyInsight | dict[str, Any]:
+    if not settings.AI_DAILY_INSIGHT_ENABLED:
+        return {
+            "as_of_date": (_normalize_date(as_of_date) or get_today_kst()).isoformat(),
+            "status": "skipped",
+            "reason": "ai_daily_insight_disabled",
+        }
+
     normalized_date = _normalize_date(as_of_date) or get_today_kst()
     if not force:
         existing = get_existing_daily_insight(db, normalized_date)
@@ -256,7 +267,18 @@ def _upsert_daily_insight(
 @contextmanager
 def _insight_lock(db: Session, as_of_date: date):
     lock_key = f"daily_insight:{as_of_date.isoformat()}"
-    if db.get_bind().dialect.name == "postgresql":
+    if settings.COLLECTION_LOCK_BACKEND == "redis":
+        token = str(uuid.uuid4())
+        client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+        acquired = bool(client.set(lock_key, token, nx=True, ex=900))
+        try:
+            yield {"acquired": acquired}
+        finally:
+            if acquired and client.get(lock_key) == token:
+                client.delete(lock_key)
+        return
+
+    if settings.COLLECTION_LOCK_BACKEND == "postgres" and db.get_bind().dialect.name == "postgresql":
         lock_id = int(zlib.crc32(lock_key.encode("utf-8")))
         acquired = bool(
             db.execute(text("SELECT pg_try_advisory_lock(:lock_id)"), {"lock_id": lock_id}).scalar()

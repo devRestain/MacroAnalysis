@@ -23,6 +23,8 @@ ASIA_EQUITY_TICKERS = ["^KS11", "^N225", "^SSEC"]
 
 
 def run_morning_batch(db: Session) -> dict[str, Any]:
+    if not settings.MORNING_BATCH_ENABLED:
+        return _disabled_batch_result("morning")
     jobs = [
         _guarded_job("fred_rates", "fred", lambda session: collect_rates(session)),
         _guarded_job("fred_macro", "fred", lambda session: collect_macro(session)),
@@ -37,22 +39,30 @@ def run_morning_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
-        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False),
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
+        if settings.AI_DAILY_INSIGHT_TRIGGER_IN_MORNING_BATCH
+        else _maintenance_job("daily_insight_enqueue_disabled"),
     ]
     return _run_batch(db, "morning", jobs)
 
 
 def run_noon_batch(db: Session) -> dict[str, Any]:
+    if not settings.NOON_BATCH_ENABLED:
+        return _disabled_batch_result("noon")
     jobs = [
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
-        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False),
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
+        if settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED
+        else _maintenance_job("daily_insight_enqueue_disabled"),
     ]
     return _run_batch(db, "noon", jobs)
 
 
 def run_evening_batch(db: Session) -> dict[str, Any]:
+    if not settings.EVENING_BATCH_ENABLED:
+        return _disabled_batch_result("evening")
     jobs = [
         _guarded_job(
             "equity_asia",
@@ -62,12 +72,16 @@ def run_evening_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
-        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False),
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
+        if settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED
+        else _maintenance_job("daily_insight_enqueue_disabled"),
     ]
     return _run_batch(db, "evening", jobs)
 
 
 def run_weekly_batch(db: Session) -> dict[str, Any]:
+    if not settings.WEEKLY_BATCH_ENABLED:
+        return _disabled_batch_result("weekly")
     jobs = [
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
         _maintenance_job("collection_runs_maintenance"),
@@ -101,6 +115,25 @@ def _run_batch(db: Session, batch_name: str, jobs: list[dict[str, Any]]) -> dict
         "started_at": started_at.isoformat(),
         "finished_at": _utcnow().isoformat(),
         "jobs": results,
+    }
+
+
+def _disabled_batch_result(batch_name: str) -> dict[str, Any]:
+    now = _utcnow().isoformat()
+    return {
+        "batch": batch_name,
+        "started_at": now,
+        "finished_at": now,
+        "jobs": [
+            {
+                "job_key": f"{batch_name}_batch",
+                "status": "skipped",
+                "reason": "batch_disabled",
+                "fetched_count": 0,
+                "inserted_count": 0,
+                "updated_count": 0,
+            }
+        ],
     }
 
 
@@ -194,6 +227,15 @@ def _collect_us_global_market_bundle(db: Session):
 
 
 def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:
+    if not settings.AI_DAILY_INSIGHT_ENABLED:
+        return {
+            "job_key": "daily_insight_enqueue",
+            "status": "skipped",
+            "reason": "ai_daily_insight_disabled",
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+        }
     as_of_date = get_today_kst()
     existing = get_existing_daily_insight(db, as_of_date)
     if existing and existing.status == "success":

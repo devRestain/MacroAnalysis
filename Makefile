@@ -1,4 +1,4 @@
-.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed collect-morning collect-noon collect-evening collect-weekly collect-all-batched shell migrate test db-stats db-size db-cleanup db-deduplicate-check
+.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed collect-morning collect-noon collect-evening collect-weekly collect-all-batched ensure-ai-insight shell migrate test db-stats db-size db-cleanup db-deduplicate-check
 
 COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
@@ -17,9 +17,10 @@ help:
 	@echo "  make collect-evening  evening batch 수동 실행"
 	@echo "  make collect-weekly   weekly batch 수동 실행"
 	@echo "  make collect-all-batched  morning -> noon -> evening batch 순차 실행"
+	@echo "  make ensure-ai-insight  당일 AI insight ensure 실행"
 	@echo "  make collect-fed  weekly/Fed 관련 batch 수동 실행"
 	@echo "  make migrate     Alembic migration 적용"
-	@echo "  make test        backend 테스트 실행"
+	@echo "  make test        backend pytest 실행"
 	@echo "  make db-stats    DB 상태 상세 요약"
 	@echo "  make db-size     DB 크기와 큰 테이블 요약"
 	@echo "  make db-cleanup  retention cleanup 수동 실행"
@@ -49,8 +50,7 @@ check-env:
 	@test -f .env || ( \
 		echo ""; \
 		echo "  .env 파일이 없습니다."; \
-		echo "  이 프로젝트는 .env.example을 사용하지 않습니다."; \
-		echo "  로컬 전용 .env 파일을 직접 만들고 API 키와 포트를 설정한 뒤 다시 실행하세요."; \
+		echo "  .env.example을 참고해 로컬 전용 .env 파일을 만든 뒤 다시 실행하세요."; \
 		echo ""; \
 		exit 1; \
 	)
@@ -99,6 +99,10 @@ collect-all-batched: check-docker check-env
 collect-fed: check-docker check-env
 	@$(MAKE) collect-weekly
 
+ensure-ai-insight: check-docker check-env
+	@echo ">>> daily insight ensure 실행..."
+	$(COMPOSE) exec backend python -m app.commands.ensure_daily_insight
+
 shell: check-docker
 	$(COMPOSE) exec backend bash
 
@@ -109,7 +113,7 @@ migrate: check-docker check-env
 	$(COMPOSE) exec backend alembic -c alembic.ini upgrade head
 
 test: check-docker check-env
-	$(COMPOSE) exec backend python -m unittest discover -s tests
+	$(COMPOSE) exec backend pytest
 
 db-stats: check-docker check-env
 	$(COMPOSE) exec backend python -m app.commands.db_stats --top 10

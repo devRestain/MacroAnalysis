@@ -12,6 +12,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/15")
 
 from app.core.database import Base, get_db
+from app.core.config import settings
 from app.main import app
 from app.models.indicators import Indicator, Observation
 from app.services.observation_query_service import (
@@ -85,6 +86,9 @@ class ObservationQueryServiceTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["series_key"], "DFF")
         self.assertEqual(rows[0]["latest_value"], 4.5)
+
+    def test_legacy_fallback_is_disabled_by_default(self):
+        self.assertFalse(settings.LEGACY_TABLE_FALLBACK_ENABLED)
 
     def _add_indicator(
         self,
@@ -193,6 +197,25 @@ class ObservationApiTests(unittest.TestCase):
         self.assertEqual(body["indicator_key"], "USDKRW")
         self.assertEqual(len(body["data"]), 2)
         self.assertEqual(body["data"][-1]["value"], 1381.5)
+
+    def test_history_api_gracefully_handles_unknown_series(self):
+        response = self.client.get("/api/indicators/history/UNKNOWN_SERIES?period=1y")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["indicator_key"], "UNKNOWN_SERIES")
+        self.assertEqual(body["data"], [])
+
+    def test_history_api_handles_indicator_without_observations(self):
+        self._add_indicator(code="SOFR", name="SOFR", category="rates", unit="%")
+        self.db.commit()
+
+        response = self.client.get("/api/indicators/history/SOFR?period=1y")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["indicator_key"], "SOFR")
+        self.assertEqual(body["data"], [])
 
     def _add_indicator(
         self,

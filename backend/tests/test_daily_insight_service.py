@@ -19,6 +19,7 @@ from app.core.database import Base, get_db
 from app.main import app
 from app.models.indicators import DailyInsight, Indicator, Observation
 from app.services.daily_insight_service import build_ai_context_from_observations, ensure_daily_insight
+from app.workers.celery_app import task_ensure_daily_insight
 
 
 async def _fake_cache_get(_key: str):
@@ -228,6 +229,22 @@ class DailyInsightApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         mocked_ensure.assert_called_once_with(self.db, as_of_date="2026-06-09", force=True)
         self.assertEqual(response.json()["body"], "forced summary")
+
+    def test_celery_ensure_task_returns_json_safe_payload(self):
+        with patch(
+            "app.workers.celery_app._with_db",
+            return_value=DailyInsight(
+                as_of_date=date(2026, 6, 9),
+                model="gpt-test",
+                summary="queued summary",
+                status="success",
+            ),
+        ):
+            payload = task_ensure_daily_insight()
+
+        self.assertIsInstance(payload, dict)
+        self.assertEqual(payload["status"], "success")
+        self.assertEqual(payload["as_of_date"], "2026-06-09")
 
 
 def _fake_payload(summary: str = "generated insight") -> dict:

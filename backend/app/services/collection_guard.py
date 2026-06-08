@@ -2,31 +2,20 @@ from __future__ import annotations
 
 import logging
 import threading
+import uuid
 import zlib
 from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
 from typing import Any, Callable
 
+import redis
 from sqlalchemy import desc, text
 from sqlalchemy.orm import Session
 
+from ..core.config import settings
 from ..models.indicators import CollectionRun
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_MIN_INTERVALS = {
-    "fred_rates": 1440,
-    "fred_macro": 1440,
-    "credit_spreads": 1440,
-    "fx_rates": 360,
-    "equity_us_global": 720,
-    "equity_asia": 720,
-    "sector_performance": 720,
-    "fedwatch": 720,
-    "news": 360,
-    "fomc_calendar": 10080,
-    "snapshot_compute": 180,
-}
 
 _LOCAL_LOCK = threading.Lock()
 _LOCKED_JOB_KEYS: set[str] = set()
@@ -38,6 +27,13 @@ def should_run(
     min_interval_minutes: int,
     target_date=None,
 ) -> dict[str, Any]:
+    if not settings.COLLECTION_GUARD_ENABLED:
+        return {
+            "should_run": True,
+            "reason": None,
+            "target_date": _normalize_target_date(target_date),
+        }
+
     normalized_target_date = _normalize_target_date(target_date)
     latest_success = (
         db.query(CollectionRun)
@@ -123,6 +119,15 @@ def run_with_guard(
 ) -> dict[str, Any]:
     normalized_target_date = _normalize_target_date(target_date) or _utcnow_naive().date()
 
+    if not settings.COLLECTION_GUARD_ENABLED:
+        try:
+            result = fn(db)
+            counts = _normalize_counts(result if isinstance(result, dict) else None)
+            return _result_payload(job_key, "success", counts=counts)
+        except Exception as exc:
+            logger.exception("Collection job failed without guard: %s", job_key)
+            return _result_payload(job_key, "failed", reason=str(exc))
+
     with _job_lock(db, job_key) as lock_info:
         if not lock_info["acquired"]:
             _record_skipped_run(
@@ -172,12 +177,37 @@ def run_with_guard(
 
 
 def get_default_min_interval(job_key: str) -> int:
-    return DEFAULT_MIN_INTERVALS[job_key]
+    mapping = {
+        "fred_rates": settings.FRED_MIN_INTERVAL_MINUTES,
+        "fred_macro": settings.FRED_MIN_INTERVAL_MINUTES,
+        "credit_spreads": settings.FRED_MIN_INTERVAL_MINUTES,
+        "fx_rates": settings.FX_MIN_INTERVAL_MINUTES,
+        "equity_us_global": settings.EQUITY_MIN_INTERVAL_MINUTES,
+        "equity_asia": settings.EQUITY_MIN_INTERVAL_MINUTES,
+        "sector_performance": settings.EQUITY_MIN_INTERVAL_MINUTES,
+        "fedwatch": settings.FEDWATCH_MIN_INTERVAL_MINUTES,
+        "news": settings.NEWS_MIN_INTERVAL_MINUTES,
+        "fomc_calendar": settings.FOMC_MIN_INTERVAL_MINUTES,
+        "snapshot_compute": settings.SNAPSHOT_MIN_INTERVAL_MINUTES,
+    }
+    return mapping[job_key]
 
 
 @contextmanager
 def _job_lock(db: Session, job_key: str):
-    if db.get_bind().dialect.name == "postgresql":
+    if settings.COLLECTION_LOCK_BACKEND == "redis":
+        lock_key = f"collection_guard:{job_key}"
+        token = str(uuid.uuid4())
+        client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+        acquired = bool(client.set(lock_key, token, nx=True, ex=600))
+        try:
+            yield {"acquired": acquired, "lock_id": lock_key}
+        finally:
+            if acquired and client.get(lock_key) == token:
+                client.delete(lock_key)
+        return
+
+    if settings.COLLECTION_LOCK_BACKEND == "postgres" and db.get_bind().dialect.name == "postgresql":
         lock_id = int(zlib.crc32(job_key.encode("utf-8")))
         acquired = bool(
             db.execute(text("SELECT pg_try_advisory_lock(:lock_id)"), {"lock_id": lock_id}).scalar()

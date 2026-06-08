@@ -13,11 +13,39 @@ from ..services.collection_orchestrator import (
     run_noon_batch,
     run_weekly_batch,
 )
-from ..services.daily_insight_service import ensure_daily_insight
+from ..services.daily_insight_service import daily_insight_to_summary_response, ensure_daily_insight
 from .sentiment_worker import run_daily_sentiment_pipeline
 
 logger = logging.getLogger(__name__)
 celery = Celery("macro", broker=settings.REDIS_URL, backend=settings.REDIS_URL)
+
+beat_schedule = {
+    "cleanup-retention-data": {
+        "task": "app.workers.celery_app.task_cleanup_retention",
+        "schedule": crontab(hour=3, minute=5),
+    },
+}
+
+if settings.MORNING_BATCH_ENABLED:
+    beat_schedule["morning-batch"] = {
+        "task": "app.workers.celery_app.task_run_morning_batch",
+        "schedule": crontab(hour=7, minute=30),
+    }
+if settings.NOON_BATCH_ENABLED:
+    beat_schedule["noon-batch"] = {
+        "task": "app.workers.celery_app.task_run_noon_batch",
+        "schedule": crontab(hour=12, minute=30),
+    }
+if settings.EVENING_BATCH_ENABLED:
+    beat_schedule["evening-batch"] = {
+        "task": "app.workers.celery_app.task_run_evening_batch",
+        "schedule": crontab(hour=18, minute=30),
+    }
+if settings.WEEKLY_BATCH_ENABLED:
+    beat_schedule["weekly-batch"] = {
+        "task": "app.workers.celery_app.task_run_weekly_batch",
+        "schedule": crontab(day_of_week=1, hour=8, minute=0),
+    }
 
 celery.conf.update(
     task_serializer="json",
@@ -27,28 +55,7 @@ celery.conf.update(
     enable_utc=True,
     # Celery beat interprets these crontab values in `timezone` above, not raw UTC.
     # That lets us express schedules directly in KST while keeping enable_utc on.
-    beat_schedule={
-        "morning-batch": {
-            "task": "app.workers.celery_app.task_run_morning_batch",
-            "schedule": crontab(hour=7, minute=30),
-        },
-        "noon-batch": {
-            "task": "app.workers.celery_app.task_run_noon_batch",
-            "schedule": crontab(hour=12, minute=30),
-        },
-        "evening-batch": {
-            "task": "app.workers.celery_app.task_run_evening_batch",
-            "schedule": crontab(hour=18, minute=30),
-        },
-        "weekly-batch": {
-            "task": "app.workers.celery_app.task_run_weekly_batch",
-            "schedule": crontab(day_of_week=1, hour=8, minute=0),
-        },
-        "cleanup-retention-data": {
-            "task": "app.workers.celery_app.task_cleanup_retention",
-            "schedule": crontab(hour=3, minute=5),
-        },
-    },
+    beat_schedule=beat_schedule,
 )
 
 
@@ -58,6 +65,16 @@ def _with_db(fn, *args, **kwargs):
         return fn(db, *args, **kwargs)
     finally:
         db.close()
+
+
+def _serialize_task_result(result):
+    if isinstance(result, dict):
+        return result
+    if hasattr(result, "as_of_date") and hasattr(result, "status"):
+        payload = daily_insight_to_summary_response(result)
+        payload["as_of_date"] = result.as_of_date.isoformat()
+        return payload
+    return result
 
 
 @celery.task(name="app.workers.celery_app.task_run_morning_batch")
@@ -138,12 +155,12 @@ def task_compute_snapshots():
 
 @celery.task(name="app.workers.celery_app.task_ai_summary")
 def task_ai_summary():
-    return _with_db(ensure_daily_insight, force=False)
+    return _serialize_task_result(_with_db(ensure_daily_insight, force=False))
 
 
 @celery.task(name="app.workers.celery_app.task_ensure_daily_insight")
 def task_ensure_daily_insight():
-    return _with_db(ensure_daily_insight, force=False)
+    return _serialize_task_result(_with_db(ensure_daily_insight, force=False))
 
 
 @celery.task(name="app.workers.celery_app.task_sentiment_pipeline")

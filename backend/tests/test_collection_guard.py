@@ -14,7 +14,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.core.database import Base
 from app.models.indicators import CollectionRun
-from app.services.collection_guard import run_with_guard, should_run
+from app.services.collection_guard import get_default_min_interval, run_with_guard, should_run
 
 
 class CollectionGuardTests(unittest.TestCase):
@@ -112,6 +112,41 @@ class CollectionGuardTests(unittest.TestCase):
         runs = self.db.query(CollectionRun).filter(CollectionRun.job_key == "snapshot_compute").all()
         self.assertEqual(len(runs), 1)
         self.assertEqual(runs[0].status, "skipped")
+
+    def test_success_and_failure_runs_are_recorded(self):
+        success = run_with_guard(
+            self.db,
+            job_key="news",
+            provider="news",
+            min_interval_minutes=360,
+            fn=lambda db: {"fetched_count": 3, "inserted_count": 2, "updated_count": 1},
+        )
+        failed = run_with_guard(
+            self.db,
+            job_key="fedwatch",
+            provider="cme",
+            min_interval_minutes=720,
+            fn=lambda db: (_ for _ in ()).throw(RuntimeError("failure")),
+        )
+
+        self.assertEqual(success["status"], "success")
+        self.assertEqual(failed["status"], "failed")
+        rows = self.db.query(CollectionRun).order_by(CollectionRun.id.asc()).all()
+        self.assertEqual(rows[0].status, "success")
+        self.assertEqual(rows[0].inserted_count, 2)
+        self.assertEqual(rows[1].status, "failed")
+
+    def test_default_min_intervals_match_operating_policy(self):
+        self.assertEqual(get_default_min_interval("fred_rates"), 1440)
+        self.assertEqual(get_default_min_interval("fred_macro"), 1440)
+        self.assertEqual(get_default_min_interval("credit_spreads"), 1440)
+        self.assertEqual(get_default_min_interval("fx_rates"), 360)
+        self.assertEqual(get_default_min_interval("equity_us_global"), 720)
+        self.assertEqual(get_default_min_interval("sector_performance"), 720)
+        self.assertEqual(get_default_min_interval("fedwatch"), 720)
+        self.assertEqual(get_default_min_interval("news"), 360)
+        self.assertEqual(get_default_min_interval("fomc_calendar"), 10080)
+        self.assertEqual(get_default_min_interval("snapshot_compute"), 180)
 
 
 if __name__ == "__main__":
