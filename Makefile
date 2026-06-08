@@ -12,6 +12,7 @@ help:
 	@echo "  make build       Docker 이미지 빌드"
 	@echo "  make logs        전체 로그 출력"
 	@echo "  make collect     데이터 수집 즉시 실행"
+	@echo "  make collect-fed  FED 데이터 수집 즉시 실행"
 	@echo "  make shell       백엔드 컨테이너 쉘 접속"
 	@echo "  make shell-db    PostgreSQL 접속"
 	@echo ""
@@ -67,6 +68,13 @@ collect: check-docker check-env
 	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_fx
 	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_news
 	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_compute_snapshots
+	@echo ">>> 수집 완료"
+
+collect-fed: check-docker check-env
+	@echo ">>> 데이터 즉시 수집 실행..."
+	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_fomc
+	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_fedwatch
+	$(COMPOSE) exec worker celery -A app.workers.celery_app.celery call app.workers.celery_app.task_collect_news
 	@echo ">>> 수집 완료"
 
 shell: check-docker
