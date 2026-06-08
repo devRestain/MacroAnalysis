@@ -4,9 +4,9 @@ import httpx
 from datetime import datetime
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
 from ..core.upsert import upsert_rows
-from ..models.indicators import FomcEvent, FedWatch, InterestRate
+from ..models.indicators import FomcEvent, FedWatch
+from ..services.observation_query_service import get_latest_observations
 from .fomc_utils import estimate_policy_probs, parse_meeting_date, parse_price
 
 logger = logging.getLogger(__name__)
@@ -98,15 +98,13 @@ def collect_fedwatch(db: Session):
                 return
             implied_rate = 100 - price
 
-            current_rate_row = db.query(InterestRate).filter(
-                InterestRate.series_key == "DFF"
-            ).order_by(desc(InterestRate.date)).first()
-            if not current_rate_row or current_rate_row.value is None:
+            current_rate = get_latest_observations(db, ["DFF"])[0]
+            if current_rate["latest_value"] is None:
                 logger.warning("No DFF rate available for FedWatch estimate, skipping")
                 return
 
             prob_cut, prob_hold, prob_hike = estimate_policy_probs(
-                current_rate=float(current_rate_row.value),
+                current_rate=float(current_rate["latest_value"]),
                 implied_rate=implied_rate,
             )
 

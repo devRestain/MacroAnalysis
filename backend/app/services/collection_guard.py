@@ -1,0 +1,280 @@
+from __future__ import annotations
+
+import logging
+import threading
+import zlib
+from contextlib import contextmanager
+from datetime import UTC, date, datetime, timedelta
+from typing import Any, Callable
+
+from sqlalchemy import desc, text
+from sqlalchemy.orm import Session
+
+from ..models.indicators import CollectionRun
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_MIN_INTERVALS = {
+    "fred_rates": 1440,
+    "fred_macro": 1440,
+    "credit_spreads": 1440,
+    "fx_rates": 360,
+    "equity_us_global": 720,
+    "equity_asia": 720,
+    "sector_performance": 720,
+    "fedwatch": 720,
+    "news": 360,
+    "fomc_calendar": 10080,
+    "snapshot_compute": 180,
+}
+
+_LOCAL_LOCK = threading.Lock()
+_LOCKED_JOB_KEYS: set[str] = set()
+
+
+def should_run(
+    db: Session,
+    job_key: str,
+    min_interval_minutes: int,
+    target_date=None,
+) -> dict[str, Any]:
+    normalized_target_date = _normalize_target_date(target_date)
+    latest_success = (
+        db.query(CollectionRun)
+        .filter(
+            CollectionRun.job_key == job_key,
+            CollectionRun.status == "success",
+        )
+        .order_by(desc(CollectionRun.finished_at), desc(CollectionRun.id))
+        .first()
+    )
+
+    if latest_success and latest_success.finished_at:
+        cutoff = _utcnow_naive() - timedelta(minutes=min_interval_minutes)
+        if latest_success.finished_at >= cutoff:
+            return {
+                "should_run": False,
+                "reason": "min_interval_not_elapsed",
+                "target_date": normalized_target_date,
+            }
+
+    return {
+        "should_run": True,
+        "reason": None,
+        "target_date": normalized_target_date,
+    }
+
+
+def start_run(
+    db: Session,
+    job_key: str,
+    provider: str,
+    target_date,
+    min_interval_minutes: int,
+) -> CollectionRun:
+    run = CollectionRun(
+        job_key=job_key,
+        provider=provider,
+        target_date=_normalize_target_date(target_date),
+        status="running",
+        started_at=_utcnow_naive(),
+        min_interval_minutes=min_interval_minutes,
+        fetched_count=0,
+        inserted_count=0,
+        updated_count=0,
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
+    return run
+
+
+def finish_run(
+    db: Session,
+    run_id: int,
+    status: str,
+    counts: dict[str, int] | None = None,
+    error_message: str | None = None,
+) -> CollectionRun:
+    run = db.query(CollectionRun).filter(CollectionRun.id == run_id).first()
+    if run is None:
+        raise ValueError(f"CollectionRun {run_id} not found")
+
+    count_values = _normalize_counts(counts)
+    run.status = status
+    run.finished_at = _utcnow_naive()
+    run.fetched_count = count_values["fetched_count"]
+    run.inserted_count = count_values["inserted_count"]
+    run.updated_count = count_values["updated_count"]
+    run.error_message = error_message
+    db.commit()
+    db.refresh(run)
+    return run
+
+
+def run_with_guard(
+    db: Session,
+    job_key: str,
+    provider: str,
+    min_interval_minutes: int,
+    fn: Callable[[Session], Any],
+    *,
+    target_date=None,
+) -> dict[str, Any]:
+    normalized_target_date = _normalize_target_date(target_date) or _utcnow_naive().date()
+
+    with _job_lock(db, job_key) as lock_info:
+        if not lock_info["acquired"]:
+            _record_skipped_run(
+                db,
+                job_key=job_key,
+                provider=provider,
+                target_date=normalized_target_date,
+                min_interval_minutes=min_interval_minutes,
+                reason="lock_not_acquired",
+            )
+            return _result_payload(job_key, "skipped", reason="lock_not_acquired")
+
+        decision = should_run(
+            db,
+            job_key=job_key,
+            min_interval_minutes=min_interval_minutes,
+            target_date=normalized_target_date,
+        )
+        if not decision["should_run"]:
+            _record_skipped_run(
+                db,
+                job_key=job_key,
+                provider=provider,
+                target_date=normalized_target_date,
+                min_interval_minutes=min_interval_minutes,
+                reason=decision["reason"],
+            )
+            return _result_payload(job_key, "skipped", reason=decision["reason"])
+
+        run = start_run(
+            db,
+            job_key=job_key,
+            provider=provider,
+            target_date=normalized_target_date,
+            min_interval_minutes=min_interval_minutes,
+        )
+        try:
+            result = fn(db)
+            counts = _normalize_counts(result if isinstance(result, dict) else None)
+            finish_run(db, run.id, "success", counts=counts)
+            return _result_payload(job_key, "success", counts=counts)
+        except Exception as exc:
+            logger.exception("Collection job failed: %s", job_key)
+            db.rollback()
+            finish_run(db, run.id, "failed", error_message=str(exc))
+            return _result_payload(job_key, "failed", reason=str(exc))
+
+
+def get_default_min_interval(job_key: str) -> int:
+    return DEFAULT_MIN_INTERVALS[job_key]
+
+
+@contextmanager
+def _job_lock(db: Session, job_key: str):
+    if db.get_bind().dialect.name == "postgresql":
+        lock_id = int(zlib.crc32(job_key.encode("utf-8")))
+        acquired = bool(
+            db.execute(text("SELECT pg_try_advisory_lock(:lock_id)"), {"lock_id": lock_id}).scalar()
+        )
+        try:
+            yield {"acquired": acquired, "lock_id": lock_id}
+        finally:
+            if acquired:
+                db.execute(text("SELECT pg_advisory_unlock(:lock_id)"), {"lock_id": lock_id})
+                db.commit()
+        return
+
+    acquired = False
+    with _LOCAL_LOCK:
+        if job_key not in _LOCKED_JOB_KEYS:
+            _LOCKED_JOB_KEYS.add(job_key)
+            acquired = True
+    try:
+        yield {"acquired": acquired, "lock_id": None}
+    finally:
+        if acquired:
+            with _LOCAL_LOCK:
+                _LOCKED_JOB_KEYS.discard(job_key)
+
+
+def _record_skipped_run(
+    db: Session,
+    *,
+    job_key: str,
+    provider: str,
+    target_date: date | None,
+    min_interval_minutes: int,
+    reason: str,
+) -> None:
+    now = _utcnow_naive()
+    db.add(
+        CollectionRun(
+            job_key=job_key,
+            provider=provider,
+            target_date=target_date,
+            status="skipped",
+            started_at=now,
+            finished_at=now,
+            min_interval_minutes=min_interval_minutes,
+            fetched_count=0,
+            inserted_count=0,
+            updated_count=0,
+            error_message=reason,
+        )
+    )
+    db.commit()
+
+
+def _result_payload(
+    job_key: str,
+    status: str,
+    *,
+    counts: dict[str, int] | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    payload = {
+        "job_key": job_key,
+        "status": status,
+        "fetched_count": 0,
+        "inserted_count": 0,
+        "updated_count": 0,
+    }
+    count_values = _normalize_counts(counts)
+    payload.update(count_values)
+    if reason:
+        payload["reason"] = reason
+    return payload
+
+
+def _normalize_counts(counts: dict[str, Any] | None) -> dict[str, int]:
+    counts = counts or {}
+    return {
+        "fetched_count": int(counts.get("fetched_count", 0) or 0),
+        "inserted_count": int(counts.get("inserted_count", 0) or 0),
+        "updated_count": int(counts.get("updated_count", 0) or 0),
+    }
+
+
+def _normalize_target_date(value) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            return None
+    return None
+
+
+def _utcnow_naive() -> datetime:
+    return datetime.now(UTC).replace(tzinfo=None, microsecond=0)

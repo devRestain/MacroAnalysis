@@ -67,7 +67,7 @@ MacroAnalysis/
 2. `backend`가 시작되면서 `init_db()`로 SQLAlchemy 모델 테이블을 자동 생성합니다.
 3. `frontend`는 nginx가 정적 파일을 서빙하고 `/api/*`를 `backend:8000`으로 프록시합니다.
 4. `worker`와 `beat`는 Celery 스케줄에 따라 수집기와 후처리 태스크를 실행합니다.
-5. 초기 데이터는 비어 있으므로, 실제 화면 데이터를 보려면 `make collect` 또는 개별 Celery 호출이 필요합니다.
+5. 초기 데이터는 비어 있으므로, 실제 화면 데이터를 보려면 `make collect` 또는 batched 수동 명령 실행이 필요합니다.
 
 ## 중복되거나 미완성인 코드
 
@@ -108,6 +108,7 @@ RAW_RESPONSE_RETENTION_DAYS=30
 DEBUG_LOG_RETENTION_DAYS=30
 SCHEDULER_LOG_RETENTION_DAYS=30
 ENABLE_RAW_RESPONSE_STORAGE=false
+LEGACY_TABLE_FALLBACK_ENABLED=false
 APP_ENV=production
 FRONTEND_PORT=8080
 ```
@@ -143,23 +144,57 @@ make collect
 make doctor   # Docker/Colima 상태 점검
 make up       # compose up -d
 make logs     # 전체 로그
-make collect  # 수집 즉시 실행
+make collect  # morning -> noon -> evening batch 순차 실행
+make collect-weekly
 make down     # 종료
 ```
 
+## 수집 운영 정책
+
+- 기본 운영 단위는 개별 collector가 아니라 `morning / noon / evening / weekly` batch입니다.
+- 실시간성보다 유지보수성과 provider 호출량 절감을 우선합니다.
+- provider 호출 여부는 beat schedule이 아니라 `collection_runs` 기반 guard가 최종 결정합니다.
+- 개별 collector task는 디버깅/수동 실행 용도로 남아 있지만, 기본 운영 schedule에는 사용하지 않습니다.
+- 같은 job은 최근 `success` run이 최소 간격 안에 있으면 `skipped` 처리됩니다.
+- worker 재시작, 수동 실행, 중복 beat 상황에서도 동일 `job_key`는 advisory lock 또는 local lock으로 중복 실행을 피합니다.
+
 ## 수집 스케줄 (KST)
 
-| 데이터 | 시각 |
+| Batch | 시각 | 포함 작업 |
 |---|---|
-| 미국 증시 / 섹터 / 스냅샷 | 매일 07:00 전후 |
-| 환율 | 매일 09:00 |
-| FRED 거시 지표 | 매일 06:00 |
-| FedWatch 확률 | 매일 08:00 |
-| 뉴스 | 매 시간 |
-| AI 요약 | 매일 06:30 |
-| FOMC 캘린더 | 매주 월요일 |
+| Morning batch | 매일 07:30 | 전일 미국장/글로벌 데이터, FRED rates/macro/credit, sector, FedWatch, FX, news, snapshot, daily insight trigger hook |
+| Noon batch | 매일 12:30 | news, FX, snapshot |
+| Evening batch | 매일 18:30 | KR/Asia market data, FX, news, snapshot |
+| Weekly batch | 매주 월요일 08:00 | FOMC calendar, event/maintenance hook |
+| Cleanup schedule | 매일 03:05 | retention cleanup |
 
 > FedWatch 확률은 공식 CME 상세 확률표가 아니라 공개 Fed Funds futures 가격과 최신 DFF 기준의 추정값입니다.
+
+Celery 설정 메모:
+
+- `timezone="Asia/Seoul"`을 유지합니다.
+- `enable_utc=True`여도 beat의 `crontab(...)` 시간은 위 timezone 기준으로 해석되도록 설정했습니다.
+
+## Provider Guard
+
+`collection_runs` 테이블과 collection guard가 provider 호출을 제한합니다.
+
+기본 최소 간격:
+
+- FRED rates/macro/credit: `1440`분
+- FX: `360`분
+- equity/sector: `720`분
+- FedWatch: `720`분
+- news: `360`분
+- FOMC calendar: `10080`분
+- snapshot compute: `180`분
+
+동작 방식:
+
+- 최근 `success` run이 최소 간격 안에 있으면 provider 호출 없이 `skipped` 처리합니다.
+- `failed` run만 있는 경우에는 재실행을 허용합니다.
+- lock 획득에 실패하면 `failed`가 아니라 `skipped`로 기록합니다.
+- 수동 실행과 batch 연속 실행(`make collect-all-batched`)에서도 guard가 중복 호출을 막습니다.
 
 ## Observation 저장 정책
 
@@ -167,6 +202,20 @@ make down     # 종료
 - 같은 지표와 같은 날짜 데이터를 다시 수집하면 새 row를 추가하지 않고 기존 row를 `upsert`로 갱신합니다.
 - 따라서 revision이나 장중 재수집으로 값이 바뀌면 기존 row의 값이 최신 수집 결과로 업데이트됩니다.
 - 중복 row 정리와 upsert는 적용되어 있으며, retention/cleanup은 비시계열 파생 데이터에만 제한적으로 적용됩니다.
+
+## 수동 수집 명령
+
+```bash
+make collect-morning
+make collect-noon
+make collect-evening
+make collect-weekly
+make collect-all-batched
+```
+
+- `make collect`: `morning -> noon -> evening` batch를 순차 실행합니다.
+- `make collect-weekly`: FOMC calendar와 주간 maintenance hook만 실행합니다.
+- 개별 batch를 연속 실행해도 guard가 같은 provider를 과도하게 재호출하지 않도록 설계되어 있습니다.
 
 ## DB Retention
 

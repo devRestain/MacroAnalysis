@@ -1,3 +1,3 @@
-from .indicators import Indicator, Observation, Signal
+from .indicators import CollectionRun, Indicator, Observation, Signal
 
-__all__ = ["Indicator", "Observation", "Signal"]
+__all__ = ["CollectionRun", "Indicator", "Observation", "Signal"]

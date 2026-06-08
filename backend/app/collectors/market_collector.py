@@ -39,8 +39,10 @@ SECTOR_TICKERS = {
 }
 
 
-def collect_equity_indices(db: Session):
-    for ticker, name in EQUITY_TICKERS.items():
+def collect_equity_indices(db: Session, tickers: list[str] | None = None):
+    selected_tickers = tickers or list(EQUITY_TICKERS.keys())
+    for ticker in selected_tickers:
+        name = EQUITY_TICKERS.get(ticker, ticker)
         try:
             hist = yf.Ticker(ticker).history(period="2d")
             if len(hist) < 1:
