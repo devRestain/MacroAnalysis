@@ -1,0 +1,149 @@
+"""yfinance collector — equity indices, sectors, commodities."""
+import logging
+from datetime import datetime, timedelta
+import yfinance as yf
+from sqlalchemy.orm import Session
+from ..models.indicators import EquityIndex, SectorPerformance, RealEconomyIndicator
+
+logger = logging.getLogger(__name__)
+
+EQUITY_TICKERS = {
+    "^GSPC": "S&P 500",
+    "^IXIC": "NASDAQ",
+    "^KS11": "KOSPI",
+    "^N225": "Nikkei 225",
+    "^GDAXI": "DAX",
+    "^SSEC": "Shanghai",
+    "^VIX": "VIX",
+    "^TNX": "10Y Yield (Market)",
+    "GC=F": "Gold",
+    "CL=F": "WTI Crude",
+    "BZ=F": "Brent Crude",
+    "HG=F": "Copper",
+    "DX-Y.NYB": "DXY",
+}
+
+SECTOR_TICKERS = {
+    "XLK": "Technology",
+    "XLF": "Financials",
+    "XLE": "Energy",
+    "XLV": "Health Care",
+    "XLI": "Industrials",
+    "XLY": "Consumer Disc.",
+    "XLP": "Consumer Staples",
+    "XLU": "Utilities",
+    "XLB": "Materials",
+    "XLRE": "Real Estate",
+    "XLC": "Communication",
+}
+
+
+def collect_equity_indices(db: Session):
+    for ticker, name in EQUITY_TICKERS.items():
+        try:
+            hist = yf.Ticker(ticker).history(period="2d")
+            if len(hist) < 1:
+                continue
+            latest = hist.iloc[-1]
+            prev = hist.iloc[-2] if len(hist) >= 2 else None
+            close = float(latest["Close"])
+            date = latest.name.to_pydatetime().replace(tzinfo=None)
+            change_1d = float(latest["Close"] - prev["Close"]) if prev is not None else 0.0
+            change_1d_pct = (change_1d / float(prev["Close"]) * 100) if prev is not None else 0.0
+
+            exists = db.query(EquityIndex).filter(
+                EquityIndex.ticker == ticker,
+                EquityIndex.date == date
+            ).first()
+            if not exists:
+                db.add(EquityIndex(
+                    date=date,
+                    ticker=ticker,
+                    close=close,
+                    change_1d=change_1d,
+                    change_1d_pct=change_1d_pct,
+                ))
+            db.commit()
+            logger.info(f"Collected {ticker} ({name}): {close:.2f}")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to collect equity {ticker}: {e}")
+
+
+def collect_sectors(db: Session):
+    for ticker, name in SECTOR_TICKERS.items():
+        try:
+            hist = yf.Ticker(ticker).history(period="1y")
+            if len(hist) < 5:
+                continue
+            latest = hist.iloc[-1]
+            date = latest.name.to_pydatetime().replace(tzinfo=None)
+            close = float(latest["Close"])
+
+            def pct(days):
+                idx = max(0, len(hist) - 1 - days)
+                base = float(hist.iloc[idx]["Close"])
+                return (close - base) / base * 100 if base else 0.0
+
+            # YTD
+            ytd_start = datetime(date.year, 1, 1)
+            ytd_hist = hist[hist.index.tz_localize(None) >= ytd_start]
+            if len(ytd_hist) > 0:
+                ytd_base = float(ytd_hist.iloc[0]["Close"])
+                ytd_pct = (close - ytd_base) / ytd_base * 100
+            else:
+                ytd_pct = 0.0
+
+            exists = db.query(SectorPerformance).filter(
+                SectorPerformance.ticker == ticker,
+                SectorPerformance.date == date
+            ).first()
+            if not exists:
+                db.add(SectorPerformance(
+                    date=date,
+                    ticker=ticker,
+                    sector_name=name,
+                    close=close,
+                    change_1d_pct=pct(1),
+                    change_1m_pct=pct(21),
+                    change_3m_pct=pct(63),
+                    change_ytd_pct=ytd_pct,
+                ))
+            db.commit()
+            logger.info(f"Collected sector {ticker} ({name})")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to collect sector {ticker}: {e}")
+
+
+def collect_real_economy(db: Session):
+    """Copper/Gold ratio and WTI/Brent spread."""
+    try:
+        copper = yf.Ticker("HG=F").history(period="2d")
+        gold = yf.Ticker("GC=F").history(period="2d")
+        wti = yf.Ticker("CL=F").history(period="2d")
+        brent = yf.Ticker("BZ=F").history(period="2d")
+
+        if len(copper) >= 1 and len(gold) >= 1:
+            date = copper.iloc[-1].name.to_pydatetime().replace(tzinfo=None)
+            ratio = float(copper.iloc[-1]["Close"]) / float(gold.iloc[-1]["Close"])
+            _upsert_real(db, date, "COPPER_GOLD", ratio)
+
+        if len(wti) >= 1 and len(brent) >= 1:
+            date = wti.iloc[-1].name.to_pydatetime().replace(tzinfo=None)
+            spread = float(brent.iloc[-1]["Close"]) - float(wti.iloc[-1]["Close"])
+            _upsert_real(db, date, "WTI_BRENT_SPREAD", spread)
+
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to collect real economy: {e}")
+
+
+def _upsert_real(db: Session, date: datetime, key: str, value: float):
+    exists = db.query(RealEconomyIndicator).filter(
+        RealEconomyIndicator.series_key == key,
+        RealEconomyIndicator.date == date
+    ).first()
+    if not exists:
+        db.add(RealEconomyIndicator(date=date, series_key=key, value=value))
