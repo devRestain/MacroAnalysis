@@ -8,8 +8,14 @@ from sqlalchemy import desc
 from ..core.database import get_db
 from ..core.cache import cache_get, cache_set
 from ..models.indicators import (
-    ChangeSnapshot, NewsItem, AiSummary, FomcEvent, FedWatch,
+    ChangeSnapshot, NewsItem, DailyInsight, FomcEvent, FedWatch,
     SentimentSignal, Expectation, DivergenceEvent, DivergenceReport,
+)
+from ..services.daily_insight_service import (
+    daily_insight_to_summary_response,
+    ensure_daily_insight,
+    get_existing_daily_insight,
+    get_today_kst,
 )
 from ..services.observation_query_service import (
     adapt_history_to_chart_response,
@@ -17,6 +23,7 @@ from ..services.observation_query_service import (
     get_observation_history,
 )
 from ..workers.ai_worker import chat_with_context
+from ..workers.celery_app import celery
 from ..core.config import settings
 
 router = APIRouter(prefix="/api")
@@ -30,6 +37,8 @@ async def get_summary(db: Session = Depends(get_db)):
     """Home dashboard — all critical data in one shot."""
     cached = await cache_get("summary:v1")
     if cached:
+        if cached.get("ai_as_of_date") != get_today_kst().isoformat():
+            _enqueue_daily_insight_if_missing()
         return cached
 
     today = datetime.now()
@@ -62,8 +71,15 @@ async def get_summary(db: Session = Depends(get_db)):
             FedWatch.meeting_date == next_fomc.meeting_date
         ).order_by(desc(FedWatch.date)).first()
 
-    # Latest AI summary headline
-    ai_sum = db.query(AiSummary).order_by(desc(AiSummary.summary_date)).first()
+    today_kst = get_today_kst()
+    ai_today = get_existing_daily_insight(db, today_kst)
+    ai_sum = (
+        ai_today
+        if ai_today and ai_today.status == "success"
+        else db.query(DailyInsight).filter(DailyInsight.status == "success").order_by(desc(DailyInsight.as_of_date)).first()
+    )
+    if ai_today is None or ai_today.status != "success":
+        _enqueue_daily_insight_if_missing()
 
     # Recent news (top 5)
     news = db.query(NewsItem).order_by(desc(NewsItem.published_at)).limit(5).all()
@@ -84,7 +100,8 @@ async def get_summary(db: Session = Depends(get_db)):
             "prob_hike": latest_fw.prob_hike if latest_fw else None,
             "prob_method": "fed_funds_futures_estimate" if latest_fw else None,
         },
-        "ai_headline": ai_sum.headline if ai_sum else None,
+        "ai_headline": _daily_insight_headline(ai_sum) if ai_sum else None,
+        "ai_as_of_date": ai_sum.as_of_date.isoformat() if ai_sum else None,
         "news_preview": [_news_to_dict(n) for n in news],
     }
 
@@ -193,15 +210,43 @@ async def get_fomc(db: Session = Depends(get_db)):
 
 @router.get("/ai/summary")
 async def get_ai_summary(db: Session = Depends(get_db)):
-    ai = db.query(AiSummary).order_by(desc(AiSummary.summary_date)).first()
+    today_kst = get_today_kst()
+    ai = get_existing_daily_insight(db, today_kst)
+    if ai and ai.status == "success":
+        return daily_insight_to_summary_response(ai)
+
+    latest_success = (
+        db.query(DailyInsight)
+        .filter(DailyInsight.status == "success")
+        .order_by(desc(DailyInsight.as_of_date))
+        .first()
+    )
+    if latest_success:
+        _enqueue_daily_insight_if_missing()
+        return daily_insight_to_summary_response(latest_success)
+
+    _enqueue_daily_insight_if_missing()
+    ai = get_existing_daily_insight(db, today_kst)
     if not ai:
         raise HTTPException(status_code=404, detail="No AI summary available yet")
-    return {
-        "date": str(ai.summary_date),
-        "headline": ai.headline,
-        "body": ai.body,
-        "model": ai.model_used,
-    }
+    return daily_insight_to_summary_response(ai)
+
+
+@router.post("/ai/summary/ensure")
+async def ensure_ai_summary(
+    force: bool = Query(False),
+    as_of_date: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    try:
+        result = ensure_daily_insight(db, as_of_date=as_of_date, force=force)
+    except Exception as exc:
+        logger.error("Daily insight ensure failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Daily insight ensure failed")
+
+    if isinstance(result, dict):
+        return result
+    return daily_insight_to_summary_response(result)
 
 
 # ─── /api/ai/chat ────────────────────────────────────────────────────────────
@@ -252,6 +297,19 @@ def _news_to_dict(n: NewsItem) -> dict:
         "category": n.category,
         "published_at": str(n.published_at) if n.published_at else None,
     }
+
+
+def _daily_insight_headline(insight: DailyInsight | None) -> str | None:
+    if not insight or not insight.summary:
+        return None
+    return insight.summary.splitlines()[0].strip()[:200]
+
+
+def _enqueue_daily_insight_if_missing() -> None:
+    try:
+        celery.send_task("app.workers.celery_app.task_ensure_daily_insight")
+    except Exception as exc:
+        logger.warning("Failed to enqueue daily insight ensure task: %s", exc)
 
 
 # ─── /api/divergence ──────────────────────────────────────────────────────────

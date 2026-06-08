@@ -13,6 +13,7 @@ from ..collectors.fx_collector import collect_exchange_rates
 from ..collectors.market_collector import collect_equity_indices, collect_real_economy, collect_sectors
 from ..collectors.news_collector import collect_fed_rss, collect_finnhub_news
 from ..core.config import settings
+from .daily_insight_service import get_existing_daily_insight, get_today_kst
 from .collection_guard import get_default_min_interval, run_with_guard
 from ..workers.snapshot_worker import compute_snapshots
 
@@ -36,7 +37,7 @@ def run_morning_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
-        _placeholder_job("daily_insight_trigger", "pending_request_3"),
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False),
     ]
     return _run_batch(db, "morning", jobs)
 
@@ -46,6 +47,7 @@ def run_noon_batch(db: Session) -> dict[str, Any]:
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False),
     ]
     return _run_batch(db, "noon", jobs)
 
@@ -60,6 +62,7 @@ def run_evening_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False),
     ]
     return _run_batch(db, "evening", jobs)
 
@@ -110,6 +113,18 @@ def _execute_job(db: Session, job: dict[str, Any]) -> dict[str, Any]:
             min_interval_minutes=job["min_interval_minutes"],
             fn=job["fn"],
         )
+    elif job["type"] == "callable":
+        try:
+            result = job["fn"](db)
+        except Exception as exc:
+            result = {
+                "job_key": job["job_key"],
+                "status": "failed",
+                "reason": str(exc),
+                "fetched_count": 0,
+                "inserted_count": 0,
+                "updated_count": 0,
+            }
     elif job["type"] == "placeholder":
         result = {
             "job_key": job["job_key"],
@@ -151,6 +166,15 @@ def _placeholder_job(job_key: str, reason: str) -> dict[str, Any]:
     }
 
 
+def _callable_job(job_key: str, fn: Callable[[Session], Any], *, invalidate_cache: bool = False) -> dict[str, Any]:
+    return {
+        "type": "callable",
+        "job_key": job_key,
+        "fn": fn,
+        "invalidate_cache": invalidate_cache,
+    }
+
+
 def _maintenance_job(job_key: str) -> dict[str, Any]:
     return {
         "type": "maintenance",
@@ -167,6 +191,42 @@ def _collect_news_bundle(db: Session):
 def _collect_us_global_market_bundle(db: Session):
     collect_equity_indices(db)
     collect_real_economy(db)
+
+
+def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:
+    as_of_date = get_today_kst()
+    existing = get_existing_daily_insight(db, as_of_date)
+    if existing and existing.status == "success":
+        return {
+            "job_key": "daily_insight_enqueue",
+            "status": "skipped",
+            "reason": "already_succeeded_today",
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+        }
+
+    try:
+        from ..workers.celery_app import celery
+
+        celery.send_task("app.workers.celery_app.task_ensure_daily_insight")
+        return {
+            "job_key": "daily_insight_enqueue",
+            "status": "queued",
+            "reason": "missing_success_row",
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+        }
+    except Exception as exc:
+        return {
+            "job_key": "daily_insight_enqueue",
+            "status": "failed",
+            "reason": str(exc),
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+        }
 
 
 def _invalidate_dashboard_cache():

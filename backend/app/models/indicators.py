@@ -197,6 +197,28 @@ class AiSummary(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+class DailyInsight(Base):
+    __tablename__ = "daily_insights"
+
+    id = Column(Integer, primary_key=True)
+    as_of_date = Column(Date, nullable=False, unique=True)
+    model = Column(String(100))
+    summary = Column(Text)
+    key_points = Column(JSON)
+    risks = Column(JSON)
+    opportunities = Column(JSON)
+    source_observation_max_updated_at = Column(DateTime)
+    prompt_hash = Column(String(128))
+    status = Column(String(20), nullable=False, default="pending", server_default="pending")
+    error_message = Column(Text)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("ix_daily_insights_status_updated_at", "status", "updated_at"),
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Expectation-Divergence Pipeline (v2)
 # ═══════════════════════════════════════════════════════════════════════════════

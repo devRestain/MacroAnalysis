@@ -162,7 +162,7 @@ make down     # 종료
 
 | Batch | 시각 | 포함 작업 |
 |---|---|
-| Morning batch | 매일 07:30 | 전일 미국장/글로벌 데이터, FRED rates/macro/credit, sector, FedWatch, FX, news, snapshot, daily insight trigger hook |
+| Morning batch | 매일 07:30 | 전일 미국장/글로벌 데이터, FRED rates/macro/credit, sector, FedWatch, FX, news, snapshot, daily insight ensure |
 | Noon batch | 매일 12:30 | news, FX, snapshot |
 | Evening batch | 매일 18:30 | KR/Asia market data, FX, news, snapshot |
 | Weekly batch | 매주 월요일 08:00 | FOMC calendar, event/maintenance hook |
@@ -195,6 +195,14 @@ Celery 설정 메모:
 - `failed` run만 있는 경우에는 재실행을 허용합니다.
 - lock 획득에 실패하면 `failed`가 아니라 `skipped`로 기록합니다.
 - 수동 실행과 batch 연속 실행(`make collect-all-batched`)에서도 guard가 중복 호출을 막습니다.
+
+## Daily Insight Ensure
+
+- AI 시사점은 고정 시각 실행보다 `KST 날짜 기준 success row 존재 여부`를 우선합니다.
+- `daily_insights`에 당일 `success` row가 있으면 OpenAI를 다시 호출하지 않습니다.
+- 당일 row가 없으면 morning batch나 dashboard 접근 경로에서 ensure task를 트리거할 수 있습니다.
+- dashboard API는 OpenAI를 동기 호출하지 않고 Celery task enqueue만 수행합니다.
+- 실패 row가 있어도 다음 ensure 실행에서 재시도할 수 있습니다.
 
 ## Observation 저장 정책
 

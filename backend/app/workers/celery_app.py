@@ -13,7 +13,7 @@ from ..services.collection_orchestrator import (
     run_noon_batch,
     run_weekly_batch,
 )
-from .ai_worker import generate_daily_summary
+from ..services.daily_insight_service import ensure_daily_insight
 from .sentiment_worker import run_daily_sentiment_pipeline
 
 logger = logging.getLogger(__name__)
@@ -138,12 +138,12 @@ def task_compute_snapshots():
 
 @celery.task(name="app.workers.celery_app.task_ai_summary")
 def task_ai_summary():
-    db = SessionLocal()
-    try:
-        generate_daily_summary(db)
-        return {"status": "success", "job_key": "ai_summary"}
-    finally:
-        db.close()
+    return _with_db(ensure_daily_insight, force=False)
+
+
+@celery.task(name="app.workers.celery_app.task_ensure_daily_insight")
+def task_ensure_daily_insight():
+    return _with_db(ensure_daily_insight, force=False)
 
 
 @celery.task(name="app.workers.celery_app.task_sentiment_pipeline")

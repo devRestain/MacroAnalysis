@@ -14,6 +14,7 @@ from ..models.indicators import (
     AiSummary,
     ChangeSnapshot,
     CleanupRun,
+    DailyInsight,
     DivergenceEvent,
     DivergenceReport,
     InterestRate,
@@ -149,6 +150,13 @@ def run_cleanup(
                 db,
                 AiSummary,
                 AiSummary.created_at,
+                scheduler_cutoff,
+            )
+        if _table_exists(table_names, DailyInsight.__tablename__):
+            result["scheduler_logs_deleted"] += _delete_in_batches(
+                db,
+                DailyInsight,
+                DailyInsight.created_at,
                 scheduler_cutoff,
             )
         if _table_exists(table_names, CleanupRun.__tablename__):
