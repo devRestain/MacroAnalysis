@@ -24,4 +24,12 @@ def get_db():
 
 def init_db():
     """Create all tables on startup."""
-    Base.metadata.create_all(bind=engine)
+    with engine.begin() as conn:
+        if engine.dialect.name == "postgresql":
+            conn.execute(text("SELECT pg_advisory_lock(424242)"))
+            try:
+                Base.metadata.create_all(bind=conn)
+            finally:
+                conn.execute(text("SELECT pg_advisory_unlock(424242)"))
+        else:
+            Base.metadata.create_all(bind=conn)
