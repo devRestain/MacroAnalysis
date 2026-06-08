@@ -1,4 +1,18 @@
-from sqlalchemy import Column, String, Float, DateTime, Integer, Text, JSON, Index, Boolean
+from sqlalchemy import (
+    Column,
+    String,
+    Float,
+    Date,
+    DateTime,
+    Integer,
+    Text,
+    JSON,
+    Index,
+    Boolean,
+    ForeignKey,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from ..core.database import Base
 
@@ -261,4 +275,80 @@ class DivergenceReport(Base):
 
     __table_args__ = (
         Index("ix_dr_event_id", "event_id"),
+    )
+
+
+class Indicator(Base):
+    """Macro indicator metadata."""
+    __tablename__ = "indicators"
+
+    id = Column(Integer, primary_key=True)
+    code = Column(String(64), nullable=False, unique=True)   # CPIAUCSL, DFF, USDKRW
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    country = Column(String(64), nullable=False)
+    category = Column(String(64), nullable=False)
+    source = Column(String(128), nullable=False)
+    frequency = Column(String(32), nullable=False)           # daily, weekly, monthly, quarterly
+    unit = Column(String(32), nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="true")
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    observations = relationship(
+        "Observation",
+        back_populates="indicator",
+        cascade="all, delete-orphan",
+    )
+    signals = relationship(
+        "Signal",
+        back_populates="indicator",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        Index("ix_indicator_country_category", "country", "category"),
+        Index("ix_indicator_source_frequency", "source", "frequency"),
+    )
+
+
+class Observation(Base):
+    """Time-series values for an indicator."""
+    __tablename__ = "observations"
+
+    id = Column(Integer, primary_key=True)
+    indicator_id = Column(Integer, ForeignKey("indicators.id", ondelete="CASCADE"), nullable=False)
+    date = Column(Date, nullable=False)
+    value = Column(Float, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    indicator = relationship("Indicator", back_populates="observations")
+    signals = relationship("Signal", back_populates="observation")
+
+    __table_args__ = (
+        UniqueConstraint("indicator_id", "date", "value", name="uq_observation_indicator_date_value"),
+        Index("ix_observation_indicator_date", "indicator_id", "date"),
+    )
+
+
+class Signal(Base):
+    """Derived signal based on indicator observations."""
+    __tablename__ = "signals"
+
+    id = Column(Integer, primary_key=True)
+    indicator_id = Column(Integer, ForeignKey("indicators.id", ondelete="CASCADE"), nullable=False)
+    observation_id = Column(Integer, ForeignKey("observations.id", ondelete="SET NULL"))
+    signal_date = Column(Date, nullable=False)
+    signal_type = Column(String(64), nullable=False)         # trend, threshold, surprise, regime
+    signal_level = Column(String(32), nullable=False)        # info, watch, alert
+    signal_value = Column(Float)
+    summary = Column(Text)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    indicator = relationship("Indicator", back_populates="signals")
+    observation = relationship("Observation", back_populates="signals")
+
+    __table_args__ = (
+        Index("ix_signal_indicator_date", "indicator_id", "signal_date"),
+        Index("ix_signal_type_level", "signal_type", "signal_level"),
     )
