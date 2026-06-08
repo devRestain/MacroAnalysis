@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 from sqlalchemy.orm import Session
 from ..core.config import settings
-from ..models.indicators import ChangeSnapshot, NewsItem, AiSummary, FomcEvent, FedWatch
+from ..models.indicators import NewsItem, AiSummary, FomcEvent, FedWatch
+from ..services.observation_query_service import get_ai_context_payload
 
 logger = logging.getLogger(__name__)
 
@@ -50,25 +51,13 @@ FOMC 일정, 주요 경제지표 발표 예정
 def build_context(db: Session) -> dict:
     today = datetime.now()
     yesterday = today - timedelta(days=1)
-    today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    # Use the latest available snapshot per indicator. AI summary can run before
-    # the daily snapshot job, so a strict "today only" filter would often be empty.
-    snaps = db.query(ChangeSnapshot).filter(
-        ChangeSnapshot.snapshot_date >= today_start - timedelta(days=2)
-    ).order_by(ChangeSnapshot.indicator_key, ChangeSnapshot.snapshot_date.desc()).all()
-
-    latest_by_key = {}
-    for snap in snaps:
-        if snap.indicator_key not in latest_by_key:
-            latest_by_key[snap.indicator_key] = snap
-    latest_snaps = list(latest_by_key.values())
+    context_payload = get_ai_context_payload(db, today.date())
 
     snap_text = "\n".join([
-        f"- {s.label} ({s.indicator_key}): {_fmt_num(s.current_value)}{s.unit or ''} "
-        f"| 1D: {_fmt_pct(s.delta_1d_pct)} | 1W: {_fmt_pct(s.delta_1w_pct)} "
-        f"| Z-score: {_fmt_signed(s.z_score_1y)} [{s.signal}]"
-        for s in latest_snaps if s.current_value is not None
+        f"- {item['name'] or item['series_key']} ({item['series_key']}): {_fmt_num(item['latest_value'])}{item['unit'] or ''} "
+        f"| 변화율: {_fmt_pct(item.get('delta_pct'))} | 기준일: {item['latest_date']}"
+        for item in context_payload["series"]
+        if item["latest_value"] is not None
     ]) or "데이터 없음"
 
     # News
@@ -105,13 +94,13 @@ def build_context(db: Session) -> dict:
         "fomc": fomc_text,
         "snap_list": [
             {
-                "key": s.indicator_key,
-                "label": s.label,
-                "value": s.current_value,
-                "z_score": s.z_score_1y,
-                "signal": s.signal,
+                "key": item["series_key"],
+                "label": item["name"] or item["series_key"],
+                "value": item["latest_value"],
+                "z_score": None,
+                "signal": item["status"],
             }
-            for s in latest_snaps
+            for item in context_payload["series"]
         ]
     }
 

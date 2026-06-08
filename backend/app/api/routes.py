@@ -9,9 +9,12 @@ from ..core.database import get_db
 from ..core.cache import cache_get, cache_set
 from ..models.indicators import (
     ChangeSnapshot, NewsItem, AiSummary, FomcEvent, FedWatch,
-    EquityIndex, SectorPerformance, InterestRate, ExchangeRate,
-    MacroIndicator, CreditSpread, RealEconomyIndicator,
     SentimentSignal, Expectation, DivergenceEvent, DivergenceReport,
+)
+from ..services.observation_query_service import (
+    adapt_history_to_chart_response,
+    get_dashboard_observation_payload,
+    get_observation_history,
 )
 from ..workers.ai_worker import chat_with_context
 from ..core.config import settings
@@ -65,30 +68,14 @@ async def get_summary(db: Session = Depends(get_db)):
     # Recent news (top 5)
     news = db.query(NewsItem).order_by(desc(NewsItem.published_at)).limit(5).all()
 
-    # Equity indices
-    equities = {}
-    for ticker in ["^GSPC", "^IXIC", "^KS11", "^N225", "^GDAXI", "^SSEC", "^VIX", "DX-Y.NYB", "CL=F", "GC=F", "HG=F"]:
-        row = db.query(EquityIndex).filter(
-            EquityIndex.ticker == ticker
-        ).order_by(desc(EquityIndex.date)).first()
-        if row:
-            equities[ticker] = {"close": row.close, "change_pct": row.change_1d_pct, "date": str(row.date)}
-
-    # Yield curve (latest)
-    yield_curve = {}
-    for series in ["DGS2", "DGS10", "DGS30", "T10Y2Y"]:
-        row = db.query(InterestRate).filter(
-            InterestRate.series_key == series
-        ).order_by(desc(InterestRate.date)).first()
-        if row:
-            yield_curve[series] = row.value
+    dashboard_payload = get_dashboard_observation_payload(db)
 
     result = {
         "updated_at": today.isoformat(),
         "alerts": alerts[:6],
         "snapshots": {k: _snap_to_dict(v) for k, v in snap_map.items()},
-        "equities": equities,
-        "yield_curve": yield_curve,
+        "equities": dashboard_payload["equities"],
+        "yield_curve": dashboard_payload["yield_curve"],
         "fomc": {
             "next_date": str(next_fomc.meeting_date) if next_fomc else None,
             "days_left": (next_fomc.meeting_date - today).days if next_fomc else None,
@@ -138,30 +125,21 @@ async def get_chart(
     period_days = {"1w": 7, "1m": 30, "3m": 90, "1y": 365, "all": 3650}
     cutoff = datetime.now() - timedelta(days=period_days[period])
 
-    rows = []
-    # Try each table
-    for Model, key_col, val_col, date_col in [
-        (InterestRate, "series_key", "value", "date"),
-        (MacroIndicator, "series_key", "value", "date"),
-        (CreditSpread, "series_key", "value", "date"),
-        (EquityIndex, "ticker", "close", "date"),
-        (ExchangeRate, "pair", "value", "date"),
-        (RealEconomyIndicator, "series_key", "value", "date"),
-    ]:
-        key_attr = getattr(Model, key_col)
-        date_attr = getattr(Model, date_col)
-        r = db.query(Model).filter(
-            key_attr == indicator_key,
-            date_attr >= cutoff
-        ).order_by(date_attr).all()
-        if r:
-            rows = [{"date": str(getattr(x, date_col)), "value": float(getattr(x, val_col))} for x in r]
-            break
-
-    if not rows:
+    history = get_observation_history(db, indicator_key, start_date=cutoff.date(), limit=500)
+    history["period"] = period
+    if not history["data"]:
         raise HTTPException(status_code=404, detail=f"No data for {indicator_key}")
 
-    return {"indicator_key": indicator_key, "period": period, "data": rows}
+    return adapt_history_to_chart_response(history)
+
+
+@router.get("/indicators/history/{indicator_key}")
+async def get_indicator_history(
+    indicator_key: str,
+    period: str = Query("3m", regex="^(1w|1m|3m|1y|all)$"),
+    db: Session = Depends(get_db),
+):
+    return await get_chart(indicator_key=indicator_key, period=period, db=db)
 
 
 # ─── /api/news ───────────────────────────────────────────────────────────────
@@ -183,25 +161,8 @@ async def get_news(
 
 @router.get("/sectors")
 async def get_sectors(db: Session = Depends(get_db)):
-    seen = {}
-    rows = db.query(SectorPerformance).order_by(desc(SectorPerformance.date)).all()
-    for r in rows:
-        if r.ticker not in seen:
-            seen[r.ticker] = r
-    return {
-        "sectors": [
-            {
-                "ticker": r.ticker,
-                "name": r.sector_name,
-                "change_1d": r.change_1d_pct,
-                "change_1m": r.change_1m_pct,
-                "change_3m": r.change_3m_pct,
-                "change_ytd": r.change_ytd_pct,
-                "date": str(r.date),
-            }
-            for r in seen.values()
-        ]
-    }
+    dashboard_payload = get_dashboard_observation_payload(db)
+    return {"sectors": dashboard_payload["sectors"]}
 
 
 # ─── /api/fomc ───────────────────────────────────────────────────────────────

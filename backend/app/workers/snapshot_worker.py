@@ -6,13 +6,60 @@ import logging
 import numpy as np
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from ..models.indicators import (
-    InterestRate, MacroIndicator, CreditSpread,
-    EquityIndex, SectorPerformance, ExchangeRate,
-    RealEconomyIndicator, ChangeSnapshot
+from ..models.indicators import ChangeSnapshot
+from ..services.observation_query_service import (
+    get_observation_history,
 )
 
 logger = logging.getLogger(__name__)
+
+RATES_CONFIG = {
+    "DFF": {"label": "기준금리", "category": "rates", "unit": "%"},
+    "DGS2": {"label": "2Y 국채", "category": "rates", "unit": "%"},
+    "DGS10": {"label": "10Y 국채", "category": "rates", "unit": "%"},
+    "DGS30": {"label": "30Y 국채", "category": "rates", "unit": "%"},
+    "T10Y2Y": {"label": "10Y-2Y 스프레드", "category": "rates", "unit": "%"},
+    "SOFR": {"label": "SOFR", "category": "rates", "unit": "%"},
+}
+
+MACRO_CONFIG = {
+    "CPIAUCSL": {"label": "CPI", "category": "macro"},
+    "PCEPILFE": {"label": "Core PCE", "category": "macro"},
+    "UNRATE": {"label": "실업률", "category": "macro"},
+    "ICSA": {"label": "실업수당 청구", "category": "macro"},
+    "USSLIND": {"label": "LEI", "category": "macro"},
+    "M2SL": {"label": "M2 통화량", "category": "macro"},
+}
+
+CREDIT_CONFIG = {
+    "HY_OAS": {"label": "HY 크레딧 스프레드", "category": "credit", "unit": "bp"},
+    "IG_OAS": {"label": "IG 크레딧 스프레드", "category": "credit", "unit": "bp"},
+}
+
+EQUITY_CONFIG = {
+    "^GSPC": {"label": "S&P 500", "category": "equity"},
+    "^IXIC": {"label": "NASDAQ", "category": "equity"},
+    "^KS11": {"label": "KOSPI", "category": "equity"},
+    "^N225": {"label": "Nikkei 225", "category": "equity"},
+    "^GDAXI": {"label": "DAX", "category": "equity"},
+    "^SSEC": {"label": "Shanghai", "category": "equity"},
+    "^VIX": {"label": "VIX", "category": "equity"},
+    "DX-Y.NYB": {"label": "DXY", "category": "equity"},
+    "CL=F": {"label": "WTI 원유", "category": "equity"},
+    "GC=F": {"label": "금", "category": "equity"},
+    "HG=F": {"label": "구리", "category": "equity"},
+}
+
+FX_CONFIG = {
+    "USDKRW": {"label": "USDKRW", "category": "fx"},
+    "EURUSD": {"label": "EURUSD", "category": "fx"},
+    "USDJPY": {"label": "USDJPY", "category": "fx"},
+}
+
+REAL_CONFIG = {
+    "COPPER_GOLD": {"label": "구리/금 비율", "category": "real"},
+    "WTI_BRENT_SPREAD": {"label": "WTI-Brent 스프레드", "category": "real"},
+}
 
 SIGNAL_THRESHOLDS = {
     # key: (lower_z_red, upper_z_red)  — outside this = red
@@ -114,87 +161,15 @@ def compute_snapshots(db: Session):
     today = datetime.now()
     cutoff = today - timedelta(days=400)
 
-    # --- Interest Rates ---
-    for key in ["DFF", "DGS2", "DGS10", "DGS30", "T10Y2Y", "SOFR"]:
-        rows = db.query(InterestRate).filter(
-            InterestRate.series_key == key,
-            InterestRate.date >= cutoff
-        ).order_by(InterestRate.date).all()
-        if not rows:
-            continue
-        history = [r.value for r in rows]
-        labels = {"DFF": "기준금리", "DGS2": "2Y 국채", "DGS10": "10Y 국채",
-                  "DGS30": "30Y 국채", "T10Y2Y": "10Y-2Y 스프레드", "SOFR": "SOFR"}
-        _build_snapshot(db, today, key, labels.get(key, key), "rates", history[-1], history, "%")
-
-    # --- Macro ---
-    for key, label in {"CPIAUCSL": "CPI", "PCEPILFE": "Core PCE",
-                       "UNRATE": "실업률", "ICSA": "실업수당 청구",
-                       "USSLIND": "LEI", "M2SL": "M2 통화량"}.items():
-        rows = db.query(MacroIndicator).filter(
-            MacroIndicator.series_key == key,
-            MacroIndicator.date >= cutoff
-        ).order_by(MacroIndicator.date).all()
-        if not rows:
-            continue
-        history = [r.value for r in rows]
-        _build_snapshot(db, today, key, label, "macro", history[-1], history)
-
-    # --- Credit Spreads ---
-    for key, label in {"HY_OAS": "HY 크레딧 스프레드", "IG_OAS": "IG 크레딧 스프레드"}.items():
-        rows = db.query(CreditSpread).filter(
-            CreditSpread.series_key == key,
-            CreditSpread.date >= cutoff
-        ).order_by(CreditSpread.date).all()
-        if not rows:
-            continue
-        history = [r.value for r in rows]
-        _build_snapshot(db, today, key, label, "credit", history[-1], history, "bp")
-
-    # --- Equity ---
-    for ticker, label in {
-        "^GSPC": "S&P 500",
-        "^IXIC": "NASDAQ",
-        "^KS11": "KOSPI",
-        "^N225": "Nikkei 225",
-        "^GDAXI": "DAX",
-        "^SSEC": "Shanghai",
-        "^VIX": "VIX",
-        "DX-Y.NYB": "DXY",
-        "CL=F": "WTI 원유",
-        "GC=F": "금",
-        "HG=F": "구리",
-    }.items():
-        rows = db.query(EquityIndex).filter(
-            EquityIndex.ticker == ticker,
-            EquityIndex.date >= cutoff
-        ).order_by(EquityIndex.date).all()
-        if not rows:
-            continue
-        history = [r.close for r in rows]
-        _build_snapshot(db, today, ticker, label, "equity", history[-1], history)
-
-    # --- FX ---
-    for pair in ["USDKRW", "EURUSD", "USDJPY"]:
-        rows = db.query(ExchangeRate).filter(
-            ExchangeRate.pair == pair,
-            ExchangeRate.date >= cutoff
-        ).order_by(ExchangeRate.date).all()
-        if not rows:
-            continue
-        history = [r.value for r in rows]
-        _build_snapshot(db, today, pair, pair, "fx", history[-1], history)
-
-    # --- Real Economy ---
-    for key, label in {"COPPER_GOLD": "구리/금 비율", "WTI_BRENT_SPREAD": "WTI-Brent 스프레드"}.items():
-        rows = db.query(RealEconomyIndicator).filter(
-            RealEconomyIndicator.series_key == key,
-            RealEconomyIndicator.date >= cutoff
-        ).order_by(RealEconomyIndicator.date).all()
-        if not rows:
-            continue
-        history = [r.value for r in rows]
-        _build_snapshot(db, today, key, label, "real", history[-1], history)
+    for config_group in [
+        RATES_CONFIG,
+        MACRO_CONFIG,
+        CREDIT_CONFIG,
+        EQUITY_CONFIG,
+        FX_CONFIG,
+        REAL_CONFIG,
+    ]:
+        _compute_group_snapshots(db, today, cutoff, config_group)
 
     try:
         db.commit()
@@ -202,3 +177,27 @@ def compute_snapshots(db: Session):
     except Exception as e:
         db.rollback()
         logger.error(f"Snapshot commit failed: {e}")
+
+
+def _compute_group_snapshots(
+    db: Session,
+    today: datetime,
+    cutoff: datetime,
+    config_group: dict[str, dict[str, str]],
+):
+    for series_key, config in config_group.items():
+        history_payload = get_observation_history(db, series_key, start_date=cutoff.date(), limit=500)
+        values = [point["value"] for point in history_payload["data"] if point["value"] is not None]
+        if not values:
+            continue
+
+        _build_snapshot(
+            db,
+            today,
+            series_key,
+            history_payload["name"] or config["label"],
+            history_payload["category"] or config["category"],
+            values[-1],
+            values,
+            history_payload["unit"] or config.get("unit", ""),
+        )
