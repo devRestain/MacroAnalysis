@@ -1,4 +1,4 @@
-.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect
+.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed shell
 
 COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
