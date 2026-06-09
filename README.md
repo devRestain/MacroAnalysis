@@ -78,6 +78,7 @@ MacroAnalysis/
 ## Indicator Explanations Metadata
 
 - `backend/app/data/indicator_explanations_v1_1_workflow_aware.json`은 지표별 설명과 정적 해석 힌트를 담는 백엔드 내부 정적 리소스입니다.
+- DB 테이블명은 `indicator_explanations`입니다.
 - 이 파일은 loader(`backend/app/services/indicator_explanation_loader.py`)를 통해 로드되며, Docker 컨테이너 내부에서도 안정적으로 접근할 수 있습니다.
 - `sentiment_mapping`, `expectation_role`, `analysis_hints`, `workflow_status`는 실제 런타임 계산 결과가 아니라 설명용 메타데이터와 향후 분석 로직의 rule seed입니다.
 - 특히 `sentiment_mapping`은 실제 sentiment score가 아니고, `expectation_role`도 실제 expectation 예측값이 아닙니다.
@@ -113,6 +114,13 @@ GET /api/indicator-explanations?category=rates
 - 이 API는 지표 설명과 정적 해석 힌트를 반환합니다.
 - `analysis_hints`는 현재 시장 sentiment/expectation 계산 결과가 아닙니다.
 - 현재 프론트엔드는 아직 이 API를 사용하지 않습니다.
+
+예시:
+
+```bash
+curl http://localhost:8000/api/indicator-explanations/DGS10
+curl "http://localhost:8000/api/indicator-explanations?category=rates"
+```
 
 ## 중복되거나 미완성인 코드
 
