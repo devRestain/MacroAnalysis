@@ -1,5 +1,6 @@
 """FOMC calendar scraper + CME FedWatch probability parser."""
 import logging
+import re
 from datetime import datetime
 
 import httpx
@@ -9,10 +10,19 @@ from sqlalchemy.orm import Session
 from ..core.upsert import upsert_rows
 from ..models.calendar import EconomicCalendarEvent
 from ..models.indicators import FomcEvent, FedWatch
-from ..services.calendar_query_service import FOMC_EVENT_KEY, FOMC_EVENT_SOURCE, get_next_fomc_meeting_date
+from ..services.calendar_query_service import (
+    FOMC_EVENT_KEY,
+    FOMC_EVENT_SOURCE,
+    get_next_fomc_meeting_date,
+    get_upcoming_fomc_meeting_dates,
+)
 from ..services.calendar_upsert import upsert_calendar_event, upsert_fomc_detail
-from ..services.observation_query_service import get_latest_observations
-from .fomc_utils import estimate_policy_probs, parse_meeting_range, parse_price
+from .fomc_utils import (
+    estimate_next_meeting_move_from_monthly_rates,
+    get_fed_funds_futures_symbol,
+    parse_meeting_range,
+)
+from .yfinance_support import download_ticker_frames, normalize_price_history
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +60,18 @@ def collect_fomc_calendar(db: Session):
         soup = BeautifulSoup(resp.text, "lxml")
         meetings = []
         for row in soup.select(".fomc-meeting"):
-            date_str = row.select_one(".fomc-meeting__month")
-            if date_str:
+            month_el = row.select_one(".fomc-meeting__month")
+            date_el = row.select_one(".fomc-meeting__date")
+            if month_el and date_el:
                 try:
                     year_header = row.find_previous("h4")
-                    year = int(year_header.text.strip()) if year_header else datetime.now().year
-                    meeting_start_dt, meeting_end_dt = parse_meeting_range(date_str.text.strip(), year)
+                    if year_header:
+                        match = re.search(r"(20\d{2})", year_header.get_text(" ", strip=True))
+                        year = int(match.group(1)) if match else datetime.now().year
+                    else:
+                        year = datetime.now().year
+                    label = f"{month_el.get_text(' ', strip=True)} {date_el.get_text(' ', strip=True)}"
+                    meeting_start_dt, meeting_end_dt = parse_meeting_range(label, year)
                     meetings.append(
                         {
                             "meeting_start_date": meeting_start_dt,
@@ -132,75 +148,91 @@ def collect_fomc_calendar(db: Session):
 
 def collect_fedwatch(db: Session):
     """
-    Approximate FedWatch-style probabilities from the nearest public Fed Funds
-    futures quote and the latest effective Fed Funds rate.
-
-    This deliberately avoids hard-coded probabilities. If the public CME quote is
-    unavailable or malformed, the task skips rather than publishing fake odds.
+    Approximate next-meeting FedWatch-style directional probabilities using CME's
+    published methodology and 30-Day Fed Funds futures monthly contracts.
     """
     try:
-        url = "https://www.cmegroup.com/CmeWS/mvc/Quotes/Future/305/G"
-        with httpx.Client(timeout=20, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"}) as client:
-            resp = client.get(url)
-            if resp.status_code != 200:
-                raise RuntimeError(f"FedWatch endpoint returned {resp.status_code}")
-            data = resp.json()
         now = datetime.now().replace(microsecond=0)
         observation_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
         meeting_date = get_next_fomc_meeting_date(db, now=now)
         if not meeting_date:
             raise RuntimeError("FedWatch could not determine next FOMC meeting date")
+        anchor_month = _find_next_non_meeting_month(db, meeting_date, now=now)
+        if anchor_month is None:
+            raise RuntimeError("FedWatch could not find a non-FOMC anchor month")
 
-        quotes = data.get("quotes", [])
-        if quotes:
-            price = parse_price(quotes[0].get("last"))
-            if not price:
-                raise RuntimeError("FedWatch quote has no usable last price")
-            implied_rate = 100 - price
+        meeting_symbol = get_fed_funds_futures_symbol(meeting_date)
+        anchor_symbol = get_fed_funds_futures_symbol(anchor_month)
+        frames = download_ticker_frames([meeting_symbol, anchor_symbol], period="5d")
+        meeting_history = normalize_price_history(frames.get(meeting_symbol))
+        anchor_history = normalize_price_history(frames.get(anchor_symbol))
+        if meeting_history.empty:
+            raise RuntimeError(f"FedWatch meeting-month contract returned no data: {meeting_symbol}")
+        if anchor_history.empty:
+            raise RuntimeError(f"FedWatch anchor-month contract returned no data: {anchor_symbol}")
 
-            current_rate = get_latest_observations(db, ["DFF"])[0]
-            if current_rate["latest_value"] is None:
-                raise RuntimeError("FedWatch requires latest DFF observation but none was found")
+        meeting_avg_rate = 100 - float(meeting_history.iloc[-1]["Close"])
+        anchor_avg_rate = 100 - float(anchor_history.iloc[-1]["Close"])
+        prob_cut, prob_hold, prob_hike = estimate_next_meeting_move_from_monthly_rates(
+            meeting_avg_rate=meeting_avg_rate,
+            anchor_avg_rate=anchor_avg_rate,
+            meeting_date=meeting_date,
+        )
 
-            prob_cut, prob_hold, prob_hike = estimate_policy_probs(
-                current_rate=float(current_rate["latest_value"]),
-                implied_rate=implied_rate,
+        _upsert_fedwatch(
+            db,
+            observation_date=observation_date,
+            meeting_date=meeting_date,
+            prob_hike=prob_hike,
+            prob_hold=prob_hold,
+            prob_cut=prob_cut,
+        )
+        calendar_event = (
+            db.query(EconomicCalendarEvent)
+            .filter(
+                EconomicCalendarEvent.event_key == FOMC_EVENT_KEY,
+                EconomicCalendarEvent.event_date == meeting_date,
+                EconomicCalendarEvent.source == FOMC_EVENT_SOURCE,
             )
-
-            _upsert_fedwatch(
-                db,
-                observation_date=observation_date,
-                meeting_date=meeting_date,
-                prob_hike=prob_hike,
-                prob_hold=prob_hold,
-                prob_cut=prob_cut,
-            )
-            calendar_event = (
-                db.query(EconomicCalendarEvent)
-                .filter(
-                    EconomicCalendarEvent.event_key == FOMC_EVENT_KEY,
-                    EconomicCalendarEvent.event_date == meeting_date,
-                    EconomicCalendarEvent.source == FOMC_EVENT_SOURCE,
-                )
-                .first()
-            )
-            if calendar_event:
-                db.query(FedWatch).filter(
-                    FedWatch.meeting_date == meeting_date,
-                    FedWatch.date == observation_date,
-                ).update({"calendar_event_id": calendar_event.id}, synchronize_session=False)
-            db.commit()
-            logger.info("Collected FedWatch probabilities")
-            return {
-                "fetched_count": 1,
-                "inserted_count": 1,
-                "updated_count": 1,
-            }
-        raise RuntimeError("FedWatch endpoint returned no quotes")
+            .first()
+        )
+        if calendar_event:
+            db.query(FedWatch).filter(
+                FedWatch.meeting_date == meeting_date,
+                FedWatch.date == observation_date,
+            ).update({"calendar_event_id": calendar_event.id}, synchronize_session=False)
+        db.commit()
+        logger.info(
+            "Collected FedWatch probabilities via CME methodology using %s and %s",
+            meeting_symbol,
+            anchor_symbol,
+        )
+        return {
+            "fetched_count": 1,
+            "inserted_count": 1,
+            "updated_count": 1,
+        }
     except Exception as e:
         db.rollback()
         logger.error(f"FedWatch error: {e}")
         raise RuntimeError(f"FedWatch collection failed: {type(e).__name__}: {e}") from e
+
+
+def _find_next_non_meeting_month(db: Session, meeting_date: datetime, *, now: datetime) -> datetime | None:
+    meeting_months = {
+        (value.year, value.month)
+        for value in get_upcoming_fomc_meeting_dates(db, now=now)
+    }
+    year = meeting_date.year
+    month = meeting_date.month + 1
+    for _ in range(24):
+        if month == 13:
+            year += 1
+            month = 1
+        if (year, month) not in meeting_months:
+            return datetime(year, month, 1)
+        month += 1
+    return None
 
 
 def _extract_fomc_links(row) -> dict[str, str | None]:

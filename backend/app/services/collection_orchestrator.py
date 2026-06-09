@@ -21,7 +21,7 @@ from ..workers.snapshot_worker import compute_snapshots
 
 logger = logging.getLogger(__name__)
 
-ASIA_EQUITY_TICKERS = ["^KS11", "^N225", "^SSEC"]
+ASIA_EQUITY_TICKERS = ["^KS11", "^N225", "000001.SS"]
 
 
 def run_morning_batch(db: Session) -> dict[str, Any]:

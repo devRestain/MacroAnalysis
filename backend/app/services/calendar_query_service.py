@@ -39,6 +39,29 @@ def get_next_fomc_meeting_date(db: Session, now: datetime | None = None) -> date
     return legacy.meeting_date if legacy else None
 
 
+def get_upcoming_fomc_meeting_dates(db: Session, now: datetime | None = None) -> list[datetime]:
+    current = now or datetime.now().replace(microsecond=0)
+    events = (
+        db.query(EconomicCalendarEvent)
+        .filter(
+            EconomicCalendarEvent.event_key == FOMC_EVENT_KEY,
+            EconomicCalendarEvent.event_date >= current,
+        )
+        .order_by(EconomicCalendarEvent.event_date)
+        .all()
+    )
+    if events:
+        return [event.event_date for event in events]
+
+    legacy = (
+        db.query(FomcEvent)
+        .filter(FomcEvent.meeting_date >= current)
+        .order_by(FomcEvent.meeting_date)
+        .all()
+    )
+    return [row.meeting_date for row in legacy]
+
+
 def get_latest_fedwatch_for_meeting(db: Session, meeting_date: datetime | None) -> FedWatch | None:
     if meeting_date is None:
         return None

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from calendar import monthrange
 from datetime import datetime
 
 
@@ -29,6 +30,40 @@ def estimate_policy_probs(current_rate: float, implied_rate: float) -> tuple[flo
         hike = min(delta / step, 1.0)
         return 0.0, round(1.0 - hike, 4), round(hike, 4)
     return 0.0, 1.0, 0.0
+
+
+MONTH_CODES = {
+    1: "F",
+    2: "G",
+    3: "H",
+    4: "J",
+    5: "K",
+    6: "M",
+    7: "N",
+    8: "Q",
+    9: "U",
+    10: "V",
+    11: "X",
+    12: "Z",
+}
+
+
+def get_fed_funds_futures_symbol(value: datetime) -> str:
+    return f"ZQ{MONTH_CODES[value.month]}{value.strftime('%y')}.CBT"
+
+
+def estimate_next_meeting_move_from_monthly_rates(
+    meeting_avg_rate: float,
+    anchor_avg_rate: float,
+    meeting_date: datetime,
+) -> tuple[float, float, float]:
+    total_days = monthrange(meeting_date.year, meeting_date.month)[1]
+    days_before = meeting_date.day
+    days_after = total_days - meeting_date.day
+    start_rate = (
+        meeting_avg_rate - ((days_after / total_days) * anchor_avg_rate)
+    ) / (days_before / total_days)
+    return estimate_policy_probs(current_rate=start_rate, implied_rate=anchor_avg_rate)
 
 
 def parse_meeting_date(month_day: str, year: int) -> datetime:

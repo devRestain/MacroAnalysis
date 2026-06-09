@@ -1,11 +1,11 @@
 """yfinance collector — equity indices, sectors, commodities."""
 import logging
 from datetime import datetime
-import yfinance as yf
 from sqlalchemy.orm import Session
 from ..core.upsert import upsert_rows
 from ..models.indicators import EquityIndex, SectorPerformance, RealEconomyIndicator
 from .result_utils import add_counts, empty_counts, format_error_summary
+from .yfinance_support import download_ticker_frames, normalize_price_history
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ EQUITY_TICKERS = {
     "^KS11": "KOSPI",
     "^N225": "Nikkei 225",
     "^GDAXI": "DAX",
-    "^SSEC": "Shanghai",
+    "000001.SS": "Shanghai Composite",
     "^VIX": "VIX",
     "^TNX": "10Y Yield (Market)",
     "GC=F": "Gold",
@@ -44,10 +44,11 @@ def collect_equity_indices(db: Session, tickers: list[str] | None = None):
     selected_tickers = tickers or list(EQUITY_TICKERS.keys())
     counts = empty_counts()
     errors: list[str] = []
+    frames = download_ticker_frames(selected_tickers, period="5d")
     for ticker in selected_tickers:
         name = EQUITY_TICKERS.get(ticker, ticker)
         try:
-            hist = yf.Ticker(ticker).history(period="2d")
+            hist = normalize_price_history(frames.get(ticker))
             if len(hist) < 1:
                 errors.append(f"{ticker}:empty_history")
                 continue
@@ -88,9 +89,10 @@ def collect_equity_indices(db: Session, tickers: list[str] | None = None):
 def collect_sectors(db: Session):
     counts = empty_counts()
     errors: list[str] = []
+    frames = download_ticker_frames(SECTOR_TICKERS.keys(), period="1y")
     for ticker, name in SECTOR_TICKERS.items():
         try:
-            hist = yf.Ticker(ticker).history(period="1y")
+            hist = normalize_price_history(frames.get(ticker))
             if len(hist) < 5:
                 errors.append(f"{ticker}:insufficient_history")
                 continue
@@ -105,7 +107,7 @@ def collect_sectors(db: Session):
 
             # YTD
             ytd_start = datetime(date.year, 1, 1)
-            ytd_hist = hist[hist.index.tz_localize(None) >= ytd_start]
+            ytd_hist = hist[hist.index >= ytd_start]
             if len(ytd_hist) > 0:
                 ytd_base = float(ytd_hist.iloc[0]["Close"])
                 ytd_pct = (close - ytd_base) / ytd_base * 100
@@ -153,10 +155,11 @@ def collect_real_economy(db: Session):
     """Copper/Gold ratio and WTI/Brent spread."""
     counts = empty_counts()
     try:
-        copper = yf.Ticker("HG=F").history(period="2d")
-        gold = yf.Ticker("GC=F").history(period="2d")
-        wti = yf.Ticker("CL=F").history(period="2d")
-        brent = yf.Ticker("BZ=F").history(period="2d")
+        frames = download_ticker_frames(["HG=F", "GC=F", "CL=F", "BZ=F"], period="5d")
+        copper = normalize_price_history(frames.get("HG=F"))
+        gold = normalize_price_history(frames.get("GC=F"))
+        wti = normalize_price_history(frames.get("CL=F"))
+        brent = normalize_price_history(frames.get("BZ=F"))
 
         if len(copper) >= 1 and len(gold) >= 1:
             date = copper.iloc[-1].name.to_pydatetime().replace(tzinfo=None)
