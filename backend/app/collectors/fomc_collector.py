@@ -154,7 +154,7 @@ def collect_fedwatch(db: Session):
     try:
         now = datetime.now().replace(microsecond=0)
         observation_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        meeting_date = get_next_fomc_meeting_date(db, now=now)
+        meeting_date = _ensure_next_fomc_meeting_date(db, now=now)
         if not meeting_date:
             raise RuntimeError("FedWatch could not determine next FOMC meeting date")
         anchor_month = _find_next_non_meeting_month(db, meeting_date, now=now)
@@ -216,6 +216,16 @@ def collect_fedwatch(db: Session):
         db.rollback()
         logger.error(f"FedWatch error: {e}")
         raise RuntimeError(f"FedWatch collection failed: {type(e).__name__}: {e}") from e
+
+
+def _ensure_next_fomc_meeting_date(db: Session, *, now: datetime) -> datetime | None:
+    meeting_date = get_next_fomc_meeting_date(db, now=now)
+    if meeting_date is not None:
+        return meeting_date
+
+    logger.info("No FOMC meeting found in DB before FedWatch run, refreshing FOMC calendar")
+    collect_fomc_calendar(db)
+    return get_next_fomc_meeting_date(db, now=now)
 
 
 def _find_next_non_meeting_month(db: Session, meeting_date: datetime, *, now: datetime) -> datetime | None:
