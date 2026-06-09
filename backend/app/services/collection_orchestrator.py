@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Callable
 
 import redis
@@ -13,6 +13,7 @@ from ..collectors.fx_collector import collect_exchange_rates
 from ..collectors.market_collector import collect_equity_indices, collect_real_economy, collect_sectors
 from ..collectors.news_collector import collect_fed_rss, collect_finnhub_news
 from ..core.config import settings
+from .calendar_collection_service import collect_calendar_events
 from .daily_insight_service import get_existing_daily_insight, get_today_kst
 from .collection_guard import get_default_min_interval, run_with_guard
 from ..workers.snapshot_worker import compute_snapshots
@@ -83,10 +84,19 @@ def run_weekly_batch(db: Session) -> dict[str, Any]:
     if not settings.WEEKLY_BATCH_ENABLED:
         return _disabled_batch_result("weekly")
     jobs = [
+        _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
         _maintenance_job("collection_runs_maintenance"),
     ]
     return _run_batch(db, "weekly", jobs)
+
+
+def run_calendar_batch(db: Session) -> dict[str, Any]:
+    jobs = [
+        _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
+        _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
+    ]
+    return _run_batch(db, "calendar", jobs)
 
 
 def run_guarded_job(db: Session, job_key: str) -> dict[str, Any]:
@@ -109,6 +119,7 @@ def _run_batch(db: Session, batch_name: str, jobs: list[dict[str, Any]]) -> dict
 
     if invalidate_cache:
         _invalidate_dashboard_cache()
+        _invalidate_calendar_cache()
 
     return {
         "batch": batch_name,
@@ -186,7 +197,7 @@ def _guarded_job(job_key: str, provider: str, fn: Callable[[Session], Any]) -> d
         "provider": provider,
         "min_interval_minutes": get_default_min_interval(job_key),
         "fn": fn,
-        "invalidate_cache": job_key in {"snapshot_compute", "fred_rates", "fred_macro", "credit_spreads", "equity_us_global", "equity_asia", "sector_performance", "fedwatch", "fx_rates", "news", "fomc_calendar"},
+        "invalidate_cache": job_key in {"snapshot_compute", "fred_rates", "fred_macro", "credit_spreads", "equity_us_global", "equity_asia", "sector_performance", "fedwatch", "fx_rates", "news", "fomc_calendar", "calendar_events"},
     }
 
 
@@ -278,6 +289,16 @@ def _invalidate_dashboard_cache():
         logger.warning("Failed to invalidate dashboard cache after batch: %s", exc)
 
 
+def _invalidate_calendar_cache():
+    try:
+        client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+        keys = list(client.scan_iter(match="calendar:*"))
+        if keys:
+            client.delete(*keys)
+    except Exception as exc:
+        logger.warning("Failed to invalidate calendar cache after batch: %s", exc)
+
+
 def _all_job_definitions() -> list[dict[str, Any]]:
     return [
         _guarded_job("fred_rates", "fred", lambda session: collect_rates(session)),
@@ -294,9 +315,10 @@ def _all_job_definitions() -> list[dict[str, Any]]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
     ]
 
 
 def _utcnow() -> datetime:
-    return datetime.now(UTC).replace(tzinfo=None, microsecond=0)
+    return datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0)

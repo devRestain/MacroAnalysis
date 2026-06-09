@@ -7,7 +7,7 @@ import threading
 import uuid
 import zlib
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -17,7 +17,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
-from ..models.indicators import DailyInsight, FedWatch, FomcEvent, NewsItem
+from ..models.indicators import DailyInsight, NewsItem
+from .calendar_query_service import get_latest_fedwatch_for_meeting, get_next_fomc_meeting_date
 from .observation_query_service import get_ai_context_payload
 
 logger = logging.getLogger(__name__)
@@ -81,16 +82,11 @@ def build_ai_context_from_observations(db: Session, as_of_date) -> dict[str, Any
     )
     news_lines = [f"- [{item.source}] {item.title}" for item in news_items]
 
-    next_fomc = (
-        db.query(FomcEvent)
-        .filter(FomcEvent.meeting_date >= datetime.now().replace(microsecond=0))
-        .order_by(FomcEvent.meeting_date)
-        .first()
-    )
-    latest_fw = db.query(FedWatch).order_by(FedWatch.date.desc()).first()
+    next_fomc_date = get_next_fomc_meeting_date(db, now=datetime.now().replace(microsecond=0))
+    latest_fw = get_latest_fedwatch_for_meeting(db, next_fomc_date)
     fomc_text = "없음"
-    if next_fomc:
-        fomc_text = f"다음 FOMC: {next_fomc.meeting_date.strftime('%Y.%m.%d')}"
+    if next_fomc_date:
+        fomc_text = f"다음 FOMC: {next_fomc_date.strftime('%Y.%m.%d')}"
         if latest_fw and all(
             value is not None for value in [latest_fw.prob_hold, latest_fw.prob_cut, latest_fw.prob_hike]
         ):

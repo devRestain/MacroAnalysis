@@ -226,6 +226,7 @@ make doctor   # Docker/Colima 상태 점검
 make up       # compose up -d
 make logs     # 전체 로그
 make collect  # morning -> noon -> evening batch 순차 실행
+make collect-calendar
 make collect-weekly
 make ensure-ai-insight
 make down     # 종료
@@ -250,6 +251,7 @@ make down     # 종료
 | Noon batch | 매일 12:30 | news, 주요 FX, snapshot refresh, 당일 success insight가 없을 때 ensure trigger |
 | Evening batch | 매일 18:30 | KR/Asia market data, 주요 FX, news, snapshot refresh, 당일 success insight가 없을 때 ensure trigger |
 | Weekly batch | 매주 월요일 08:00 | FOMC calendar, event calendar/maintenance hook |
+| Calendar event batch | 매일 08:10 | 경제 일정 calendar 수집(FRED release dates, BLS calendar, rule-based expiry, seed events) |
 | Cleanup schedule | 매일 03:05 | retention cleanup |
 
 > FedWatch 확률은 공식 CME 상세 확률표가 아니라 공개 Fed Funds futures 가격과 최신 DFF 기준의 추정값입니다.
@@ -271,6 +273,7 @@ Celery 설정 메모:
 - FedWatch: `720`분
 - news: `360`분
 - FOMC calendar: `10080`분
+- calendar events: `1440`분
 - snapshot compute: `180`분
 
 동작 방식:
@@ -306,15 +309,26 @@ Celery 설정 메모:
 make collect-morning
 make collect-noon
 make collect-evening
+make collect-calendar
 make collect-weekly
 make collect-all-batched
 make ensure-ai-insight
 ```
 
 - `make collect`: `morning -> noon -> evening` batch를 순차 실행합니다.
+- `make collect-calendar`: 경제 일정 수집 batch를 수동 실행합니다.
 - `make collect-weekly`: FOMC calendar와 주간 maintenance hook만 실행합니다.
 - 개별 batch를 연속 실행해도 guard가 같은 provider를 과도하게 재호출하지 않도록 설계되어 있습니다.
 - `make ensure-ai-insight`: 오늘 KST 기준 daily insight ensure를 수동 실행합니다.
+
+## Economic Calendar 도메인
+
+- 일정성 데이터는 `economic_calendar_events` 테이블로 분리되어 관리됩니다.
+- FOMC의 `meeting_date`는 이제 calendar event로도 저장되며, 결과/문서 URL은 `fomc_event_details`에 분리 저장됩니다.
+- 기존 `fomc_events`와 `fed_watch.meeting_date`는 하위 호환을 위해 유지됩니다.
+- 지원 소스는 FRED release dates, BLS ICS calendar, Federal Reserve FOMC calendar, rule-based 만기일, seed JSON입니다.
+- 새 API는 `GET /api/calendar/events`이며 `from`, `to`, `days`, `category`, `event_type`, `importance`, `country`, `include_details` 쿼리를 지원합니다.
+- 초기 한계로 일부 일정은 seed 또는 규칙 기반이며, FRED release date는 실제 원천 게시 시점과 완전히 동일하지 않을 수 있습니다.
 
 ## Docker / Colima 검증
 

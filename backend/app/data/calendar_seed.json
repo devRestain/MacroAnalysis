@@ -1,0 +1,44 @@
+[
+  {
+    "event_date": "2026-06-26T08:30:00",
+    "event_end_date": "2026-06-26T08:30:00",
+    "event_time": "08:30",
+    "timezone": "America/New_York",
+    "event_key": "US_PCE",
+    "event_type": "macro_release",
+    "category": "inflation",
+    "title": "US PCE Price Index Release",
+    "country": "US",
+    "source": "BEA",
+    "source_url": "https://www.bea.gov/",
+    "importance": "high",
+    "status": "scheduled",
+    "related_indicator_key": "PCEPI",
+    "related_asset": null,
+    "metadata_json": {
+      "seeded": true,
+      "last_verified_at": "2026-06-09"
+    }
+  },
+  {
+    "event_date": "2026-07-01T10:00:00",
+    "event_end_date": "2026-07-01T10:00:00",
+    "event_time": "10:00",
+    "timezone": "America/New_York",
+    "event_key": "US_ISM_MANUFACTURING",
+    "event_type": "macro_release",
+    "category": "business_activity",
+    "title": "ISM Manufacturing PMI",
+    "country": "US",
+    "source": "ISM",
+    "source_url": "https://www.ismworld.org/",
+    "importance": "medium",
+    "status": "scheduled",
+    "related_indicator_key": null,
+    "related_asset": null,
+    "metadata_json": {
+      "seeded": true,
+      "last_verified_at": "2026-06-09"
+    }
+  }
+]

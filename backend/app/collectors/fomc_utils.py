@@ -33,10 +33,18 @@ def estimate_policy_probs(current_rate: float, implied_rate: float) -> tuple[flo
 
 def parse_meeting_date(month_day: str, year: int) -> datetime:
     """Parse Fed calendar labels like 'January 28-29' as the final meeting day."""
+    return parse_meeting_range(month_day, year)[1]
+
+
+def parse_meeting_range(month_day: str, year: int) -> tuple[datetime, datetime]:
+    """Parse Fed calendar labels like 'January 28-29' into start/end datetimes."""
     text = re.sub(r"\s+", " ", month_day.replace("\u2013", "-").replace("\u2014", "-")).strip()
     match = re.match(r"^([A-Za-z]+)\s+(\d{1,2})(?:-(?:[A-Za-z]+\s+)?(\d{1,2}))?", text)
     if not match:
         raise ValueError(f"Unsupported FOMC meeting date label: {month_day}")
     month = match.group(1)
-    day = match.group(3) or match.group(2)
-    return datetime.strptime(f"{month} {day} {year}", "%B %d %Y")
+    start_day = match.group(2)
+    end_day = match.group(3) or match.group(2)
+    start_dt = datetime.strptime(f"{month} {start_day} {year}", "%B %d %Y")
+    end_dt = datetime.strptime(f"{month} {end_day} {year}", "%B %d %Y")
+    return start_dt, end_dt

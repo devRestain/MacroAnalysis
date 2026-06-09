@@ -5,7 +5,7 @@ import threading
 import uuid
 import zlib
 from contextlib import contextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable
 
 import redis
@@ -188,6 +188,7 @@ def get_default_min_interval(job_key: str) -> int:
         "fedwatch": settings.FEDWATCH_MIN_INTERVAL_MINUTES,
         "news": settings.NEWS_MIN_INTERVAL_MINUTES,
         "fomc_calendar": settings.FOMC_MIN_INTERVAL_MINUTES,
+        "calendar_events": settings.CALENDAR_MIN_INTERVAL_MINUTES,
         "snapshot_compute": settings.SNAPSHOT_MIN_INTERVAL_MINUTES,
     }
     return mapping[job_key]
@@ -307,4 +308,4 @@ def _normalize_target_date(value) -> date | None:
 
 
 def _utcnow_naive() -> datetime:
-    return datetime.now(UTC).replace(tzinfo=None, microsecond=0)
+    return datetime.now(timezone.utc).replace(tzinfo=None, microsecond=0)

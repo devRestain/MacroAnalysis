@@ -1,17 +1,20 @@
 """FastAPI routes — all API endpoints."""
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from ..core.database import get_db
 from ..core.cache import cache_get, cache_set
+from .calendar_schemas import CalendarEventListResponse
 from .schemas import IndicatorExplanationListResponse, IndicatorExplanationResponse
+from ..models.calendar import EconomicCalendarEvent
 from ..models.indicators import (
     ChangeSnapshot, NewsItem, DailyInsight, FomcEvent, FedWatch,
     SentimentSignal, Expectation, DivergenceEvent, DivergenceReport,
 )
+from ..services.calendar_query_service import get_latest_fedwatch_for_meeting, get_next_fomc_meeting_date
 from ..services.indicator_explanation_query_service import (
     get_indicator_explanation,
     list_indicator_explanations,
@@ -92,14 +95,8 @@ async def get_summary(db: Session = Depends(get_db)):
     alerts.sort(key=lambda x: abs(x.get("z_score_1y") or 0), reverse=True)
 
     # FOMC
-    next_fomc = db.query(FomcEvent).filter(
-        FomcEvent.meeting_date >= today
-    ).order_by(FomcEvent.meeting_date).first()
-    latest_fw = None
-    if next_fomc:
-        latest_fw = db.query(FedWatch).filter(
-            FedWatch.meeting_date == next_fomc.meeting_date
-        ).order_by(desc(FedWatch.date)).first()
+    next_fomc_date = get_next_fomc_meeting_date(db, now=today)
+    latest_fw = get_latest_fedwatch_for_meeting(db, next_fomc_date)
 
     today_kst = get_today_kst()
     ai_today = get_existing_daily_insight(db, today_kst)
@@ -123,8 +120,8 @@ async def get_summary(db: Session = Depends(get_db)):
         "equities": dashboard_payload["equities"],
         "yield_curve": dashboard_payload["yield_curve"],
         "fomc": {
-            "next_date": str(next_fomc.meeting_date) if next_fomc else None,
-            "days_left": (next_fomc.meeting_date - today).days if next_fomc else None,
+            "next_date": str(next_fomc_date) if next_fomc_date else None,
+            "days_left": (next_fomc_date - today).days if next_fomc_date else None,
             "prob_hold": latest_fw.prob_hold if latest_fw else None,
             "prob_cut": latest_fw.prob_cut if latest_fw else None,
             "prob_hike": latest_fw.prob_hike if latest_fw else None,
@@ -209,21 +206,92 @@ async def get_sectors(db: Session = Depends(get_db)):
     return {"sectors": dashboard_payload["sectors"]}
 
 
+# ─── /api/calendar/events ────────────────────────────────────────────────────
+
+@router.get("/calendar/events", response_model=CalendarEventListResponse)
+async def get_calendar_events(
+    from_date: Optional[str] = Query(None, alias="from"),
+    to_date: Optional[str] = Query(None, alias="to"),
+    days: int = Query(30, ge=1, le=365),
+    category: Optional[str] = None,
+    event_type: Optional[str] = None,
+    importance: Optional[str] = None,
+    country: str = "US",
+    include_details: bool = False,
+    db: Session = Depends(get_db),
+):
+    start = datetime.fromisoformat(from_date) if from_date else datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    end = datetime.fromisoformat(to_date) + timedelta(days=1) if to_date else start + timedelta(days=days)
+
+    cache_key = (
+        f"calendar:events:{start.date().isoformat()}:{end.date().isoformat()}:"
+        f"{category}:{event_type}:{importance}:{country}:{include_details}"
+    )
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    query = db.query(EconomicCalendarEvent).filter(
+        EconomicCalendarEvent.event_date >= start,
+        EconomicCalendarEvent.event_date < end,
+        EconomicCalendarEvent.country == country,
+    )
+    if category:
+        query = query.filter(EconomicCalendarEvent.category == category)
+    if event_type:
+        query = query.filter(EconomicCalendarEvent.event_type == event_type)
+    if importance:
+        query = query.filter(EconomicCalendarEvent.importance == importance)
+
+    events = query.order_by(EconomicCalendarEvent.event_date).all()
+    payload = {
+        "events": [_calendar_event_to_dict(event, include_details=include_details) for event in events],
+        "count": len(events),
+    }
+    await cache_set(cache_key, payload, ttl=1800)
+    return payload
+
+
 # ─── /api/fomc ───────────────────────────────────────────────────────────────
 
 @router.get("/fomc")
 async def get_fomc(db: Session = Depends(get_db)):
-    events = db.query(FomcEvent).order_by(FomcEvent.meeting_date).all()
-    fw = db.query(FedWatch).order_by(desc(FedWatch.date)).first()
-    return {
-        "meetings": [
+    calendar_events = (
+        db.query(EconomicCalendarEvent)
+        .filter(EconomicCalendarEvent.event_key == "FOMC_MEETING")
+        .order_by(EconomicCalendarEvent.event_date)
+        .all()
+    )
+    if calendar_events:
+        meetings = [
             {
-                "date": str(e.meeting_date),
-                "rate": e.decision_rate,
-                "change_bp": e.change_bp,
+                "date": str(event.event_date),
+                "rate": event.fomc_detail.decision_rate if event.fomc_detail else None,
+                "change_bp": event.fomc_detail.change_bp if event.fomc_detail else None,
             }
-            for e in events
-        ],
+            for event in calendar_events
+        ]
+        next_meeting_date = next(
+            (event.event_date for event in calendar_events if event.event_date >= datetime.now().replace(microsecond=0)),
+            None,
+        )
+    else:
+        legacy_events = db.query(FomcEvent).order_by(FomcEvent.meeting_date).all()
+        meetings = [
+            {
+                "date": str(event.meeting_date),
+                "rate": event.decision_rate,
+                "change_bp": event.change_bp,
+            }
+            for event in legacy_events
+        ]
+        next_meeting_date = next(
+            (event.meeting_date for event in legacy_events if event.meeting_date >= datetime.now().replace(microsecond=0)),
+            None,
+        )
+    fw = get_latest_fedwatch_for_meeting(db, next_meeting_date) or db.query(FedWatch).order_by(desc(FedWatch.date)).first()
+    return {
+        "meetings": meetings,
         "fedwatch": {
             "prob_hold": fw.prob_hold if fw else None,
             "prob_cut": fw.prob_cut if fw else None,
@@ -339,6 +407,60 @@ def _enqueue_daily_insight_if_missing() -> None:
         celery.send_task("app.workers.celery_app.task_ensure_daily_insight")
     except Exception as exc:
         logger.warning("Failed to enqueue daily insight ensure task: %s", exc)
+
+
+def _calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: bool) -> dict:
+    if event.event_date.tzinfo is None:
+        event_utc = event.event_date.replace(tzinfo=timezone.utc).isoformat()
+    else:
+        event_utc = event.event_date.astimezone(timezone.utc).isoformat()
+
+    payload = {
+        "id": event.id,
+        "event_date": event.event_date,
+        "event_end_date": event.event_end_date,
+        "event_time": event.event_time,
+        "timezone": event.timezone,
+        "event_key": event.event_key,
+        "event_type": event.event_type,
+        "category": event.category,
+        "title": event.title,
+        "country": event.country,
+        "source": event.source,
+        "source_url": event.source_url,
+        "importance": event.importance,
+        "status": event.status,
+        "related_indicator_key": event.related_indicator_key,
+        "related_asset": event.related_asset,
+        "actual_value": event.actual_value,
+        "forecast_value": event.forecast_value,
+        "previous_value": event.previous_value,
+        "unit": event.unit,
+        "metadata": {
+            **(event.metadata_json or {}),
+            "event_local_date": event.event_date.date().isoformat(),
+            "event_utc": event_utc,
+        },
+        "details": None,
+    }
+    if include_details and event.fomc_detail is not None:
+        payload["details"] = {
+            "fomc": {
+                "meeting_start_date": event.fomc_detail.meeting_start_date.isoformat() if event.fomc_detail.meeting_start_date else None,
+                "meeting_end_date": event.fomc_detail.meeting_end_date.isoformat(),
+                "decision_rate": event.fomc_detail.decision_rate,
+                "target_rate_lower": event.fomc_detail.target_rate_lower,
+                "target_rate_upper": event.fomc_detail.target_rate_upper,
+                "change_bp": event.fomc_detail.change_bp,
+                "statement_url": event.fomc_detail.statement_url,
+                "minutes_url": event.fomc_detail.minutes_url,
+                "implementation_note_url": event.fomc_detail.implementation_note_url,
+                "press_conference_url": event.fomc_detail.press_conference_url,
+                "projection_materials_url": event.fomc_detail.projection_materials_url,
+                "has_sep": event.fomc_detail.has_sep,
+            }
+        }
+    return payload
 
 
 # ─── /api/divergence ──────────────────────────────────────────────────────────

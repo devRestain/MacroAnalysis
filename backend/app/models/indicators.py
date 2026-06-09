@@ -141,6 +141,7 @@ class FedWatch(Base):
     id = Column(Integer, primary_key=True)
     date = Column(DateTime, nullable=False)
     meeting_date = Column(DateTime, nullable=False)
+    calendar_event_id = Column(Integer, ForeignKey("economic_calendar_events.id"), nullable=True)
     prob_hike = Column(Float)
     prob_hold = Column(Float)
     prob_cut = Column(Float)

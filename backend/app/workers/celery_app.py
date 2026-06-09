@@ -7,6 +7,7 @@ from ..core.config import settings
 from ..core.database import SessionLocal
 from ..services.cleanup_service import run_cleanup
 from ..services.collection_orchestrator import (
+    run_calendar_batch,
     run_evening_batch,
     run_guarded_job,
     run_morning_batch,
@@ -46,6 +47,10 @@ if settings.WEEKLY_BATCH_ENABLED:
         "task": "app.workers.celery_app.task_run_weekly_batch",
         "schedule": crontab(day_of_week=1, hour=8, minute=0),
     }
+beat_schedule["calendar-events-batch"] = {
+    "task": "app.workers.celery_app.task_collect_calendar_events",
+    "schedule": crontab(hour=8, minute=10),
+}
 
 celery.conf.update(
     task_serializer="json",
@@ -146,6 +151,11 @@ def task_collect_news():
 @celery.task(name="app.workers.celery_app.task_collect_fomc")
 def task_collect_fomc():
     return _with_db(run_guarded_job, "fomc_calendar")
+
+
+@celery.task(name="app.workers.celery_app.task_collect_calendar_events")
+def task_collect_calendar_events():
+    return _with_db(run_calendar_batch)
 
 
 @celery.task(name="app.workers.celery_app.task_compute_snapshots")

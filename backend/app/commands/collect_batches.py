@@ -6,6 +6,7 @@ import sys
 
 from ..core.database import SessionLocal
 from ..services.collection_orchestrator import (
+    run_calendar_batch,
     run_evening_batch,
     run_morning_batch,
     run_noon_batch,
@@ -17,7 +18,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run batched collection jobs manually.")
     parser.add_argument(
         "batch",
-        choices=["morning", "noon", "evening", "weekly", "all-batched"],
+        choices=["morning", "noon", "evening", "weekly", "calendar", "all-batched"],
         help="Batch to run.",
     )
     parser.add_argument("--json", action="store_true", help="Print raw JSON output.")
@@ -35,6 +36,8 @@ def main(argv: list[str] | None = None) -> int:
             result = run_noon_batch(db)
         elif args.batch == "evening":
             result = run_evening_batch(db)
+        elif args.batch == "calendar":
+            result = run_calendar_batch(db)
         elif args.batch == "weekly":
             result = run_weekly_batch(db)
         else:
