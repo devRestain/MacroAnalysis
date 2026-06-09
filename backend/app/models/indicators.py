@@ -219,6 +219,38 @@ class DailyInsight(Base):
     )
 
 
+class IndicatorExplanation(Base):
+    """
+    Static indicator explanation metadata.
+
+    This table stores backend-managed explanation text and workflow-aware rule seeds.
+    `analysis_hints`, `workflow_status`, and related fields are static metadata only.
+    They are not runtime sentiment scores or runtime expectation outputs.
+    """
+
+    __tablename__ = "indicator_explanations"
+
+    id = Column(Integer, primary_key=True)
+    indicator_key = Column(String(100), nullable=False, unique=True, index=True)
+    display_name = Column(String(255), nullable=False)
+    category = Column(String(64), nullable=True)
+    provider = Column(String(128), nullable=True)
+    description = Column(Text, nullable=True)
+    short_label = Column(String(255), nullable=True)
+    market_role = Column(Text, nullable=True)
+    higher_meaning = Column(Text, nullable=True)
+    lower_meaning = Column(Text, nullable=True)
+    watch_points = Column(JSON, nullable=True)
+    related_indicators = Column(JSON, nullable=True)
+    workflow_status = Column(JSON, nullable=True)
+    display_text = Column(JSON, nullable=True)
+    analysis_hints = Column(JSON, nullable=True)
+    source_schema_version = Column(String(32), nullable=False)
+    source_file = Column(String(255), nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Expectation-Divergence Pipeline (v2)
 # ═══════════════════════════════════════════════════════════════════════════════

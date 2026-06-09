@@ -1,0 +1,2705 @@
+{
+  "schema_version": "1.1.0",
+  "purpose": "Workflow-aware static indicator explanation metadata for MacroAnalysis UI/API. Sentiment and expectation fields are rule seeds and display aids, not runtime-computed outputs.",
+  "language": "ko-KR",
+  "tone_guidelines": {
+    "do": [
+      "시장 해석에 필요한 맥락을 간결하게 제공한다.",
+      "상승/하락의 일반적 의미를 설명하되 단정적 투자 판단은 피한다.",
+      "사용자를 초보자로 직접 지칭하지 않는다.",
+      "AI 호출 없이 백엔드 또는 프론트에서 정적으로 소비할 수 있게 유지한다."
+    ],
+    "avoid": [
+      "매수/매도 권유",
+      "과도한 전문용어",
+      "항상, 반드시 같은 단정 표현",
+      "초보자, 입문자 등 사용자를 낮춰 보일 수 있는 표현"
+    ]
+  },
+  "field_definitions": {
+    "key": "Indicator key used by the existing collectors/API.",
+    "display_name": "User-facing display name.",
+    "category": "Existing logical category.",
+    "short_label": "One-line UI label for cards, tooltips, or compact panels.",
+    "description": "Plain-language explanation of what the indicator measures.",
+    "market_role": "Why the market watches this indicator.",
+    "higher_meaning": "Common interpretation when the value rises.",
+    "lower_meaning": "Common interpretation when the value falls.",
+    "watch_points": "Cautions and contextual signals to compare together.",
+    "sentiment_hint": "Typical risk sentiment implication, not a trading signal.",
+    "related_indicators": "Other indicator keys that help interpretation.",
+    "workflow_status": "Clarifies whether the item is a runtime signal or static explanation metadata.",
+    "display_text": "UI-safe text fields copied from existing explanation fields for frontend consumption.",
+    "analysis_hints": "Static rule seeds for future sentiment/expectation workflows; not computed results.",
+    "analysis_hints.sentiment_mapping": "General directional interpretation by value movement. Use only with runtime context.",
+    "analysis_hints.expectation_role": "Which expectation axis this indicator can inform and which indicators should be cross-checked."
+  },
+  "non_series_metrics": [
+    {
+      "key": "fomc_next_meeting",
+      "display_name": "다음 FOMC 회의일",
+      "category": "fomc",
+      "short_label": "다음 연준 정책 결정 일정",
+      "description": "연방공개시장위원회가 기준금리와 정책 방향을 결정하는 다음 회의 날짜다.",
+      "market_role": "금리, 환율, 주식, 채권시장이 정책 이벤트를 앞두고 기대를 조정하는 기준점이다.",
+      "higher_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+      "lower_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+      "watch_points": "회의 전후로 FedWatch 확률, 2년물 금리, FOMC 성명 문구 변화가 함께 움직일 수 있다.",
+      "sentiment_hint": "회의가 가까워질수록 금리 민감 자산의 변동성이 커질 수 있다.",
+      "related_indicators": [
+        "fedwatch_prob_hold",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike",
+        "DGS2",
+        "DFF"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "다음 연준 정책 결정 일정",
+        "description": "연방공개시장위원회가 기준금리와 정책 방향을 결정하는 다음 회의 날짜다.",
+        "market_role": "금리, 환율, 주식, 채권시장이 정책 이벤트를 앞두고 기대를 조정하는 기준점이다.",
+        "higher_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+        "lower_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+        "watch_points": "회의 전후로 FedWatch 확률, 2년물 금리, FOMC 성명 문구 변화가 함께 움직일 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "not_applicable",
+          "falling": "not_applicable",
+          "flat": "not_applicable",
+          "confidence": "low",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_event_timing",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "fedwatch_prob_hold",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike",
+            "DGS2",
+            "DFF"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fomc_decision_rate",
+      "display_name": "FOMC 결정 금리",
+      "category": "fomc",
+      "short_label": "FOMC가 결정한 정책금리 수준",
+      "description": "FOMC 회의에서 결정된 기준금리 수준을 나타낸다.",
+      "market_role": "정책금리의 실제 변화와 시장 기대의 차이를 확인하는 기준이 된다.",
+      "higher_meaning": "정책이 더 긴축적이라는 신호로, 금융환경에 부담이 될 수 있다.",
+      "lower_meaning": "정책 완화가 진행되고 있다는 신호로, 유동성 기대를 높일 수 있다.",
+      "watch_points": "금리 수준뿐 아니라 성명서, 점도표, 기자회견의 향후 경로 신호가 중요하다.",
+      "sentiment_hint": "예상보다 높은 결정은 위험자산에 부담, 예상보다 낮은 결정은 안도감을 줄 수 있다.",
+      "related_indicators": [
+        "DFF",
+        "DGS2",
+        "DGS10",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "FOMC가 결정한 정책금리 수준",
+        "description": "FOMC 회의에서 결정된 기준금리 수준을 나타낸다.",
+        "market_role": "정책금리의 실제 변화와 시장 기대의 차이를 확인하는 기준이 된다.",
+        "higher_meaning": "정책이 더 긴축적이라는 신호로, 금융환경에 부담이 될 수 있다.",
+        "lower_meaning": "정책 완화가 진행되고 있다는 신호로, 유동성 기대를 높일 수 있다.",
+        "watch_points": "금리 수준뿐 아니라 성명서, 점도표, 기자회견의 향후 경로 신호가 중요하다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "not_applicable",
+          "falling": "not_applicable",
+          "flat": "not_applicable",
+          "confidence": "low",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_event_timing",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "DGS2",
+            "DGS10",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fomc_change_bp",
+      "display_name": "FOMC 변동폭",
+      "category": "fomc",
+      "short_label": "이번 회의의 금리 변화 폭",
+      "description": "FOMC가 이전 회의 대비 기준금리를 몇 bp 조정했는지를 나타낸다.",
+      "market_role": "정책 변화의 강도와 시장 예상 대비 서프라이즈를 판단하는 데 쓰인다.",
+      "higher_meaning": "인상 폭이 크거나 인하 폭이 작다면 긴축적 서프라이즈로 해석될 수 있다.",
+      "lower_meaning": "인하 폭이 크거나 인상 폭이 작다면 완화적 서프라이즈로 해석될 수 있다.",
+      "watch_points": "부호 정의를 UI에 명확히 표시하고, 시장 예상과의 차이를 함께 보여주는 것이 좋다.",
+      "sentiment_hint": "예상 밖 큰 변화는 방향과 무관하게 단기 변동성을 키울 수 있다.",
+      "related_indicators": [
+        "DFF",
+        "DGS2",
+        "fedwatch_prob_hold",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "이번 회의의 금리 변화 폭",
+        "description": "FOMC가 이전 회의 대비 기준금리를 몇 bp 조정했는지를 나타낸다.",
+        "market_role": "정책 변화의 강도와 시장 예상 대비 서프라이즈를 판단하는 데 쓰인다.",
+        "higher_meaning": "인상 폭이 크거나 인하 폭이 작다면 긴축적 서프라이즈로 해석될 수 있다.",
+        "lower_meaning": "인하 폭이 크거나 인상 폭이 작다면 완화적 서프라이즈로 해석될 수 있다.",
+        "watch_points": "부호 정의를 UI에 명확히 표시하고, 시장 예상과의 차이를 함께 보여주는 것이 좋다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "not_applicable",
+          "falling": "not_applicable",
+          "flat": "not_applicable",
+          "confidence": "low",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_event_timing",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "DGS2",
+            "fedwatch_prob_hold",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fedwatch_prob_hold",
+      "display_name": "FOMC 동결 확률",
+      "category": "fedwatch",
+      "short_label": "시장이 보는 금리 동결 가능성",
+      "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 동결 가능성이다.",
+      "market_role": "현재 시장이 정책 변화를 얼마나 예상하는지 빠르게 확인하는 데 쓰인다.",
+      "higher_meaning": "정책 변화보다 현 수준 유지 기대가 강하다는 뜻이다.",
+      "lower_meaning": "인하 또는 인상 같은 정책 변화 가능성이 상대적으로 커졌다는 뜻이다.",
+      "watch_points": "인하 확률과 인상 확률 중 어느 쪽으로 이동했는지를 함께 확인해야 한다.",
+      "sentiment_hint": "동결 확률 상승은 상황에 따라 안정 신호 또는 정책 지연 우려로 해석될 수 있다.",
+      "related_indicators": [
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike",
+        "DGS2",
+        "DFF"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "시장이 보는 금리 동결 가능성",
+        "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 동결 가능성이다.",
+        "market_role": "현재 시장이 정책 변화를 얼마나 예상하는지 빠르게 확인하는 데 쓰인다.",
+        "higher_meaning": "정책 변화보다 현 수준 유지 기대가 강하다는 뜻이다.",
+        "lower_meaning": "인하 또는 인상 같은 정책 변화 가능성이 상대적으로 커졌다는 뜻이다.",
+        "watch_points": "인하 확률과 인상 확률 중 어느 쪽으로 이동했는지를 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "policy_stability_tilt",
+          "falling": "policy_shift_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_rate_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike",
+            "DGS2",
+            "DFF"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fedwatch_prob_cut",
+      "display_name": "FOMC 인하 확률",
+      "category": "fedwatch",
+      "short_label": "시장이 보는 금리 인하 가능성",
+      "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인하 가능성이다.",
+      "market_role": "정책 완화 기대와 경기·물가 둔화 해석이 시장에 얼마나 반영됐는지 보여준다.",
+      "higher_meaning": "금리 인하 기대가 강해졌음을 뜻하며, 원인은 물가 안정 또는 경기 둔화일 수 있다.",
+      "lower_meaning": "인하 기대가 약해지고 긴축 유지 가능성이 커졌음을 시사할 수 있다.",
+      "watch_points": "인하 기대가 위험자산에 우호적인지, 경기침체 우려 때문인지 구분해야 한다.",
+      "sentiment_hint": "완만한 상승은 금리 부담 완화, 급격한 상승은 경기 우려로 읽힐 수 있다.",
+      "related_indicators": [
+        "DGS2",
+        "DGS10",
+        "UNRATE",
+        "CPIAUCSL",
+        "PCEPILFE"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "시장이 보는 금리 인하 가능성",
+        "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인하 가능성이다.",
+        "market_role": "정책 완화 기대와 경기·물가 둔화 해석이 시장에 얼마나 반영됐는지 보여준다.",
+        "higher_meaning": "금리 인하 기대가 강해졌음을 뜻하며, 원인은 물가 안정 또는 경기 둔화일 수 있다.",
+        "lower_meaning": "인하 기대가 약해지고 긴축 유지 가능성이 커졌음을 시사할 수 있다.",
+        "watch_points": "인하 기대가 위험자산에 우호적인지, 경기침체 우려 때문인지 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "easing_expectation_tilt",
+          "falling": "higher_for_longer_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_easing_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DGS10",
+            "UNRATE",
+            "CPIAUCSL",
+            "PCEPILFE"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fedwatch_prob_hike",
+      "display_name": "FOMC 인상 확률",
+      "category": "fedwatch",
+      "short_label": "시장이 보는 금리 인상 가능성",
+      "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인상 가능성이다.",
+      "market_role": "물가 재가속 또는 긴축 강화 가능성이 시장에 얼마나 반영됐는지 보여준다.",
+      "higher_meaning": "추가 긴축 우려가 커졌으며 금리 민감 자산에 부담이 될 수 있다.",
+      "lower_meaning": "추가 인상 부담이 완화되고 정책 불확실성이 줄어들 수 있다.",
+      "watch_points": "물가 지표, 임금, 2년물 금리 상승과 함께 나타나는지 확인해야 한다.",
+      "sentiment_hint": "상승은 대체로 위험자산에 부담이 되는 신호로 해석된다.",
+      "related_indicators": [
+        "DGS2",
+        "DFF",
+        "CPIAUCSL",
+        "PCEPILFE",
+        "^IXIC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "시장이 보는 금리 인상 가능성",
+        "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인상 가능성이다.",
+        "market_role": "물가 재가속 또는 긴축 강화 가능성이 시장에 얼마나 반영됐는지 보여준다.",
+        "higher_meaning": "추가 긴축 우려가 커졌으며 금리 민감 자산에 부담이 될 수 있다.",
+        "lower_meaning": "추가 인상 부담이 완화되고 정책 불확실성이 줄어들 수 있다.",
+        "watch_points": "물가 지표, 임금, 2년물 금리 상승과 함께 나타나는지 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "tightening_expectation_risk_off_tilt",
+          "falling": "tightening_pressure_relief_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_tightening_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DFF",
+            "CPIAUCSL",
+            "PCEPILFE",
+            "^IXIC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    }
+  ],
+  "implementation_notes": {
+    "recommended_backend_shape": "Load this JSON once at startup and merge explanation metadata into /api/summary, /api/chart/{indicator_key}, /api/indicators/history/{indicator_key}, /api/sectors, and /api/fomc responses when matching keys exist.",
+    "recommended_frontend_usage": "Use short_label on compact cards and description/market_role/higher_meaning/lower_meaning/watch_points in side panels or info tooltips.",
+    "fallback_behavior": "If a key is missing, show display_name only and omit explanation blocks rather than calling AI dynamically.",
+    "sentiment_policy": "sentiment_hint is a heuristic explanation for interpretation only; do not convert it directly into a buy/sell signal.",
+    "workflow_connection_policy": [
+      "sentiment_hint 및 analysis_hints.sentiment_mapping은 실제 sentiment 계산 결과가 아니라 정적 해석 규칙이다.",
+      "expectation 관련 필드는 실제 expectation 계산 결과가 아니라 향후 워크플로우 연결을 위한 해석 축이다.",
+      "프론트엔드는 워크플로우 연결 전까지 display_text를 기본 표시 대상으로 사용하고, analysis_hints는 보조 툴팁 또는 내부 로직 참고용으로 제한한다.",
+      "백엔드는 이 JSON만으로 sentiment/expectation API 응답값을 생성하지 말고, 별도 runtime 데이터와 계산 로직이 연결된 뒤 결과값을 노출한다."
+    ]
+  },
+  "workflow_metadata": {
+    "runtime_sentiment_connected": false,
+    "runtime_expectation_connected": false,
+    "sentiment_fields_are_static_hints": true,
+    "expectation_fields_are_static_hints": true,
+    "recommended_usage": [
+      "지표 설명 텍스트 표시",
+      "카드/사이드패널/툴팁의 해석 보조 문구",
+      "향후 sentiment/expectation 계산 로직을 설계할 때 참고하는 rule seed",
+      "AI 호출 없이 정적 메타데이터로 소비"
+    ],
+    "not_recommended_usage": [
+      "현재 시장 sentiment 최종값으로 직접 표시",
+      "현재 expectation 최종값으로 직접 표시",
+      "매수/매도/비중 조절 신호로 직접 사용",
+      "단일 지표만으로 시장 국면을 확정"
+    ],
+    "safe_default_behavior": "워크플로우가 연결되기 전에는 display_text만 사용자에게 안정적으로 노출하고, analysis_hints는 내부 설명/향후 계산 로직 참고용으로 취급한다."
+  },
+  "timeseries_indicators": [
+    {
+      "key": "DFF",
+      "display_name": "기준금리",
+      "category": "rates",
+      "short_label": "연준의 단기 금리 기준점",
+      "description": "미국 연방기금 실효금리로, 은행 간 초단기 자금 거래에서 실제로 형성된 금리를 나타낸다.",
+      "market_role": "금융시장 전체의 할인율, 대출금리, 달러 유동성 판단의 출발점으로 쓰인다.",
+      "higher_meaning": "긴축적 금융환경을 시사하며 성장주와 고위험 자산에는 부담이 될 수 있다.",
+      "lower_meaning": "완화적 금융환경을 시사하며 유동성 개선 기대를 높일 수 있다.",
+      "watch_points": "명목 수준보다 향후 인하·인상 기대, 물가 둔화 속도, 장단기 금리와 함께 해석하는 것이 중요하다.",
+      "sentiment_hint": "높은 수준이 오래 유지되면 위험선호를 제약하기 쉽다.",
+      "related_indicators": [
+        "DGS2",
+        "DGS10",
+        "T10Y2Y",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "연준의 단기 금리 기준점",
+        "description": "미국 연방기금 실효금리로, 은행 간 초단기 자금 거래에서 실제로 형성된 금리를 나타낸다.",
+        "market_role": "금융시장 전체의 할인율, 대출금리, 달러 유동성 판단의 출발점으로 쓰인다.",
+        "higher_meaning": "긴축적 금융환경을 시사하며 성장주와 고위험 자산에는 부담이 될 수 있다.",
+        "lower_meaning": "완화적 금융환경을 시사하며 유동성 개선 기대를 높일 수 있다.",
+        "watch_points": "명목 수준보다 향후 인하·인상 기대, 물가 둔화 속도, 장단기 금리와 함께 해석하는 것이 중요하다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_off_tilt",
+          "falling": "risk_on_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_rate_level",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DGS10",
+            "T10Y2Y",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "DGS2",
+      "display_name": "2Y 국채",
+      "category": "rates",
+      "short_label": "정책금리 기대에 민감한 금리",
+      "description": "미국 2년 만기 국채 수익률로, 가까운 통화정책 경로에 특히 민감하게 반응한다.",
+      "market_role": "시장이 연준의 금리 인하·인상 가능성을 어떻게 가격에 반영하는지 보여준다.",
+      "higher_meaning": "긴축 지속 또는 인하 지연 기대가 강해졌다는 신호일 수 있다.",
+      "lower_meaning": "금리 인하 기대, 성장 둔화 우려, 안전자산 선호가 반영될 수 있다.",
+      "watch_points": "단독 수치보다 기준금리, 10년물 금리, FedWatch 확률과 함께 봐야 한다.",
+      "sentiment_hint": "빠른 상승은 주식 밸류에이션에 부담을 줄 수 있다.",
+      "related_indicators": [
+        "DFF",
+        "DGS10",
+        "T10Y2Y",
+        "fedwatch_prob_cut"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "정책금리 기대에 민감한 금리",
+        "description": "미국 2년 만기 국채 수익률로, 가까운 통화정책 경로에 특히 민감하게 반응한다.",
+        "market_role": "시장이 연준의 금리 인하·인상 가능성을 어떻게 가격에 반영하는지 보여준다.",
+        "higher_meaning": "긴축 지속 또는 인하 지연 기대가 강해졌다는 신호일 수 있다.",
+        "lower_meaning": "금리 인하 기대, 성장 둔화 우려, 안전자산 선호가 반영될 수 있다.",
+        "watch_points": "단독 수치보다 기준금리, 10년물 금리, FedWatch 확률과 함께 봐야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "context_dependent",
+          "falling": "context_dependent",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_rate_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "DGS10",
+            "T10Y2Y",
+            "fedwatch_prob_cut"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "DGS10",
+      "display_name": "10Y 국채",
+      "category": "rates",
+      "short_label": "장기 성장·물가 기대의 핵심 금리",
+      "description": "미국 10년 만기 국채 수익률로, 장기 성장률과 물가 기대, 기간프리미엄이 함께 반영된다.",
+      "market_role": "주식 할인율, 주택담보대출 금리, 글로벌 자산가격의 기준 금리로 널리 활용된다.",
+      "higher_meaning": "성장·물가 기대 또는 국채 공급 부담이 커졌다는 해석이 가능하다.",
+      "lower_meaning": "경기 둔화 우려, 물가 안정 기대, 안전자산 수요 증가가 반영될 수 있다.",
+      "watch_points": "상승 원인이 성장 기대인지 인플레이션 우려인지에 따라 시장 반응이 달라진다.",
+      "sentiment_hint": "급등은 위험자산에 부담, 완만한 상승은 성장 기대와 공존할 수 있다.",
+      "related_indicators": [
+        "DGS2",
+        "DGS30",
+        "T10Y2Y",
+        "CPIAUCSL",
+        "PCEPILFE"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "장기 성장·물가 기대의 핵심 금리",
+        "description": "미국 10년 만기 국채 수익률로, 장기 성장률과 물가 기대, 기간프리미엄이 함께 반영된다.",
+        "market_role": "주식 할인율, 주택담보대출 금리, 글로벌 자산가격의 기준 금리로 널리 활용된다.",
+        "higher_meaning": "성장·물가 기대 또는 국채 공급 부담이 커졌다는 해석이 가능하다.",
+        "lower_meaning": "경기 둔화 우려, 물가 안정 기대, 안전자산 수요 증가가 반영될 수 있다.",
+        "watch_points": "상승 원인이 성장 기대인지 인플레이션 우려인지에 따라 시장 반응이 달라진다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "context_dependent",
+          "falling": "context_dependent",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "growth_inflation_policy_mix",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DGS30",
+            "T10Y2Y",
+            "CPIAUCSL",
+            "PCEPILFE"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "DGS30",
+      "display_name": "30Y 국채",
+      "category": "rates",
+      "short_label": "장기 금리와 기간프리미엄 지표",
+      "description": "미국 30년 만기 국채 수익률로, 매우 긴 기간의 성장·물가 기대와 기간프리미엄을 반영한다.",
+      "market_role": "장기 자금조달 비용과 연금·보험 등 장기 투자자의 수요 변화를 읽는 데 활용된다.",
+      "higher_meaning": "장기 인플레이션 우려, 국채 공급 부담, 기간프리미엄 상승을 시사할 수 있다.",
+      "lower_meaning": "장기 성장 기대 둔화 또는 안전자산 수요 증가를 시사할 수 있다.",
+      "watch_points": "10년물과의 움직임 차이를 보면 수익률곡선의 장기 구간 변화를 파악할 수 있다.",
+      "sentiment_hint": "장기금리 급등은 성장주와 부동산 관련 자산에 부담이 될 수 있다.",
+      "related_indicators": [
+        "DGS10",
+        "T10Y2Y",
+        "DFF"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "장기 금리와 기간프리미엄 지표",
+        "description": "미국 30년 만기 국채 수익률로, 매우 긴 기간의 성장·물가 기대와 기간프리미엄을 반영한다.",
+        "market_role": "장기 자금조달 비용과 연금·보험 등 장기 투자자의 수요 변화를 읽는 데 활용된다.",
+        "higher_meaning": "장기 인플레이션 우려, 국채 공급 부담, 기간프리미엄 상승을 시사할 수 있다.",
+        "lower_meaning": "장기 성장 기대 둔화 또는 안전자산 수요 증가를 시사할 수 있다.",
+        "watch_points": "10년물과의 움직임 차이를 보면 수익률곡선의 장기 구간 변화를 파악할 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "context_dependent",
+          "falling": "context_dependent",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "long_term_growth_inflation_term_premium",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS10",
+            "T10Y2Y",
+            "DFF"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "T10Y2Y",
+      "display_name": "10Y-2Y 스프레드",
+      "category": "rates",
+      "short_label": "장단기 금리차로 보는 경기 신호",
+      "description": "미국 10년물 금리에서 2년물 금리를 뺀 값으로, 수익률곡선의 기울기를 나타낸다.",
+      "market_role": "경기 확장·둔화 기대와 통화정책 부담을 함께 보여주는 대표적인 매크로 지표다.",
+      "higher_meaning": "곡선이 가팔라지며 장기 성장·물가 기대가 높아졌거나 단기 인하 기대가 커졌을 수 있다.",
+      "lower_meaning": "곡선이 평탄화 또는 역전되며 긴축 부담과 경기 둔화 우려가 커졌을 수 있다.",
+      "watch_points": "역전 자체보다 역전 폭의 확대·축소와 재가팔라짐의 원인을 구분해야 한다.",
+      "sentiment_hint": "깊은 역전은 경기 우려를, 완만한 정상화는 정책 전환 기대를 반영할 수 있다.",
+      "related_indicators": [
+        "DGS2",
+        "DGS10",
+        "DFF",
+        "USSLIND"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "장단기 금리차로 보는 경기 신호",
+        "description": "미국 10년물 금리에서 2년물 금리를 뺀 값으로, 수익률곡선의 기울기를 나타낸다.",
+        "market_role": "경기 확장·둔화 기대와 통화정책 부담을 함께 보여주는 대표적인 매크로 지표다.",
+        "higher_meaning": "곡선이 가팔라지며 장기 성장·물가 기대가 높아졌거나 단기 인하 기대가 커졌을 수 있다.",
+        "lower_meaning": "곡선이 평탄화 또는 역전되며 긴축 부담과 경기 둔화 우려가 커졌을 수 있다.",
+        "watch_points": "역전 자체보다 역전 폭의 확대·축소와 재가팔라짐의 원인을 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "growth_normalization_tilt",
+          "falling": "slowdown_or_policy_stress_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "yield_curve_recession_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DGS10",
+            "DFF",
+            "USSLIND"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "SOFR",
+      "display_name": "SOFR",
+      "category": "rates",
+      "short_label": "달러 단기자금 시장 금리",
+      "description": "미국 국채 담보 익일 환매조건부 거래를 기반으로 산출되는 단기 기준금리다.",
+      "market_role": "달러 단기 유동성, 담보시장 안정성, 파생상품 기준금리의 흐름을 확인하는 데 쓰인다.",
+      "higher_meaning": "단기자금 조달 비용 상승 또는 유동성 압박이 반영될 수 있다.",
+      "lower_meaning": "단기자금 시장의 부담 완화나 정책금리 인하 기대가 반영될 수 있다.",
+      "watch_points": "일시적 분기말·연말 효과와 구조적 유동성 압박을 구분해야 한다.",
+      "sentiment_hint": "갑작스러운 상승은 단기 유동성 경계감을 높일 수 있다.",
+      "related_indicators": [
+        "DFF",
+        "DGS2",
+        "DXY"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "달러 단기자금 시장 금리",
+        "description": "미국 국채 담보 익일 환매조건부 거래를 기반으로 산출되는 단기 기준금리다.",
+        "market_role": "달러 단기 유동성, 담보시장 안정성, 파생상품 기준금리의 흐름을 확인하는 데 쓰인다.",
+        "higher_meaning": "단기자금 조달 비용 상승 또는 유동성 압박이 반영될 수 있다.",
+        "lower_meaning": "단기자금 시장의 부담 완화나 정책금리 인하 기대가 반영될 수 있다.",
+        "watch_points": "일시적 분기말·연말 효과와 구조적 유동성 압박을 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "liquidity_tightening_tilt",
+          "falling": "liquidity_easing_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "short_term_funding_condition",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "DGS2",
+            "DXY"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "CPIAUCSL",
+      "display_name": "CPI",
+      "category": "macro",
+      "short_label": "소비자물가의 대표 지표",
+      "description": "미국 도시 소비자가 구매하는 상품과 서비스 가격의 전반적인 변화를 보여주는 물가지수다.",
+      "market_role": "연준의 정책 기대, 실질소득, 채권금리, 주식 할인율에 직접적인 영향을 준다.",
+      "higher_meaning": "물가 압력이 강해져 긴축 유지 또는 인하 지연 가능성이 커질 수 있다.",
+      "lower_meaning": "인플레이션 부담 완화와 금리 인하 기대를 뒷받침할 수 있다.",
+      "watch_points": "전월비, 전년비, 근원물가, 주거비 흐름을 함께 확인해야 한다.",
+      "sentiment_hint": "예상보다 높은 물가는 위험자산에 부담이 되기 쉽다.",
+      "related_indicators": [
+        "PCEPILFE",
+        "DGS10",
+        "DGS2",
+        "DXY"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "소비자물가의 대표 지표",
+        "description": "미국 도시 소비자가 구매하는 상품과 서비스 가격의 전반적인 변화를 보여주는 물가지수다.",
+        "market_role": "연준의 정책 기대, 실질소득, 채권금리, 주식 할인율에 직접적인 영향을 준다.",
+        "higher_meaning": "물가 압력이 강해져 긴축 유지 또는 인하 지연 가능성이 커질 수 있다.",
+        "lower_meaning": "인플레이션 부담 완화와 금리 인하 기대를 뒷받침할 수 있다.",
+        "watch_points": "전월비, 전년비, 근원물가, 주거비 흐름을 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "inflation_pressure_tilt",
+          "falling": "disinflation_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "inflation_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "PCEPILFE",
+            "DGS10",
+            "DGS2",
+            "DXY"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "PCEPILFE",
+      "display_name": "Core PCE",
+      "category": "macro",
+      "short_label": "연준이 중시하는 근원 물가",
+      "description": "식품과 에너지를 제외한 개인소비지출 물가지수로, 기조적인 물가 압력을 보는 데 사용된다.",
+      "market_role": "연준의 물가 판단과 통화정책 기대에 큰 영향을 주는 핵심 인플레이션 지표다.",
+      "higher_meaning": "기조적 물가 압력이 남아 있어 긴축적 정책이 오래 유지될 수 있음을 시사한다.",
+      "lower_meaning": "물가 안정이 진전되며 정책 완화 기대가 커질 수 있다.",
+      "watch_points": "CPI와 발표 시점·구성 차이가 있어 두 지표가 다른 신호를 줄 수 있다.",
+      "sentiment_hint": "둔화 흐름은 금리 부담 완화 기대를 높일 수 있다.",
+      "related_indicators": [
+        "CPIAUCSL",
+        "DFF",
+        "DGS2",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "연준이 중시하는 근원 물가",
+        "description": "식품과 에너지를 제외한 개인소비지출 물가지수로, 기조적인 물가 압력을 보는 데 사용된다.",
+        "market_role": "연준의 물가 판단과 통화정책 기대에 큰 영향을 주는 핵심 인플레이션 지표다.",
+        "higher_meaning": "기조적 물가 압력이 남아 있어 긴축적 정책이 오래 유지될 수 있음을 시사한다.",
+        "lower_meaning": "물가 안정이 진전되며 정책 완화 기대가 커질 수 있다.",
+        "watch_points": "CPI와 발표 시점·구성 차이가 있어 두 지표가 다른 신호를 줄 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "sticky_inflation_tilt",
+          "falling": "policy_easing_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "core_inflation_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "CPIAUCSL",
+            "DFF",
+            "DGS2",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "UNRATE",
+      "display_name": "실업률",
+      "category": "macro",
+      "short_label": "노동시장 냉각 여부",
+      "description": "경제활동인구 중 실업 상태에 있는 사람의 비율을 나타내는 대표적인 고용 지표다.",
+      "market_role": "경기 모멘텀, 소비 여력, 연준의 고용 책무와 정책 전환 가능성을 판단하는 데 쓰인다.",
+      "higher_meaning": "노동시장 둔화와 경기 하방 압력이 커졌다는 신호일 수 있다.",
+      "lower_meaning": "고용 여건이 견조하고 소비 기반이 유지되고 있음을 시사할 수 있다.",
+      "watch_points": "참가율, 임금상승률, 신규 실업수당 청구와 함께 봐야 왜곡을 줄일 수 있다.",
+      "sentiment_hint": "완만한 상승은 금리 인하 기대를 높일 수 있지만 급등은 경기 침체 우려를 키운다.",
+      "related_indicators": [
+        "ICSA",
+        "DFF",
+        "USSLIND",
+        "CPIAUCSL"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "노동시장 냉각 여부",
+        "description": "경제활동인구 중 실업 상태에 있는 사람의 비율을 나타내는 대표적인 고용 지표다.",
+        "market_role": "경기 모멘텀, 소비 여력, 연준의 고용 책무와 정책 전환 가능성을 판단하는 데 쓰인다.",
+        "higher_meaning": "노동시장 둔화와 경기 하방 압력이 커졌다는 신호일 수 있다.",
+        "lower_meaning": "고용 여건이 견조하고 소비 기반이 유지되고 있음을 시사할 수 있다.",
+        "watch_points": "참가율, 임금상승률, 신규 실업수당 청구와 함께 봐야 왜곡을 줄일 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "growth_slowdown_tilt",
+          "falling": "growth_resilience_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "labor_market_cycle",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "ICSA",
+            "DFF",
+            "USSLIND",
+            "CPIAUCSL"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "ICSA",
+      "display_name": "실업수당 청구",
+      "category": "macro",
+      "short_label": "고용 둔화의 빠른 신호",
+      "description": "미국에서 처음으로 실업수당을 신청한 사람 수를 나타내는 주간 고용 지표다.",
+      "market_role": "월간 고용지표보다 빠르게 노동시장 변화 가능성을 확인하는 데 활용된다.",
+      "higher_meaning": "해고 증가와 노동시장 둔화 가능성을 시사한다.",
+      "lower_meaning": "기업의 고용 유지가 견조하고 노동 수요가 안정적일 수 있음을 시사한다.",
+      "watch_points": "주간 변동성이 크므로 4주 이동평균과 추세 확인이 중요하다.",
+      "sentiment_hint": "완만한 증가는 금리 부담 완화, 급격한 증가는 경기 우려로 해석될 수 있다.",
+      "related_indicators": [
+        "UNRATE",
+        "USSLIND",
+        "DGS2"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "고용 둔화의 빠른 신호",
+        "description": "미국에서 처음으로 실업수당을 신청한 사람 수를 나타내는 주간 고용 지표다.",
+        "market_role": "월간 고용지표보다 빠르게 노동시장 변화 가능성을 확인하는 데 활용된다.",
+        "higher_meaning": "해고 증가와 노동시장 둔화 가능성을 시사한다.",
+        "lower_meaning": "기업의 고용 유지가 견조하고 노동 수요가 안정적일 수 있음을 시사한다.",
+        "watch_points": "주간 변동성이 크므로 4주 이동평균과 추세 확인이 중요하다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "growth_slowdown_tilt",
+          "falling": "growth_resilience_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "labor_market_turning_point",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "UNRATE",
+            "USSLIND",
+            "DGS2"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "USSLIND",
+      "display_name": "LEI",
+      "category": "macro",
+      "short_label": "경기 전환점을 보는 선행지표",
+      "description": "미국 경기의 향후 방향을 가늠하기 위해 여러 선행 변수를 종합한 지표다.",
+      "market_role": "경기 확장·둔화 가능성과 위험자산의 이익 전망을 함께 판단하는 데 쓰인다.",
+      "higher_meaning": "향후 경기 모멘텀이 개선될 가능성을 시사한다.",
+      "lower_meaning": "경기 둔화 또는 침체 가능성에 대한 경계가 커질 수 있다.",
+      "watch_points": "단월 변화보다 연속적인 개선·악화 여부가 더 중요하다.",
+      "sentiment_hint": "하락세가 길어지면 방어적 시장 해석이 강화될 수 있다.",
+      "related_indicators": [
+        "T10Y2Y",
+        "UNRATE",
+        "ICSA",
+        "HY_OAS"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "경기 전환점을 보는 선행지표",
+        "description": "미국 경기의 향후 방향을 가늠하기 위해 여러 선행 변수를 종합한 지표다.",
+        "market_role": "경기 확장·둔화 가능성과 위험자산의 이익 전망을 함께 판단하는 데 쓰인다.",
+        "higher_meaning": "향후 경기 모멘텀이 개선될 가능성을 시사한다.",
+        "lower_meaning": "경기 둔화 또는 침체 가능성에 대한 경계가 커질 수 있다.",
+        "watch_points": "단월 변화보다 연속적인 개선·악화 여부가 더 중요하다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "growth_resilience_tilt",
+          "falling": "growth_slowdown_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "leading_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "T10Y2Y",
+            "UNRATE",
+            "ICSA",
+            "HY_OAS"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "M2SL",
+      "display_name": "M2 통화량",
+      "category": "macro",
+      "short_label": "경제 내 넓은 의미의 유동성",
+      "description": "현금, 요구불예금, 저축성 예금 등 경제 내 넓은 범위의 통화량을 나타낸다.",
+      "market_role": "유동성 환경, 소비·투자 여력, 자산가격 압력의 배경을 확인하는 데 활용된다.",
+      "higher_meaning": "유동성 공급이 늘며 소비·투자와 자산가격을 지지할 수 있다.",
+      "lower_meaning": "유동성 축소와 금융환경 긴축 가능성을 시사할 수 있다.",
+      "watch_points": "통화량 변화가 실제 신용창출과 자산시장으로 이어지는지 함께 확인해야 한다.",
+      "sentiment_hint": "유동성 확대는 위험선호에 우호적일 수 있지만 물가 부담도 함께 봐야 한다.",
+      "related_indicators": [
+        "DFF",
+        "SOFR",
+        "CPIAUCSL",
+        "^GSPC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "경제 내 넓은 의미의 유동성",
+        "description": "현금, 요구불예금, 저축성 예금 등 경제 내 넓은 범위의 통화량을 나타낸다.",
+        "market_role": "유동성 환경, 소비·투자 여력, 자산가격 압력의 배경을 확인하는 데 활용된다.",
+        "higher_meaning": "유동성 공급이 늘며 소비·투자와 자산가격을 지지할 수 있다.",
+        "lower_meaning": "유동성 축소와 금융환경 긴축 가능성을 시사할 수 있다.",
+        "watch_points": "통화량 변화가 실제 신용창출과 자산시장으로 이어지는지 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "liquidity_easing_tilt",
+          "falling": "liquidity_tightening_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "liquidity_condition",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "SOFR",
+            "CPIAUCSL",
+            "^GSPC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "HY_OAS",
+      "display_name": "HY 크레딧 스프레드",
+      "category": "credit",
+      "short_label": "고위험 회사채의 위험 프리미엄",
+      "description": "하이일드 회사채 수익률이 같은 만기의 국채보다 얼마나 높은지를 나타내는 스프레드다.",
+      "market_role": "기업 신용위험과 금융시장 스트레스 수준을 빠르게 보여주는 지표다.",
+      "higher_meaning": "부도 위험, 경기 둔화, 위험회피 심리가 커졌다는 신호일 수 있다.",
+      "lower_meaning": "신용위험 우려가 완화되고 위험선호가 개선되고 있음을 시사할 수 있다.",
+      "watch_points": "주식 하락과 동반 확대되는지, 유동성 요인인지 펀더멘털 우려인지 구분해야 한다.",
+      "sentiment_hint": "확대는 위험회피, 축소는 위험선호 개선으로 해석되는 경우가 많다.",
+      "related_indicators": [
+        "IG_OAS",
+        "^VIX",
+        "^GSPC",
+        "USSLIND"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "고위험 회사채의 위험 프리미엄",
+        "description": "하이일드 회사채 수익률이 같은 만기의 국채보다 얼마나 높은지를 나타내는 스프레드다.",
+        "market_role": "기업 신용위험과 금융시장 스트레스 수준을 빠르게 보여주는 지표다.",
+        "higher_meaning": "부도 위험, 경기 둔화, 위험회피 심리가 커졌다는 신호일 수 있다.",
+        "lower_meaning": "신용위험 우려가 완화되고 위험선호가 개선되고 있음을 시사할 수 있다.",
+        "watch_points": "주식 하락과 동반 확대되는지, 유동성 요인인지 펀더멘털 우려인지 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_off",
+          "falling": "risk_on",
+          "flat": "neutral",
+          "confidence": "high",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "credit_risk_and_financial_stress",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "IG_OAS",
+            "^VIX",
+            "^GSPC",
+            "USSLIND"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "IG_OAS",
+      "display_name": "IG 크레딧 스프레드",
+      "category": "credit",
+      "short_label": "우량 회사채의 신용 프리미엄",
+      "description": "투자등급 회사채 수익률이 같은 만기의 국채보다 얼마나 높은지를 나타내는 스프레드다.",
+      "market_role": "우량 기업의 자금조달 환경과 신용시장 전반의 안정성을 확인하는 데 쓰인다.",
+      "higher_meaning": "신용위험 경계감 또는 회사채 수요 약화가 커졌음을 시사할 수 있다.",
+      "lower_meaning": "신용시장 안정과 기업 자금조달 여건 개선을 시사할 수 있다.",
+      "watch_points": "하이일드 스프레드보다 느리게 반응할 수 있어 두 지표의 괴리를 함께 봐야 한다.",
+      "sentiment_hint": "완만한 축소는 시장 안정 신호로 해석될 수 있다.",
+      "related_indicators": [
+        "HY_OAS",
+        "DGS10",
+        "^VIX"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "우량 회사채의 신용 프리미엄",
+        "description": "투자등급 회사채 수익률이 같은 만기의 국채보다 얼마나 높은지를 나타내는 스프레드다.",
+        "market_role": "우량 기업의 자금조달 환경과 신용시장 전반의 안정성을 확인하는 데 쓰인다.",
+        "higher_meaning": "신용위험 경계감 또는 회사채 수요 약화가 커졌음을 시사할 수 있다.",
+        "lower_meaning": "신용시장 안정과 기업 자금조달 여건 개선을 시사할 수 있다.",
+        "watch_points": "하이일드 스프레드보다 느리게 반응할 수 있어 두 지표의 괴리를 함께 봐야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_off",
+          "falling": "risk_on",
+          "flat": "neutral",
+          "confidence": "high",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "credit_risk_and_financial_stress",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "HY_OAS",
+            "DGS10",
+            "^VIX"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^GSPC",
+      "display_name": "S&P 500",
+      "category": "equity",
+      "short_label": "미국 대형주 전반의 대표 지수",
+      "description": "미국 주요 대형주 500개 기업의 주가 흐름을 반영하는 대표 주가지수다.",
+      "market_role": "글로벌 위험선호, 기업이익 기대, 미국 증시 전반의 방향성을 판단하는 핵심 지표다.",
+      "higher_meaning": "기업이익 기대와 위험선호가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "성장 둔화, 금리 부담, 위험회피 심리가 커졌을 수 있다.",
+      "watch_points": "지수 상승이 일부 대형 기술주에 집중되는지, 섹터 전반으로 확산되는지 확인해야 한다.",
+      "sentiment_hint": "상승은 위험선호 개선, 하락은 방어적 분위기 강화로 읽히는 경우가 많다.",
+      "related_indicators": [
+        "^IXIC",
+        "^VIX",
+        "DGS10",
+        "HY_OAS",
+        "XLK"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "미국 대형주 전반의 대표 지수",
+        "description": "미국 주요 대형주 500개 기업의 주가 흐름을 반영하는 대표 주가지수다.",
+        "market_role": "글로벌 위험선호, 기업이익 기대, 미국 증시 전반의 방향성을 판단하는 핵심 지표다.",
+        "higher_meaning": "기업이익 기대와 위험선호가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "성장 둔화, 금리 부담, 위험회피 심리가 커졌을 수 있다.",
+        "watch_points": "지수 상승이 일부 대형 기술주에 집중되는지, 섹터 전반으로 확산되는지 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on",
+          "falling": "risk_off",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "risk_appetite_and_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "^IXIC",
+            "^VIX",
+            "DGS10",
+            "HY_OAS",
+            "XLK"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^IXIC",
+      "display_name": "NASDAQ",
+      "category": "equity",
+      "short_label": "기술주 중심 성장주 지수",
+      "description": "나스닥 상장 기업 중심의 주가지수로, 기술주와 성장주의 비중이 높다.",
+      "market_role": "금리 변화와 성장주 선호, 기술 섹터 기대를 읽는 데 유용하다.",
+      "higher_meaning": "성장주 선호와 기술기업 이익 기대가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "금리 상승 부담, 성장주 밸류에이션 조정, 위험회피가 반영될 수 있다.",
+      "watch_points": "10년물 금리와 대형 기술주 실적 기대를 함께 확인해야 한다.",
+      "sentiment_hint": "금리 하락과 동반 상승하면 성장주 우호 환경으로 해석될 수 있다.",
+      "related_indicators": [
+        "^GSPC",
+        "DGS10",
+        "XLK",
+        "^VIX"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "기술주 중심 성장주 지수",
+        "description": "나스닥 상장 기업 중심의 주가지수로, 기술주와 성장주의 비중이 높다.",
+        "market_role": "금리 변화와 성장주 선호, 기술 섹터 기대를 읽는 데 유용하다.",
+        "higher_meaning": "성장주 선호와 기술기업 이익 기대가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "금리 상승 부담, 성장주 밸류에이션 조정, 위험회피가 반영될 수 있다.",
+        "watch_points": "10년물 금리와 대형 기술주 실적 기대를 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on",
+          "falling": "risk_off",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "risk_appetite_and_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "^GSPC",
+            "DGS10",
+            "XLK",
+            "^VIX"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^KS11",
+      "display_name": "KOSPI",
+      "category": "equity",
+      "short_label": "한국 주식시장 대표 지수",
+      "description": "한국 유가증권시장 주요 종목의 주가 흐름을 반영하는 대표 지수다.",
+      "market_role": "수출 경기, 반도체 사이클, 원화 흐름, 글로벌 위험선호를 함께 보여준다.",
+      "higher_meaning": "한국 기업이익 기대와 외국인 위험선호가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "수출 경기 둔화, 원화 약세 부담, 글로벌 위험회피가 반영될 수 있다.",
+      "watch_points": "USD/KRW, 나스닥, 반도체 관련 대형주의 영향이 크다.",
+      "sentiment_hint": "원화 안정과 동반 상승하면 외국인 수급 개선 신호로 볼 수 있다.",
+      "related_indicators": [
+        "USDKRW",
+        "^IXIC",
+        "^GSPC",
+        "DX-Y.NYB"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "한국 주식시장 대표 지수",
+        "description": "한국 유가증권시장 주요 종목의 주가 흐름을 반영하는 대표 지수다.",
+        "market_role": "수출 경기, 반도체 사이클, 원화 흐름, 글로벌 위험선호를 함께 보여준다.",
+        "higher_meaning": "한국 기업이익 기대와 외국인 위험선호가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "수출 경기 둔화, 원화 약세 부담, 글로벌 위험회피가 반영될 수 있다.",
+        "watch_points": "USD/KRW, 나스닥, 반도체 관련 대형주의 영향이 크다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on",
+          "falling": "risk_off",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "risk_appetite_and_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "USDKRW",
+            "^IXIC",
+            "^GSPC",
+            "DX-Y.NYB"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^N225",
+      "display_name": "Nikkei 225",
+      "category": "equity",
+      "short_label": "일본 대형주 대표 지수",
+      "description": "일본 주요 225개 기업의 주가 흐름을 반영하는 대표 지수다.",
+      "market_role": "엔화 흐름, 일본 기업이익 기대, 아시아 위험선호를 확인하는 데 사용된다.",
+      "higher_meaning": "일본 기업이익 기대와 글로벌 위험선호가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "엔화 급등 부담, 경기 둔화 우려, 위험회피가 반영될 수 있다.",
+      "watch_points": "USD/JPY와 일본 수출주 흐름의 영향을 크게 받을 수 있다.",
+      "sentiment_hint": "엔화 약세와 동반 상승하면 수출주 기대가 반영된 흐름일 수 있다.",
+      "related_indicators": [
+        "USDJPY",
+        "^GSPC",
+        "^IXIC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "일본 대형주 대표 지수",
+        "description": "일본 주요 225개 기업의 주가 흐름을 반영하는 대표 지수다.",
+        "market_role": "엔화 흐름, 일본 기업이익 기대, 아시아 위험선호를 확인하는 데 사용된다.",
+        "higher_meaning": "일본 기업이익 기대와 글로벌 위험선호가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "엔화 급등 부담, 경기 둔화 우려, 위험회피가 반영될 수 있다.",
+        "watch_points": "USD/JPY와 일본 수출주 흐름의 영향을 크게 받을 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on",
+          "falling": "risk_off",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "risk_appetite_and_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "USDJPY",
+            "^GSPC",
+            "^IXIC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^GDAXI",
+      "display_name": "DAX",
+      "category": "equity",
+      "short_label": "독일 대형주 대표 지수",
+      "description": "독일 주요 대형 상장기업의 주가 흐름을 반영하는 지수다.",
+      "market_role": "유럽 경기, 제조업 사이클, 글로벌 교역 기대를 확인하는 데 활용된다.",
+      "higher_meaning": "유럽 경기와 수출기업 이익 기대가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "제조업 둔화, 에너지 비용 부담, 유럽 경기 우려가 반영될 수 있다.",
+      "watch_points": "EUR/USD, 에너지 가격, 중국 수요와 함께 해석하는 것이 좋다.",
+      "sentiment_hint": "글로벌 제조업 기대가 살아날 때 위험선호 개선 신호가 될 수 있다.",
+      "related_indicators": [
+        "EURUSD",
+        "CL=F",
+        "HG=F",
+        "^SSEC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "독일 대형주 대표 지수",
+        "description": "독일 주요 대형 상장기업의 주가 흐름을 반영하는 지수다.",
+        "market_role": "유럽 경기, 제조업 사이클, 글로벌 교역 기대를 확인하는 데 활용된다.",
+        "higher_meaning": "유럽 경기와 수출기업 이익 기대가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "제조업 둔화, 에너지 비용 부담, 유럽 경기 우려가 반영될 수 있다.",
+        "watch_points": "EUR/USD, 에너지 가격, 중국 수요와 함께 해석하는 것이 좋다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on",
+          "falling": "risk_off",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "risk_appetite_and_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "EURUSD",
+            "CL=F",
+            "HG=F",
+            "^SSEC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^SSEC",
+      "display_name": "Shanghai",
+      "category": "equity",
+      "short_label": "중국 본토 증시 대표 지수",
+      "description": "상하이증권거래소 상장 종목의 주가 흐름을 반영하는 중국 본토 대표 지수다.",
+      "market_role": "중국 경기 기대, 정책 부양 기대, 원자재 수요 전망을 확인하는 데 쓰인다.",
+      "higher_meaning": "중국 경기 개선 또는 정책 지원 기대가 커졌음을 시사할 수 있다.",
+      "lower_meaning": "성장 둔화, 부동산·신용 우려, 투자심리 약화가 반영될 수 있다.",
+      "watch_points": "구리, 원유, 아시아 증시와의 동조 여부를 함께 확인해야 한다.",
+      "sentiment_hint": "상승은 경기민감 자산에 우호적인 신호가 될 수 있다.",
+      "related_indicators": [
+        "HG=F",
+        "COPPER_GOLD",
+        "CL=F",
+        "^KS11"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "중국 본토 증시 대표 지수",
+        "description": "상하이증권거래소 상장 종목의 주가 흐름을 반영하는 중국 본토 대표 지수다.",
+        "market_role": "중국 경기 기대, 정책 부양 기대, 원자재 수요 전망을 확인하는 데 쓰인다.",
+        "higher_meaning": "중국 경기 개선 또는 정책 지원 기대가 커졌음을 시사할 수 있다.",
+        "lower_meaning": "성장 둔화, 부동산·신용 우려, 투자심리 약화가 반영될 수 있다.",
+        "watch_points": "구리, 원유, 아시아 증시와의 동조 여부를 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on",
+          "falling": "risk_off",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "risk_appetite_and_growth_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "HG=F",
+            "COPPER_GOLD",
+            "CL=F",
+            "^KS11"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "^VIX",
+      "display_name": "VIX",
+      "category": "equity",
+      "short_label": "미국 증시 변동성 기대",
+      "description": "S&P 500 옵션 가격에 반영된 향후 변동성 기대를 나타내는 지수다.",
+      "market_role": "시장 불안, 헤지 수요, 단기 위험회피 심리를 빠르게 보여준다.",
+      "higher_meaning": "투자자들이 더 큰 변동성과 하락 위험에 대비하고 있음을 시사한다.",
+      "lower_meaning": "시장 불안이 완화되고 위험선호가 회복되고 있음을 시사할 수 있다.",
+      "watch_points": "낮은 VIX가 항상 안전을 뜻하지는 않으며, 과도한 안도감일 수도 있다.",
+      "sentiment_hint": "급등은 위험회피, 하락은 안도 심리로 해석되는 경우가 많다.",
+      "related_indicators": [
+        "^GSPC",
+        "HY_OAS",
+        "IG_OAS",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "미국 증시 변동성 기대",
+        "description": "S&P 500 옵션 가격에 반영된 향후 변동성 기대를 나타내는 지수다.",
+        "market_role": "시장 불안, 헤지 수요, 단기 위험회피 심리를 빠르게 보여준다.",
+        "higher_meaning": "투자자들이 더 큰 변동성과 하락 위험에 대비하고 있음을 시사한다.",
+        "lower_meaning": "시장 불안이 완화되고 위험선호가 회복되고 있음을 시사할 수 있다.",
+        "watch_points": "낮은 VIX가 항상 안전을 뜻하지는 않으며, 과도한 안도감일 수도 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_off",
+          "falling": "risk_on",
+          "flat": "neutral",
+          "confidence": "high",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "equity_volatility_and_fear",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "^GSPC",
+            "HY_OAS",
+            "IG_OAS",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "DX-Y.NYB",
+      "display_name": "DXY",
+      "category": "equity",
+      "short_label": "달러 강세를 보는 지수",
+      "description": "주요 통화 대비 미국 달러의 상대적 가치를 나타내는 달러 지수다.",
+      "market_role": "글로벌 유동성, 미국 금리 기대, 신흥국 부담, 원자재 가격 압력을 판단하는 데 쓰인다.",
+      "higher_meaning": "달러 강세와 글로벌 유동성 압박, 미국 금리 우위가 반영될 수 있다.",
+      "lower_meaning": "달러 약세와 위험선호 개선, 미국 금리 부담 완화가 반영될 수 있다.",
+      "watch_points": "달러 강세가 안전자산 선호 때문인지 미국 성장 우위 때문인지 구분해야 한다.",
+      "sentiment_hint": "급격한 달러 강세는 신흥국과 원자재에 부담이 될 수 있다.",
+      "related_indicators": [
+        "USDKRW",
+        "EURUSD",
+        "USDJPY",
+        "DGS2",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "달러 강세를 보는 지수",
+        "description": "주요 통화 대비 미국 달러의 상대적 가치를 나타내는 달러 지수다.",
+        "market_role": "글로벌 유동성, 미국 금리 기대, 신흥국 부담, 원자재 가격 압력을 판단하는 데 쓰인다.",
+        "higher_meaning": "달러 강세와 글로벌 유동성 압박, 미국 금리 우위가 반영될 수 있다.",
+        "lower_meaning": "달러 약세와 위험선호 개선, 미국 금리 부담 완화가 반영될 수 있다.",
+        "watch_points": "달러 강세가 안전자산 선호 때문인지 미국 성장 우위 때문인지 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "global_risk_off_or_us_exceptionalism",
+          "falling": "global_risk_on_or_dollar_easing",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "dollar_liquidity_and_global_risk",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "USDKRW",
+            "EURUSD",
+            "USDJPY",
+            "DGS2",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "CL=F",
+      "display_name": "WTI 원유",
+      "category": "equity",
+      "short_label": "미국 원유 가격 기준",
+      "description": "미국 서부텍사스산 원유 선물 가격으로, 에너지 가격과 원유 수급을 반영한다.",
+      "market_role": "물가 압력, 에너지 섹터 이익, 글로벌 수요 전망을 판단하는 데 활용된다.",
+      "higher_meaning": "원유 수요 개선, 공급 차질, 지정학적 리스크가 반영될 수 있다.",
+      "lower_meaning": "수요 둔화 우려 또는 공급 여건 완화가 반영될 수 있다.",
+      "watch_points": "가격 상승이 경기 개선 때문인지 공급 충격 때문인지에 따라 시장 해석이 달라진다.",
+      "sentiment_hint": "완만한 상승은 수요 개선, 급등은 물가 부담으로 읽힐 수 있다.",
+      "related_indicators": [
+        "XLE",
+        "CPIAUCSL",
+        "WTI_BRENT_SPREAD",
+        "DX-Y.NYB"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "미국 원유 가격 기준",
+        "description": "미국 서부텍사스산 원유 선물 가격으로, 에너지 가격과 원유 수급을 반영한다.",
+        "market_role": "물가 압력, 에너지 섹터 이익, 글로벌 수요 전망을 판단하는 데 활용된다.",
+        "higher_meaning": "원유 수요 개선, 공급 차질, 지정학적 리스크가 반영될 수 있다.",
+        "lower_meaning": "수요 둔화 우려 또는 공급 여건 완화가 반영될 수 있다.",
+        "watch_points": "가격 상승이 경기 개선 때문인지 공급 충격 때문인지에 따라 시장 해석이 달라진다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "inflation_or_demand_tilt",
+          "falling": "disinflation_or_demand_weakness_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "energy_inflation_and_demand",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "XLE",
+            "CPIAUCSL",
+            "WTI_BRENT_SPREAD",
+            "DX-Y.NYB"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "GC=F",
+      "display_name": "금",
+      "category": "equity",
+      "short_label": "실질금리와 안전자산 수요",
+      "description": "금 선물 가격으로, 안전자산 수요와 실질금리·달러 흐름에 민감하게 반응한다.",
+      "market_role": "시장 불안, 인플레이션 헤지 수요, 달러와 실질금리 변화의 영향을 확인하는 데 쓰인다.",
+      "higher_meaning": "안전자산 수요, 달러 약세, 실질금리 하락 기대가 반영될 수 있다.",
+      "lower_meaning": "위험선호 개선, 달러 강세, 실질금리 상승 부담이 반영될 수 있다.",
+      "watch_points": "금 상승이 위험회피 때문인지 통화가치 우려 때문인지 구분해야 한다.",
+      "sentiment_hint": "주식 하락과 동반 상승하면 방어적 심리가 강해졌을 수 있다.",
+      "related_indicators": [
+        "DX-Y.NYB",
+        "DGS10",
+        "^VIX",
+        "COPPER_GOLD"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "실질금리와 안전자산 수요",
+        "description": "금 선물 가격으로, 안전자산 수요와 실질금리·달러 흐름에 민감하게 반응한다.",
+        "market_role": "시장 불안, 인플레이션 헤지 수요, 달러와 실질금리 변화의 영향을 확인하는 데 쓰인다.",
+        "higher_meaning": "안전자산 수요, 달러 약세, 실질금리 하락 기대가 반영될 수 있다.",
+        "lower_meaning": "위험선호 개선, 달러 강세, 실질금리 상승 부담이 반영될 수 있다.",
+        "watch_points": "금 상승이 위험회피 때문인지 통화가치 우려 때문인지 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "safe_haven_or_real_rate_decline_tilt",
+          "falling": "risk_on_or_real_rate_rise_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "safe_haven_and_real_rate_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DX-Y.NYB",
+            "DGS10",
+            "^VIX",
+            "COPPER_GOLD"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "HG=F",
+      "display_name": "구리",
+      "category": "equity",
+      "short_label": "경기민감 원자재 가격",
+      "description": "구리 선물 가격으로, 제조업·건설·전력망 수요와 글로벌 경기 기대에 민감하다.",
+      "market_role": "산업 수요와 중국 경기 기대를 읽는 대표적인 경기민감 원자재 지표다.",
+      "higher_meaning": "글로벌 제조업·인프라 수요 개선 기대가 반영될 수 있다.",
+      "lower_meaning": "경기 둔화 우려 또는 산업 수요 약화가 반영될 수 있다.",
+      "watch_points": "중국 정책 기대, 달러 강세, 재고 변화의 영향을 함께 봐야 한다.",
+      "sentiment_hint": "상승은 경기민감 심리 개선으로 해석되는 경우가 많다.",
+      "related_indicators": [
+        "COPPER_GOLD",
+        "^SSEC",
+        "^GDAXI",
+        "DX-Y.NYB"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "경기민감 원자재 가격",
+        "description": "구리 선물 가격으로, 제조업·건설·전력망 수요와 글로벌 경기 기대에 민감하다.",
+        "market_role": "산업 수요와 중국 경기 기대를 읽는 대표적인 경기민감 원자재 지표다.",
+        "higher_meaning": "글로벌 제조업·인프라 수요 개선 기대가 반영될 수 있다.",
+        "lower_meaning": "경기 둔화 우려 또는 산업 수요 약화가 반영될 수 있다.",
+        "watch_points": "중국 정책 기대, 달러 강세, 재고 변화의 영향을 함께 봐야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "growth_resilience_tilt",
+          "falling": "growth_slowdown_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "industrial_demand_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "COPPER_GOLD",
+            "^SSEC",
+            "^GDAXI",
+            "DX-Y.NYB"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "USDKRW",
+      "display_name": "USD/KRW",
+      "category": "fx",
+      "short_label": "원화 대비 달러 환율",
+      "description": "미국 달러 1달러를 사는 데 필요한 원화 가격을 나타내는 환율이다.",
+      "market_role": "한국 시장의 외국인 수급, 수입물가, 달러 유동성 부담을 판단하는 데 중요하다.",
+      "higher_meaning": "원화 약세와 달러 선호가 강해졌음을 시사하며 한국 자산에는 부담이 될 수 있다.",
+      "lower_meaning": "원화 강세와 외국인 위험선호 개선 가능성을 시사할 수 있다.",
+      "watch_points": "DXY, 미 국채금리, KOSPI 외국인 수급과 함께 해석해야 한다.",
+      "sentiment_hint": "급등은 한국 시장의 위험회피 신호로 읽히는 경우가 많다.",
+      "related_indicators": [
+        "DX-Y.NYB",
+        "^KS11",
+        "DGS10",
+        "^VIX"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "원화 대비 달러 환율",
+        "description": "미국 달러 1달러를 사는 데 필요한 원화 가격을 나타내는 환율이다.",
+        "market_role": "한국 시장의 외국인 수급, 수입물가, 달러 유동성 부담을 판단하는 데 중요하다.",
+        "higher_meaning": "원화 약세와 달러 선호가 강해졌음을 시사하며 한국 자산에는 부담이 될 수 있다.",
+        "lower_meaning": "원화 강세와 외국인 위험선호 개선 가능성을 시사할 수 있다.",
+        "watch_points": "DXY, 미 국채금리, KOSPI 외국인 수급과 함께 해석해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_off_or_dollar_strength",
+          "falling": "risk_on_or_won_strength",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "korea_external_risk_and_dollar_pressure",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DX-Y.NYB",
+            "^KS11",
+            "DGS10",
+            "^VIX"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "EURUSD",
+      "display_name": "EUR/USD",
+      "category": "fx",
+      "short_label": "유로 대비 달러 흐름",
+      "description": "1유로가 몇 달러에 거래되는지를 나타내는 주요 환율이다.",
+      "market_role": "달러 강세·약세, 유럽 경기와 미국·유럽 금리차 기대를 확인하는 데 쓰인다.",
+      "higher_meaning": "유로 강세 또는 달러 약세가 반영되며 유럽 경기 기대가 개선됐을 수 있다.",
+      "lower_meaning": "달러 강세 또는 유로 약세가 반영되며 유럽 경기 우려가 커졌을 수 있다.",
+      "watch_points": "DXY와 반대로 움직이는 경우가 많지만 유럽 고유 요인도 확인해야 한다.",
+      "sentiment_hint": "완만한 상승은 달러 부담 완화와 글로벌 위험선호에 우호적일 수 있다.",
+      "related_indicators": [
+        "DX-Y.NYB",
+        "^GDAXI",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "유로 대비 달러 흐름",
+        "description": "1유로가 몇 달러에 거래되는지를 나타내는 주요 환율이다.",
+        "market_role": "달러 강세·약세, 유럽 경기와 미국·유럽 금리차 기대를 확인하는 데 쓰인다.",
+        "higher_meaning": "유로 강세 또는 달러 약세가 반영되며 유럽 경기 기대가 개선됐을 수 있다.",
+        "lower_meaning": "달러 강세 또는 유로 약세가 반영되며 유럽 경기 우려가 커졌을 수 있다.",
+        "watch_points": "DXY와 반대로 움직이는 경우가 많지만 유럽 고유 요인도 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "dollar_weakness_or_euro_strength",
+          "falling": "dollar_strength_or_euro_weakness",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "euro_dollar_policy_growth_gap",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DX-Y.NYB",
+            "^GDAXI",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "USDJPY",
+      "display_name": "USD/JPY",
+      "category": "fx",
+      "short_label": "엔화 대비 달러 환율",
+      "description": "미국 달러 1달러를 사는 데 필요한 일본 엔화 가격을 나타내는 환율이다.",
+      "market_role": "미일 금리차, 엔화 안전자산 수요, 일본 수출주 환경을 판단하는 데 쓰인다.",
+      "higher_meaning": "엔화 약세와 달러 강세, 미일 금리차 확대 기대가 반영될 수 있다.",
+      "lower_meaning": "엔화 강세, 안전자산 수요, 미 금리 하락 기대가 반영될 수 있다.",
+      "watch_points": "일본 정책 변화와 미국 장기금리 움직임을 함께 확인해야 한다.",
+      "sentiment_hint": "급격한 하락은 위험회피 또는 엔 캐리 청산 우려를 키울 수 있다.",
+      "related_indicators": [
+        "DGS10",
+        "DX-Y.NYB",
+        "^N225",
+        "^VIX"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "엔화 대비 달러 환율",
+        "description": "미국 달러 1달러를 사는 데 필요한 일본 엔화 가격을 나타내는 환율이다.",
+        "market_role": "미일 금리차, 엔화 안전자산 수요, 일본 수출주 환경을 판단하는 데 쓰인다.",
+        "higher_meaning": "엔화 약세와 달러 강세, 미일 금리차 확대 기대가 반영될 수 있다.",
+        "lower_meaning": "엔화 강세, 안전자산 수요, 미 금리 하락 기대가 반영될 수 있다.",
+        "watch_points": "일본 정책 변화와 미국 장기금리 움직임을 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "dollar_rate_advantage_or_yen_weakness",
+          "falling": "yen_strength_or_us_rate_decline",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "rate_differential_and_safe_haven_yen",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS10",
+            "DX-Y.NYB",
+            "^N225",
+            "^VIX"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "COPPER_GOLD",
+      "display_name": "구리/금 비율",
+      "category": "real",
+      "short_label": "성장 기대와 방어 심리의 상대 비교",
+      "description": "경기민감 원자재인 구리 가격을 방어적 성격의 금 가격과 비교한 비율이다.",
+      "market_role": "글로벌 성장 기대가 안전자산 선호보다 강한지 판단하는 보조 지표로 활용된다.",
+      "higher_meaning": "성장 기대와 경기민감 자산 선호가 강화되고 있음을 시사할 수 있다.",
+      "lower_meaning": "방어적 심리 또는 경기 둔화 우려가 커졌음을 시사할 수 있다.",
+      "watch_points": "구리와 금 각각의 독립 요인 때문에 비율 변화의 원인을 분해해 봐야 한다.",
+      "sentiment_hint": "상승은 경기민감 위험선호, 하락은 방어적 분위기로 해석될 수 있다.",
+      "related_indicators": [
+        "HG=F",
+        "GC=F",
+        "^SSEC",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "성장 기대와 방어 심리의 상대 비교",
+        "description": "경기민감 원자재인 구리 가격을 방어적 성격의 금 가격과 비교한 비율이다.",
+        "market_role": "글로벌 성장 기대가 안전자산 선호보다 강한지 판단하는 보조 지표로 활용된다.",
+        "higher_meaning": "성장 기대와 경기민감 자산 선호가 강화되고 있음을 시사할 수 있다.",
+        "lower_meaning": "방어적 심리 또는 경기 둔화 우려가 커졌음을 시사할 수 있다.",
+        "watch_points": "구리와 금 각각의 독립 요인 때문에 비율 변화의 원인을 분해해 봐야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "growth_risk_on_tilt",
+          "falling": "defensive_risk_off_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "growth_vs_safe_haven_preference",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "HG=F",
+            "GC=F",
+            "^SSEC",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "WTI_BRENT_SPREAD",
+      "display_name": "WTI-Brent 스프레드",
+      "category": "real",
+      "short_label": "미국 원유와 글로벌 원유 가격 차이",
+      "description": "WTI 가격과 Brent 가격의 차이로, 지역별 원유 수급과 운송·재고 여건을 반영한다.",
+      "market_role": "미국 원유시장과 글로벌 원유시장 간 수급 불균형을 확인하는 데 쓰인다.",
+      "higher_meaning": "WTI가 Brent 대비 강해졌거나 미국 내 수급이 상대적으로 타이트해졌을 수 있다.",
+      "lower_meaning": "WTI가 Brent 대비 약해졌거나 미국 내 공급 부담이 커졌을 수 있다.",
+      "watch_points": "스프레드 방향은 계산 방식에 따라 해석이 달라질 수 있어 백엔드 정의를 UI에 명시하는 것이 좋다.",
+      "sentiment_hint": "원유 절대가격보다 지역 수급 해석에 더 적합한 지표다.",
+      "related_indicators": [
+        "CL=F",
+        "XLE",
+        "CPIAUCSL"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "미국 원유와 글로벌 원유 가격 차이",
+        "description": "WTI 가격과 Brent 가격의 차이로, 지역별 원유 수급과 운송·재고 여건을 반영한다.",
+        "market_role": "미국 원유시장과 글로벌 원유시장 간 수급 불균형을 확인하는 데 쓰인다.",
+        "higher_meaning": "WTI가 Brent 대비 강해졌거나 미국 내 수급이 상대적으로 타이트해졌을 수 있다.",
+        "lower_meaning": "WTI가 Brent 대비 약해졌거나 미국 내 공급 부담이 커졌을 수 있다.",
+        "watch_points": "스프레드 방향은 계산 방식에 따라 해석이 달라질 수 있어 백엔드 정의를 UI에 명시하는 것이 좋다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "wti_relative_strength",
+          "falling": "brent_relative_strength",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "oil_market_regional_supply_demand",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "CL=F",
+            "XLE",
+            "CPIAUCSL"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLK",
+      "display_name": "Technology",
+      "category": "sector",
+      "short_label": "기술 섹터 주가 흐름",
+      "description": "미국 기술 섹터 ETF로, 소프트웨어·하드웨어·반도체 등 기술 기업의 흐름을 반영한다.",
+      "market_role": "성장주 선호, AI·반도체 기대, 금리 민감도를 확인하는 데 활용된다.",
+      "higher_meaning": "기술기업 이익 기대와 성장주 선호가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "금리 부담, 밸류에이션 조정, 기술주 기대 약화가 반영될 수 있다.",
+      "watch_points": "소수 대형주의 비중이 높아 섹터 전체 확산 여부를 함께 봐야 한다.",
+      "sentiment_hint": "상승 주도 시 위험선호가 성장주 중심으로 강화된 흐름일 수 있다.",
+      "related_indicators": [
+        "^IXIC",
+        "^GSPC",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "기술 섹터 주가 흐름",
+        "description": "미국 기술 섹터 ETF로, 소프트웨어·하드웨어·반도체 등 기술 기업의 흐름을 반영한다.",
+        "market_role": "성장주 선호, AI·반도체 기대, 금리 민감도를 확인하는 데 활용된다.",
+        "higher_meaning": "기술기업 이익 기대와 성장주 선호가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "금리 부담, 밸류에이션 조정, 기술주 기대 약화가 반영될 수 있다.",
+        "watch_points": "소수 대형주의 비중이 높아 섹터 전체 확산 여부를 함께 봐야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "^IXIC",
+            "^GSPC",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLF",
+      "display_name": "Financials",
+      "category": "sector",
+      "short_label": "금융 섹터 주가 흐름",
+      "description": "미국 금융 섹터 ETF로, 은행·보험·자본시장 관련 기업의 흐름을 반영한다.",
+      "market_role": "금리곡선, 신용환경, 경기 기대가 금융주에 어떻게 반영되는지 보여준다.",
+      "higher_meaning": "경기 기대, 대출 성장, 수익성 개선 기대가 반영될 수 있다.",
+      "lower_meaning": "신용손실 우려, 금리곡선 부담, 금융시스템 경계가 반영될 수 있다.",
+      "watch_points": "장단기 금리차와 크레딧 스프레드를 함께 봐야 해석력이 높아진다.",
+      "sentiment_hint": "경기민감 위험선호가 살아날 때 강세를 보이기 쉽다.",
+      "related_indicators": [
+        "T10Y2Y",
+        "HY_OAS",
+        "IG_OAS",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "금융 섹터 주가 흐름",
+        "description": "미국 금융 섹터 ETF로, 은행·보험·자본시장 관련 기업의 흐름을 반영한다.",
+        "market_role": "금리곡선, 신용환경, 경기 기대가 금융주에 어떻게 반영되는지 보여준다.",
+        "higher_meaning": "경기 기대, 대출 성장, 수익성 개선 기대가 반영될 수 있다.",
+        "lower_meaning": "신용손실 우려, 금리곡선 부담, 금융시스템 경계가 반영될 수 있다.",
+        "watch_points": "장단기 금리차와 크레딧 스프레드를 함께 봐야 해석력이 높아진다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "T10Y2Y",
+            "HY_OAS",
+            "IG_OAS",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLE",
+      "display_name": "Energy",
+      "category": "sector",
+      "short_label": "에너지 섹터 주가 흐름",
+      "description": "미국 에너지 섹터 ETF로, 석유·가스 관련 기업의 주가 흐름을 반영한다.",
+      "market_role": "원유 가격, 에너지 수급, 인플레이션 압력과 기업이익 기대를 연결해 보여준다.",
+      "higher_meaning": "원유 가격 강세 또는 에너지 기업 이익 기대가 개선됐을 수 있다.",
+      "lower_meaning": "원유 수요 둔화 또는 에너지 가격 약세 우려가 반영될 수 있다.",
+      "watch_points": "유가 상승 원인이 수요 개선인지 공급 충격인지 구분해야 한다.",
+      "sentiment_hint": "유가와 동반 상승하면 에너지 주도 인플레이션 우려도 함께 커질 수 있다.",
+      "related_indicators": [
+        "CL=F",
+        "WTI_BRENT_SPREAD",
+        "CPIAUCSL"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "에너지 섹터 주가 흐름",
+        "description": "미국 에너지 섹터 ETF로, 석유·가스 관련 기업의 주가 흐름을 반영한다.",
+        "market_role": "원유 가격, 에너지 수급, 인플레이션 압력과 기업이익 기대를 연결해 보여준다.",
+        "higher_meaning": "원유 가격 강세 또는 에너지 기업 이익 기대가 개선됐을 수 있다.",
+        "lower_meaning": "원유 수요 둔화 또는 에너지 가격 약세 우려가 반영될 수 있다.",
+        "watch_points": "유가 상승 원인이 수요 개선인지 공급 충격인지 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "CL=F",
+            "WTI_BRENT_SPREAD",
+            "CPIAUCSL"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLV",
+      "display_name": "Health Care",
+      "category": "sector",
+      "short_label": "헬스케어 섹터 주가 흐름",
+      "description": "미국 헬스케어 섹터 ETF로, 제약·바이오·의료장비·보험 관련 기업을 포함한다.",
+      "market_role": "방어적 섹터 선호와 안정적 이익 기대를 확인하는 데 활용된다.",
+      "higher_meaning": "방어적 자금 유입 또는 헬스케어 이익 기대 개선이 반영될 수 있다.",
+      "lower_meaning": "정책 리스크, 성장 기대 약화, 섹터 선호 하락이 반영될 수 있다.",
+      "watch_points": "시장 전체가 하락할 때 상대적으로 버티는지 보는 것이 중요하다.",
+      "sentiment_hint": "시장 약세 속 강세는 방어적 순환매 신호일 수 있다.",
+      "related_indicators": [
+        "^GSPC",
+        "^VIX",
+        "XLP",
+        "XLU"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "헬스케어 섹터 주가 흐름",
+        "description": "미국 헬스케어 섹터 ETF로, 제약·바이오·의료장비·보험 관련 기업을 포함한다.",
+        "market_role": "방어적 섹터 선호와 안정적 이익 기대를 확인하는 데 활용된다.",
+        "higher_meaning": "방어적 자금 유입 또는 헬스케어 이익 기대 개선이 반영될 수 있다.",
+        "lower_meaning": "정책 리스크, 성장 기대 약화, 섹터 선호 하락이 반영될 수 있다.",
+        "watch_points": "시장 전체가 하락할 때 상대적으로 버티는지 보는 것이 중요하다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "defensive_rotation_or_stability_preference",
+          "falling": "cyclical_rotation_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "defensive_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "^GSPC",
+            "^VIX",
+            "XLP",
+            "XLU"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLI",
+      "display_name": "Industrials",
+      "category": "sector",
+      "short_label": "산업재 섹터 주가 흐름",
+      "description": "미국 산업재 섹터 ETF로, 운송·기계·방산·상업서비스 기업의 흐름을 반영한다.",
+      "market_role": "기업 투자, 제조업 경기, 인프라 수요 기대를 확인하는 데 쓰인다.",
+      "higher_meaning": "경기 확장과 설비투자 기대가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "제조업 둔화나 기업 투자 위축 우려가 반영될 수 있다.",
+      "watch_points": "구리, 유가, 장기금리와 함께 경기민감 흐름을 비교하면 좋다.",
+      "sentiment_hint": "강세는 경기민감 위험선호 개선으로 볼 수 있다.",
+      "related_indicators": [
+        "HG=F",
+        "COPPER_GOLD",
+        "DGS10",
+        "^GSPC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "산업재 섹터 주가 흐름",
+        "description": "미국 산업재 섹터 ETF로, 운송·기계·방산·상업서비스 기업의 흐름을 반영한다.",
+        "market_role": "기업 투자, 제조업 경기, 인프라 수요 기대를 확인하는 데 쓰인다.",
+        "higher_meaning": "경기 확장과 설비투자 기대가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "제조업 둔화나 기업 투자 위축 우려가 반영될 수 있다.",
+        "watch_points": "구리, 유가, 장기금리와 함께 경기민감 흐름을 비교하면 좋다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "HG=F",
+            "COPPER_GOLD",
+            "DGS10",
+            "^GSPC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLY",
+      "display_name": "Consumer Disc.",
+      "category": "sector",
+      "short_label": "임의소비재 섹터 주가 흐름",
+      "description": "미국 임의소비재 섹터 ETF로, 자동차·리테일·여가 등 선택 소비 관련 기업을 포함한다.",
+      "market_role": "소비 여력, 경기 기대, 가계 부담 변화를 확인하는 데 활용된다.",
+      "higher_meaning": "소비 경기와 가계 지출 기대가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "소비 둔화, 금리 부담, 실질소득 압박이 반영될 수 있다.",
+      "watch_points": "고용, 물가, 금리와 함께 소비 지속 가능성을 확인해야 한다.",
+      "sentiment_hint": "강세는 경기 확장 기대와 위험선호 개선을 뒷받침할 수 있다.",
+      "related_indicators": [
+        "UNRATE",
+        "CPIAUCSL",
+        "DGS10",
+        "^GSPC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "임의소비재 섹터 주가 흐름",
+        "description": "미국 임의소비재 섹터 ETF로, 자동차·리테일·여가 등 선택 소비 관련 기업을 포함한다.",
+        "market_role": "소비 여력, 경기 기대, 가계 부담 변화를 확인하는 데 활용된다.",
+        "higher_meaning": "소비 경기와 가계 지출 기대가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "소비 둔화, 금리 부담, 실질소득 압박이 반영될 수 있다.",
+        "watch_points": "고용, 물가, 금리와 함께 소비 지속 가능성을 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "UNRATE",
+            "CPIAUCSL",
+            "DGS10",
+            "^GSPC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLP",
+      "display_name": "Consumer Staples",
+      "category": "sector",
+      "short_label": "필수소비재 섹터 주가 흐름",
+      "description": "미국 필수소비재 섹터 ETF로, 음식료·생활용품 등 경기 방어적 소비 기업을 포함한다.",
+      "market_role": "방어적 자금 흐름과 경기 둔화 우려를 확인하는 데 쓰인다.",
+      "higher_meaning": "안정적 이익 선호 또는 방어적 포지션 선호가 강해졌을 수 있다.",
+      "lower_meaning": "위험선호가 성장·경기민감 섹터로 이동했을 수 있다.",
+      "watch_points": "절대 상승보다 S&P 500 대비 상대성과가 더 중요한 경우가 많다.",
+      "sentiment_hint": "시장 약세 속 상대 강세는 방어적 심리 강화 신호일 수 있다.",
+      "related_indicators": [
+        "XLV",
+        "XLU",
+        "^VIX",
+        "^GSPC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "필수소비재 섹터 주가 흐름",
+        "description": "미국 필수소비재 섹터 ETF로, 음식료·생활용품 등 경기 방어적 소비 기업을 포함한다.",
+        "market_role": "방어적 자금 흐름과 경기 둔화 우려를 확인하는 데 쓰인다.",
+        "higher_meaning": "안정적 이익 선호 또는 방어적 포지션 선호가 강해졌을 수 있다.",
+        "lower_meaning": "위험선호가 성장·경기민감 섹터로 이동했을 수 있다.",
+        "watch_points": "절대 상승보다 S&P 500 대비 상대성과가 더 중요한 경우가 많다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "defensive_rotation_or_stability_preference",
+          "falling": "cyclical_rotation_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "defensive_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "XLV",
+            "XLU",
+            "^VIX",
+            "^GSPC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLU",
+      "display_name": "Utilities",
+      "category": "sector",
+      "short_label": "유틸리티 섹터 주가 흐름",
+      "description": "미국 유틸리티 섹터 ETF로, 전력·가스 등 안정적 현금흐름 기업을 포함한다.",
+      "market_role": "방어적 선호, 배당주 수요, 금리 민감도를 확인하는 데 활용된다.",
+      "higher_meaning": "방어적 수요나 금리 하락 기대가 반영될 수 있다.",
+      "lower_meaning": "금리 상승 부담 또는 위험선호가 경기민감 섹터로 이동했을 수 있다.",
+      "watch_points": "장기금리 상승기에는 배당 매력이 약해질 수 있다.",
+      "sentiment_hint": "시장 불안 속 강세는 방어적 순환매 신호일 수 있다.",
+      "related_indicators": [
+        "DGS10",
+        "XLP",
+        "XLV",
+        "^VIX"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "유틸리티 섹터 주가 흐름",
+        "description": "미국 유틸리티 섹터 ETF로, 전력·가스 등 안정적 현금흐름 기업을 포함한다.",
+        "market_role": "방어적 선호, 배당주 수요, 금리 민감도를 확인하는 데 활용된다.",
+        "higher_meaning": "방어적 수요나 금리 하락 기대가 반영될 수 있다.",
+        "lower_meaning": "금리 상승 부담 또는 위험선호가 경기민감 섹터로 이동했을 수 있다.",
+        "watch_points": "장기금리 상승기에는 배당 매력이 약해질 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "defensive_rotation_or_stability_preference",
+          "falling": "cyclical_rotation_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "defensive_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS10",
+            "XLP",
+            "XLV",
+            "^VIX"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLB",
+      "display_name": "Materials",
+      "category": "sector",
+      "short_label": "소재 섹터 주가 흐름",
+      "description": "미국 소재 섹터 ETF로, 화학·금속·광산·포장재 기업의 흐름을 반영한다.",
+      "market_role": "원자재 수요, 제조업 경기, 중국 수요 기대를 확인하는 데 쓰인다.",
+      "higher_meaning": "산업 수요와 원자재 가격 기대가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "제조업 둔화나 원자재 수요 약화 우려가 반영될 수 있다.",
+      "watch_points": "구리, 중국 증시, 달러 흐름을 함께 봐야 해석력이 높아진다.",
+      "sentiment_hint": "강세는 경기민감 자산 선호 개선으로 해석될 수 있다.",
+      "related_indicators": [
+        "HG=F",
+        "COPPER_GOLD",
+        "^SSEC",
+        "DX-Y.NYB"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "소재 섹터 주가 흐름",
+        "description": "미국 소재 섹터 ETF로, 화학·금속·광산·포장재 기업의 흐름을 반영한다.",
+        "market_role": "원자재 수요, 제조업 경기, 중국 수요 기대를 확인하는 데 쓰인다.",
+        "higher_meaning": "산업 수요와 원자재 가격 기대가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "제조업 둔화나 원자재 수요 약화 우려가 반영될 수 있다.",
+        "watch_points": "구리, 중국 증시, 달러 흐름을 함께 봐야 해석력이 높아진다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "HG=F",
+            "COPPER_GOLD",
+            "^SSEC",
+            "DX-Y.NYB"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLRE",
+      "display_name": "Real Estate",
+      "category": "sector",
+      "short_label": "부동산 섹터 주가 흐름",
+      "description": "미국 부동산 섹터 ETF로, 리츠와 부동산 관련 기업의 주가 흐름을 반영한다.",
+      "market_role": "금리 부담, 배당 매력, 상업용 부동산 리스크를 확인하는 데 활용된다.",
+      "higher_meaning": "금리 부담 완화 또는 배당형 자산 선호가 개선됐을 수 있다.",
+      "lower_meaning": "장기금리 상승, 자금조달 비용 증가, 부동산 수요 둔화가 반영될 수 있다.",
+      "watch_points": "10년물 금리와 신용 스프레드 변화에 민감하게 반응할 수 있다.",
+      "sentiment_hint": "금리 하락과 동반 강세는 금융환경 완화 기대를 보여줄 수 있다.",
+      "related_indicators": [
+        "DGS10",
+        "IG_OAS",
+        "HY_OAS",
+        "XLU"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "부동산 섹터 주가 흐름",
+        "description": "미국 부동산 섹터 ETF로, 리츠와 부동산 관련 기업의 주가 흐름을 반영한다.",
+        "market_role": "금리 부담, 배당 매력, 상업용 부동산 리스크를 확인하는 데 활용된다.",
+        "higher_meaning": "금리 부담 완화 또는 배당형 자산 선호가 개선됐을 수 있다.",
+        "lower_meaning": "장기금리 상승, 자금조달 비용 증가, 부동산 수요 둔화가 반영될 수 있다.",
+        "watch_points": "10년물 금리와 신용 스프레드 변화에 민감하게 반응할 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "rate_relief_or_yield_search_tilt",
+          "falling": "rate_pressure_or_growth_concern_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "rate_sensitive_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS10",
+            "IG_OAS",
+            "HY_OAS",
+            "XLU"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "XLC",
+      "display_name": "Communication",
+      "category": "sector",
+      "short_label": "커뮤니케이션 섹터 주가 흐름",
+      "description": "미국 커뮤니케이션 서비스 섹터 ETF로, 플랫폼·미디어·통신 기업의 흐름을 반영한다.",
+      "market_role": "대형 플랫폼 기업 기대, 광고 경기, 소비·기술 수요를 함께 확인하는 데 쓰인다.",
+      "higher_meaning": "플랫폼 기업 이익 기대와 광고·콘텐츠 수요가 개선되고 있음을 시사할 수 있다.",
+      "lower_meaning": "광고 경기 둔화, 규제 우려, 대형 플랫폼 선호 약화가 반영될 수 있다.",
+      "watch_points": "기술주와 유사하게 움직일 수 있어 XLK·NASDAQ과 비교하는 것이 좋다.",
+      "sentiment_hint": "대형 성장주 선호가 강할 때 함께 강세를 보일 수 있다.",
+      "related_indicators": [
+        "XLK",
+        "^IXIC",
+        "^GSPC",
+        "DGS10"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "커뮤니케이션 섹터 주가 흐름",
+        "description": "미국 커뮤니케이션 서비스 섹터 ETF로, 플랫폼·미디어·통신 기업의 흐름을 반영한다.",
+        "market_role": "대형 플랫폼 기업 기대, 광고 경기, 소비·기술 수요를 함께 확인하는 데 쓰인다.",
+        "higher_meaning": "플랫폼 기업 이익 기대와 광고·콘텐츠 수요가 개선되고 있음을 시사할 수 있다.",
+        "lower_meaning": "광고 경기 둔화, 규제 우려, 대형 플랫폼 선호 약화가 반영될 수 있다.",
+        "watch_points": "기술주와 유사하게 움직일 수 있어 XLK·NASDAQ과 비교하는 것이 좋다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "risk_on_relative_rotation",
+          "falling": "risk_off_relative_rotation",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "cyclical_sector_rotation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "XLK",
+            "^IXIC",
+            "^GSPC",
+            "DGS10"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    }
+  ],
+  "non_series_display_metrics": []
+}
