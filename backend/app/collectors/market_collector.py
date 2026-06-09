@@ -1,10 +1,11 @@
 """yfinance collector — equity indices, sectors, commodities."""
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 import yfinance as yf
 from sqlalchemy.orm import Session
 from ..core.upsert import upsert_rows
 from ..models.indicators import EquityIndex, SectorPerformance, RealEconomyIndicator
+from .result_utils import add_counts, empty_counts, format_error_summary
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +42,14 @@ SECTOR_TICKERS = {
 
 def collect_equity_indices(db: Session, tickers: list[str] | None = None):
     selected_tickers = tickers or list(EQUITY_TICKERS.keys())
+    counts = empty_counts()
+    errors: list[str] = []
     for ticker in selected_tickers:
         name = EQUITY_TICKERS.get(ticker, ticker)
         try:
             hist = yf.Ticker(ticker).history(period="2d")
             if len(hist) < 1:
+                errors.append(f"{ticker}:empty_history")
                 continue
             latest = hist.iloc[-1]
             prev = hist.iloc[-2] if len(hist) >= 2 else None
@@ -68,17 +72,27 @@ def collect_equity_indices(db: Session, tickers: list[str] | None = None):
                 update_columns=["close", "change_1d", "change_1d_pct"],
             )
             db.commit()
+            add_counts(counts, {"fetched_count": 1, "inserted_count": 1, "updated_count": 1})
             logger.info(f"Collected {ticker} ({name}): {close:.2f}")
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to collect equity {ticker}: {e}")
+            errors.append(f"{ticker}:{type(e).__name__}")
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError(f"yfinance equity collection failed for all tickers: {format_error_summary(errors)}")
+    if errors:
+        logger.warning("Partial yfinance equity collection failure: %s", format_error_summary(errors))
+    return counts
 
 
 def collect_sectors(db: Session):
+    counts = empty_counts()
+    errors: list[str] = []
     for ticker, name in SECTOR_TICKERS.items():
         try:
             hist = yf.Ticker(ticker).history(period="1y")
             if len(hist) < 5:
+                errors.append(f"{ticker}:insufficient_history")
                 continue
             latest = hist.iloc[-1]
             date = latest.name.to_pydatetime().replace(tzinfo=None)
@@ -122,14 +136,22 @@ def collect_sectors(db: Session):
                 ],
             )
             db.commit()
+            add_counts(counts, {"fetched_count": 1, "inserted_count": 1, "updated_count": 1})
             logger.info(f"Collected sector {ticker} ({name})")
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to collect sector {ticker}: {e}")
+            errors.append(f"{ticker}:{type(e).__name__}")
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError(f"yfinance sector collection failed for all tickers: {format_error_summary(errors)}")
+    if errors:
+        logger.warning("Partial yfinance sector collection failure: %s", format_error_summary(errors))
+    return counts
 
 
 def collect_real_economy(db: Session):
     """Copper/Gold ratio and WTI/Brent spread."""
+    counts = empty_counts()
     try:
         copper = yf.Ticker("HG=F").history(period="2d")
         gold = yf.Ticker("GC=F").history(period="2d")
@@ -140,16 +162,22 @@ def collect_real_economy(db: Session):
             date = copper.iloc[-1].name.to_pydatetime().replace(tzinfo=None)
             ratio = float(copper.iloc[-1]["Close"]) / float(gold.iloc[-1]["Close"])
             _upsert_real(db, date, "COPPER_GOLD", ratio)
+            add_counts(counts, {"fetched_count": 1, "inserted_count": 1, "updated_count": 1})
 
         if len(wti) >= 1 and len(brent) >= 1:
             date = wti.iloc[-1].name.to_pydatetime().replace(tzinfo=None)
             spread = float(brent.iloc[-1]["Close"]) - float(wti.iloc[-1]["Close"])
             _upsert_real(db, date, "WTI_BRENT_SPREAD", spread)
+            add_counts(counts, {"fetched_count": 1, "inserted_count": 1, "updated_count": 1})
 
         db.commit()
+        if counts["fetched_count"] == 0:
+            raise RuntimeError("yfinance real economy collection returned no usable price history")
+        return counts
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to collect real economy: {e}")
+        raise RuntimeError(f"yfinance real economy collection failed: {type(e).__name__}: {e}") from e
 
 
 def _upsert_real(db: Session, date: datetime, key: str, value: float):

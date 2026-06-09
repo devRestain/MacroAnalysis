@@ -19,8 +19,7 @@ TARGET_PAIRS = {
 def collect_exchange_rates(db: Session):
     if not settings.EXCHANGERATE_API_KEY:
         # Fallback: use free open.er-api.com (no key needed, 1500 req/month)
-        _collect_free_rates(db)
-        return
+        return _collect_free_rates(db)
 
     url = f"https://v6.exchangerate-api.com/v6/{settings.EXCHANGERATE_API_KEY}/latest/USD"
     try:
@@ -36,10 +35,15 @@ def collect_exchange_rates(db: Session):
                     _upsert_rate(db, date, pair, float(rates[target]))
         db.commit()
         logger.info("Collected exchange rates via ExchangeRate-API")
+        return {
+            "fetched_count": len([target for target in ["KRW", "JPY", "EUR", "CNY", "GBP"] if target in rates]),
+            "inserted_count": len([target for target in ["KRW", "JPY", "EUR", "CNY", "GBP"] if target in rates]),
+            "updated_count": len([target for target in ["KRW", "JPY", "EUR", "CNY", "GBP"] if target in rates]),
+        }
     except Exception as e:
         db.rollback()
         logger.error(f"ExchangeRate-API error: {e}")
-        _collect_free_rates(db)
+        return _collect_free_rates(db)
 
 
 def _collect_free_rates(db: Session):
@@ -58,9 +62,15 @@ def _collect_free_rates(db: Session):
                     _upsert_rate(db, date, pair, float(rates[target]))
         db.commit()
         logger.info("Collected exchange rates via open.er-api.com (free fallback)")
+        return {
+            "fetched_count": len([target for target in ["KRW", "JPY", "EUR", "CNY", "GBP"] if target in rates]),
+            "inserted_count": len([target for target in ["KRW", "JPY", "EUR", "CNY", "GBP"] if target in rates]),
+            "updated_count": len([target for target in ["KRW", "JPY", "EUR", "CNY", "GBP"] if target in rates]),
+        }
     except Exception as e:
         db.rollback()
         logger.error(f"Free FX API error: {e}")
+        raise RuntimeError(f"FX collection failed for both primary and fallback providers: {type(e).__name__}: {e}") from e
 
 
 def _upsert_rate(db: Session, date: datetime, pair: str, value: float):

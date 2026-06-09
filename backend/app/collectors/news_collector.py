@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from ..core.config import settings
 from ..models.indicators import NewsItem
+from .result_utils import empty_counts
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +37,23 @@ def categorize(title: str, summary: str = "") -> str:
 def collect_finnhub_news(db: Session):
     if not settings.FINNHUB_API_KEY:
         logger.warning("FINNHUB_API_KEY not set, skipping")
-        return
+        return {
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+            "reason": "finnhub_api_key_missing",
+        }
     base_url = "https://finnhub.io/api/v1/news"
+    counts = empty_counts()
+    errors: list[str] = []
     with httpx.Client(timeout=15) as client:
         for cat in FINNHUB_CATEGORIES:
             try:
                 resp = client.get(base_url, params={"category": cat, "token": settings.FINNHUB_API_KEY})
                 resp.raise_for_status()
-                for item in resp.json()[:20]:
+                items = resp.json()[:20]
+                counts["fetched_count"] += len(items)
+                for item in items:
                     url = item.get("url", "")
                     if db.query(NewsItem).filter(NewsItem.url == url).first():
                         continue
@@ -58,21 +68,28 @@ def collect_finnhub_news(db: Session):
                         category=categorize(title, summary),
                         published_at=pub,
                     ))
+                    counts["inserted_count"] += 1
+                    counts["updated_count"] += 1
                 db.commit()
                 logger.info(f"Collected Finnhub news: {cat}")
             except Exception as e:
                 db.rollback()
                 logger.error(f"Finnhub news error ({cat}): {e}")
+                errors.append(f"{cat}:{type(e).__name__}")
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError(f"Finnhub news collection failed for all categories: {', '.join(errors[:3])}")
+    return counts
 
 
 def collect_fed_rss(db: Session):
     try:
         feed = feedparser.parse(FED_RSS_URL)
+        counts = empty_counts()
+        counts["fetched_count"] = len(feed.entries[:15])
         for entry in feed.entries[:15]:
             url = entry.get("link", "")
             if db.query(NewsItem).filter(NewsItem.url == url).first():
                 continue
-            pub_str = entry.get("published", "")
             try:
                 pub = datetime(*entry.published_parsed[:6])
             except Exception:
@@ -87,8 +104,12 @@ def collect_fed_rss(db: Session):
                 category="fed",
                 published_at=pub,
             ))
+            counts["inserted_count"] += 1
+            counts["updated_count"] += 1
         db.commit()
         logger.info("Collected Fed RSS feed")
+        return counts
     except Exception as e:
         db.rollback()
         logger.error(f"Fed RSS error: {e}")
+        raise RuntimeError(f"Fed RSS collection failed: {type(e).__name__}: {e}") from e

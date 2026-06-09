@@ -119,9 +119,15 @@ def collect_fomc_calendar(db: Session):
 
         db.commit()
         logger.info(f"Collected {len(meetings)} FOMC meetings")
+        return {
+            "fetched_count": len(meetings),
+            "inserted_count": len(meetings),
+            "updated_count": len(meetings),
+        }
     except Exception as e:
         db.rollback()
         logger.error(f"FOMC calendar error: {e}")
+        raise RuntimeError(f"FOMC calendar collection failed: {type(e).__name__}: {e}") from e
 
 
 def collect_fedwatch(db: Session):
@@ -137,27 +143,24 @@ def collect_fedwatch(db: Session):
         with httpx.Client(timeout=20, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"}) as client:
             resp = client.get(url)
             if resp.status_code != 200:
-                logger.warning(f"FedWatch endpoint returned {resp.status_code}, skipping")
-                return
+                raise RuntimeError(f"FedWatch endpoint returned {resp.status_code}")
             data = resp.json()
         now = datetime.now().replace(microsecond=0)
         observation_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
         meeting_date = get_next_fomc_meeting_date(db, now=now)
         if not meeting_date:
-            return
+            raise RuntimeError("FedWatch could not determine next FOMC meeting date")
 
         quotes = data.get("quotes", [])
         if quotes:
             price = parse_price(quotes[0].get("last"))
             if not price:
-                logger.warning("FedWatch quote has no usable last price, skipping")
-                return
+                raise RuntimeError("FedWatch quote has no usable last price")
             implied_rate = 100 - price
 
             current_rate = get_latest_observations(db, ["DFF"])[0]
             if current_rate["latest_value"] is None:
-                logger.warning("No DFF rate available for FedWatch estimate, skipping")
-                return
+                raise RuntimeError("FedWatch requires latest DFF observation but none was found")
 
             prob_cut, prob_hold, prob_hike = estimate_policy_probs(
                 current_rate=float(current_rate["latest_value"]),
@@ -187,10 +190,17 @@ def collect_fedwatch(db: Session):
                     FedWatch.date == observation_date,
                 ).update({"calendar_event_id": calendar_event.id}, synchronize_session=False)
             db.commit()
-        logger.info("Collected FedWatch probabilities")
+            logger.info("Collected FedWatch probabilities")
+            return {
+                "fetched_count": 1,
+                "inserted_count": 1,
+                "updated_count": 1,
+            }
+        raise RuntimeError("FedWatch endpoint returned no quotes")
     except Exception as e:
         db.rollback()
         logger.error(f"FedWatch error: {e}")
+        raise RuntimeError(f"FedWatch collection failed: {type(e).__name__}: {e}") from e
 
 
 def _extract_fomc_links(row) -> dict[str, str | None]:

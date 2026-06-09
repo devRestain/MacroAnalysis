@@ -14,6 +14,7 @@ from .calendar_upsert import upsert_calendar_event
 def collect_calendar_events(db: Session) -> dict[str, int | str]:
     fetched = 0
     inserted = 0
+    reasons: list[str] = []
 
     current_year = date.today().year
     for year in {current_year, current_year + 1}:
@@ -29,13 +30,17 @@ def collect_calendar_events(db: Session) -> dict[str, int | str]:
 
     fred_result = collect_fred_release_calendar(db)
     bls_result = collect_bls_calendar(db)
-    fetched += int(fred_result["fetched_count"]) + int(bls_result["fetched_count"])
-    inserted += int(fred_result["inserted_count"]) + int(bls_result["inserted_count"])
+    for source_result in (fred_result, bls_result):
+        fetched += int(source_result["fetched_count"])
+        inserted += int(source_result["inserted_count"])
+        reason = str(source_result.get("reason") or "")
+        if source_result["status"] != "success" and reason:
+            reasons.append(f"{source_result['job_key']}:{reason}")
     db.commit()
     return {
         "job_key": "calendar_events",
         "status": "success",
-        "reason": "ok",
+        "reason": "ok" if not reasons else ";".join(reasons),
         "fetched_count": fetched,
         "inserted_count": inserted,
         "updated_count": inserted,

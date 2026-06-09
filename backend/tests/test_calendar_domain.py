@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import unittest
 from datetime import datetime
+from unittest.mock import patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -11,6 +12,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.collectors.calendar.rule_based_market_calendar import generate_monthly_opex, generate_triple_witching
 from app.core.database import Base
+from app.services.calendar_collection_service import collect_calendar_events
 from app.models.calendar import EconomicCalendarEvent
 from app.services.calendar_query_service import get_next_fomc_meeting_date
 from app.services.calendar_upsert import upsert_calendar_event, upsert_fomc_detail
@@ -162,6 +164,31 @@ class CalendarDomainTests(unittest.TestCase):
         self.db.commit()
         next_meeting = get_next_fomc_meeting_date(self.db, now=datetime(2026, 6, 1, 0, 0))
         self.assertEqual(next_meeting, datetime(2026, 7, 29, 14, 0))
+
+    def test_calendar_collection_tolerates_bls_failure(self) -> None:
+        with patch("app.services.calendar_collection_service.collect_fred_release_calendar") as fred, patch(
+            "app.services.calendar_collection_service.collect_bls_calendar"
+        ) as bls:
+            fred.return_value = {
+                "job_key": "calendar_fred",
+                "status": "success",
+                "reason": "ok",
+                "fetched_count": 2,
+                "inserted_count": 2,
+                "updated_count": 2,
+            }
+            bls.return_value = {
+                "job_key": "calendar_bls",
+                "status": "skipped",
+                "reason": "bls_http_403",
+                "fetched_count": 0,
+                "inserted_count": 0,
+                "updated_count": 0,
+            }
+            result = collect_calendar_events(self.db)
+
+        self.assertEqual(result["status"], "success")
+        self.assertIn("calendar_bls:bls_http_403", result["reason"])
 
 
 if __name__ == "__main__":

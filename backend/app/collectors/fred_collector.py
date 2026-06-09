@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..core.config import settings
 from ..core.upsert import upsert_rows
 from ..models.indicators import InterestRate, MacroIndicator, CreditSpread
+from .result_utils import add_counts, empty_counts, format_error_summary
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ def get_fred_client() -> Fred:
 def collect_rates(db: Session):
     fred = get_fred_client()
     cutoff = datetime.now() - timedelta(days=30)
+    counts = empty_counts()
+    errors: list[str] = []
     for series_id, label in RATE_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start=cutoff)
@@ -62,15 +65,31 @@ def collect_rates(db: Session):
                 update_columns=["value"],
             )
             db.commit()
+            add_counts(
+                counts,
+                {
+                    "fetched_count": len(rows),
+                    "inserted_count": len(rows),
+                    "updated_count": len(rows),
+                },
+            )
             logger.info(f"Collected {series_id} ({label})")
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to collect {series_id}: {e}")
+            errors.append(f"{series_id}:{type(e).__name__}")
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError(f"FRED rates collection failed for all series: {format_error_summary(errors)}")
+    if errors:
+        logger.warning("Partial FRED rates collection failure: %s", format_error_summary(errors))
+    return counts
 
 
 def collect_macro(db: Session):
     fred = get_fred_client()
     cutoff = datetime.now() - timedelta(days=365 * 2)
+    counts = empty_counts()
+    errors: list[str] = []
     for series_id, label in MACRO_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start=cutoff)
@@ -90,15 +109,31 @@ def collect_macro(db: Session):
                 update_columns=["value"],
             )
             db.commit()
+            add_counts(
+                counts,
+                {
+                    "fetched_count": len(rows),
+                    "inserted_count": len(rows),
+                    "updated_count": len(rows),
+                },
+            )
             logger.info(f"Collected macro {series_id} ({label})")
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to collect macro {series_id}: {e}")
+            errors.append(f"{series_id}:{type(e).__name__}")
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError(f"FRED macro collection failed for all series: {format_error_summary(errors)}")
+    if errors:
+        logger.warning("Partial FRED macro collection failure: %s", format_error_summary(errors))
+    return counts
 
 
 def collect_credit_spreads(db: Session):
     fred = get_fred_client()
     cutoff = datetime.now() - timedelta(days=365)
+    counts = empty_counts()
+    errors: list[str] = []
     for series_id, key in CREDIT_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start=cutoff)
@@ -118,7 +153,21 @@ def collect_credit_spreads(db: Session):
                 update_columns=["value"],
             )
             db.commit()
+            add_counts(
+                counts,
+                {
+                    "fetched_count": len(rows),
+                    "inserted_count": len(rows),
+                    "updated_count": len(rows),
+                },
+            )
             logger.info(f"Collected credit spread {key}")
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to collect credit spread {key}: {e}")
+            errors.append(f"{series_id}:{type(e).__name__}")
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError(f"FRED credit spread collection failed for all series: {format_error_summary(errors)}")
+    if errors:
+        logger.warning("Partial FRED credit spread collection failure: %s", format_error_summary(errors))
+    return counts

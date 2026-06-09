@@ -17,6 +17,28 @@ FRED_RELEASE_MAPPING = {
         "category": "consumption",
         "importance": "high",
     },
+    "Consumer Price Index": {
+        "event_key": "US_CPI",
+        "category": "inflation",
+        "importance": "high",
+        "related_indicator_key": "CPIAUCSL",
+    },
+    "Producer Price Index": {
+        "event_key": "US_PPI",
+        "category": "inflation",
+        "importance": "medium",
+    },
+    "Employment Situation": {
+        "event_key": "US_EMPLOYMENT_SITUATION",
+        "category": "labor",
+        "importance": "high",
+        "related_indicator_key": "UNRATE",
+    },
+    "Job Openings and Labor Turnover Survey": {
+        "event_key": "US_JOLTS",
+        "category": "labor",
+        "importance": "medium",
+    },
 }
 
 
@@ -40,7 +62,7 @@ def collect_fred_release_calendar(db: Session) -> dict[str, int | str]:
 
     inserted = 0
     for release in payload.get("release_dates", []):
-        mapped = FRED_RELEASE_MAPPING.get(release.get("release_name"))
+        mapped = _match_release_mapping(release.get("release_name", ""))
         if not mapped:
             continue
         event_date = datetime.fromisoformat(release["date"])
@@ -60,7 +82,7 @@ def collect_fred_release_calendar(db: Session) -> dict[str, int | str]:
                 "source_url": "https://fred.stlouisfed.org/",
                 "importance": mapped["importance"],
                 "status": "scheduled",
-                "related_indicator_key": None,
+                "related_indicator_key": mapped.get("related_indicator_key"),
                 "related_asset": None,
                 "metadata_json": {"release_id": release.get("release_id")},
             },
@@ -80,3 +102,13 @@ def _result(status: str, fetched: int, inserted: int, reason: str | None) -> dic
         "inserted_count": inserted,
         "updated_count": inserted,
     }
+
+
+def _match_release_mapping(release_name: str) -> dict | None:
+    if release_name in FRED_RELEASE_MAPPING:
+        return FRED_RELEASE_MAPPING[release_name]
+    lowered = release_name.lower()
+    for key, mapping in FRED_RELEASE_MAPPING.items():
+        if key.lower() in lowered:
+            return mapping
+    return None

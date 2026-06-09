@@ -13,6 +13,7 @@ from ..collectors.fx_collector import collect_exchange_rates
 from ..collectors.market_collector import collect_equity_indices, collect_real_economy, collect_sectors
 from ..collectors.news_collector import collect_fed_rss, collect_finnhub_news
 from ..core.config import settings
+from ..collectors.result_utils import add_counts, empty_counts
 from .calendar_collection_service import collect_calendar_events
 from .daily_insight_service import get_existing_daily_insight, get_today_kst
 from .collection_guard import get_default_min_interval, run_with_guard
@@ -228,13 +229,29 @@ def _maintenance_job(job_key: str) -> dict[str, Any]:
 
 
 def _collect_news_bundle(db: Session):
-    collect_finnhub_news(db)
-    collect_fed_rss(db)
+    counts = empty_counts()
+    errors: list[str] = []
+    for fn in (collect_finnhub_news, collect_fed_rss):
+        try:
+            add_counts(counts, fn(db))
+        except Exception as exc:
+            errors.append(str(exc))
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError("; ".join(errors))
+    return counts
 
 
 def _collect_us_global_market_bundle(db: Session):
-    collect_equity_indices(db)
-    collect_real_economy(db)
+    counts = empty_counts()
+    errors: list[str] = []
+    for fn in (collect_equity_indices, collect_real_economy):
+        try:
+            add_counts(counts, fn(db))
+        except Exception as exc:
+            errors.append(str(exc))
+    if counts["fetched_count"] == 0 and errors:
+        raise RuntimeError("; ".join(errors))
+    return counts
 
 
 def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:

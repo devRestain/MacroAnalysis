@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime
+import logging
 
 import httpx
 from sqlalchemy.orm import Session
 
 from ...core.config import settings
 from ...services.calendar_upsert import upsert_calendar_event
+
+logger = logging.getLogger(__name__)
 
 BLS_EVENT_MAPPING = {
     "Consumer Price Index": {
@@ -28,10 +31,27 @@ def collect_bls_calendar(db: Session) -> dict[str, int | str]:
     if not settings.CALENDAR_BLS_ENABLED:
         return _result("skipped", 0, 0, "calendar_bls_disabled")
 
-    with httpx.Client(timeout=20, follow_redirects=True) as client:
-        response = client.get(settings.CALENDAR_BLS_ICS_URL)
-        response.raise_for_status()
-    events = _parse_ics_events(response.text)
+    try:
+        with httpx.Client(timeout=20, follow_redirects=True) as client:
+            response = client.get(
+                settings.CALENDAR_BLS_ICS_URL,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                    ),
+                    "Accept": "text/calendar,text/plain;q=0.9,*/*;q=0.8",
+                    "Referer": "https://www.bls.gov/schedule/news_release/",
+                },
+            )
+            response.raise_for_status()
+        events = _parse_ics_events(response.text)
+    except httpx.HTTPStatusError as exc:
+        logger.warning("BLS calendar fetch blocked: status=%s url=%s", exc.response.status_code, settings.CALENDAR_BLS_ICS_URL)
+        return _result("skipped", 0, 0, f"bls_http_{exc.response.status_code}")
+    except Exception as exc:
+        logger.warning("BLS calendar fetch failed: %s", exc)
+        return _result("failed", 0, 0, str(exc))
 
     inserted = 0
     for event in events:
