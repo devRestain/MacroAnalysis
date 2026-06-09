@@ -2701,5 +2701,352 @@
       }
     }
   ],
-  "non_series_display_metrics": []
+  "non_series_display_metrics": [
+    {
+      "key": "fomc_next_meeting",
+      "display_name": "다음 FOMC 회의일",
+      "category": "fomc",
+      "short_label": "다음 연준 정책 결정 일정",
+      "description": "연방공개시장위원회가 기준금리와 정책 방향을 결정하는 다음 회의 날짜다.",
+      "market_role": "금리, 환율, 주식, 채권시장이 정책 이벤트를 앞두고 기대를 조정하는 기준점이다.",
+      "higher_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+      "lower_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+      "watch_points": "회의 전후로 FedWatch 확률, 2년물 금리, FOMC 성명 문구 변화가 함께 움직일 수 있다.",
+      "sentiment_hint": "회의가 가까워질수록 금리 민감 자산의 변동성이 커질 수 있다.",
+      "related_indicators": [
+        "fedwatch_prob_hold",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike",
+        "DGS2",
+        "DFF"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "다음 연준 정책 결정 일정",
+        "description": "연방공개시장위원회가 기준금리와 정책 방향을 결정하는 다음 회의 날짜다.",
+        "market_role": "금리, 환율, 주식, 채권시장이 정책 이벤트를 앞두고 기대를 조정하는 기준점이다.",
+        "higher_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+        "lower_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+        "watch_points": "회의 전후로 FedWatch 확률, 2년물 금리, FOMC 성명 문구 변화가 함께 움직일 수 있다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "not_applicable",
+          "falling": "not_applicable",
+          "flat": "not_applicable",
+          "confidence": "low",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_event_timing",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "fedwatch_prob_hold",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike",
+            "DGS2",
+            "DFF"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fomc_decision_rate",
+      "display_name": "FOMC 결정 금리",
+      "category": "fomc",
+      "short_label": "FOMC가 결정한 정책금리 수준",
+      "description": "FOMC 회의에서 결정된 기준금리 수준을 나타낸다.",
+      "market_role": "정책금리의 실제 변화와 시장 기대의 차이를 확인하는 기준이 된다.",
+      "higher_meaning": "정책이 더 긴축적이라는 신호로, 금융환경에 부담이 될 수 있다.",
+      "lower_meaning": "정책 완화가 진행되고 있다는 신호로, 유동성 기대를 높일 수 있다.",
+      "watch_points": "금리 수준뿐 아니라 성명서, 점도표, 기자회견의 향후 경로 신호가 중요하다.",
+      "sentiment_hint": "예상보다 높은 결정은 위험자산에 부담, 예상보다 낮은 결정은 안도감을 줄 수 있다.",
+      "related_indicators": [
+        "DFF",
+        "DGS2",
+        "DGS10",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "FOMC가 결정한 정책금리 수준",
+        "description": "FOMC 회의에서 결정된 기준금리 수준을 나타낸다.",
+        "market_role": "정책금리의 실제 변화와 시장 기대의 차이를 확인하는 기준이 된다.",
+        "higher_meaning": "정책이 더 긴축적이라는 신호로, 금융환경에 부담이 될 수 있다.",
+        "lower_meaning": "정책 완화가 진행되고 있다는 신호로, 유동성 기대를 높일 수 있다.",
+        "watch_points": "금리 수준뿐 아니라 성명서, 점도표, 기자회견의 향후 경로 신호가 중요하다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "not_applicable",
+          "falling": "not_applicable",
+          "flat": "not_applicable",
+          "confidence": "low",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_event_timing",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "DGS2",
+            "DGS10",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fomc_change_bp",
+      "display_name": "FOMC 변동폭",
+      "category": "fomc",
+      "short_label": "이번 회의의 금리 변화 폭",
+      "description": "FOMC가 이전 회의 대비 기준금리를 몇 bp 조정했는지를 나타낸다.",
+      "market_role": "정책 변화의 강도와 시장 예상 대비 서프라이즈를 판단하는 데 쓰인다.",
+      "higher_meaning": "인상 폭이 크거나 인하 폭이 작다면 긴축적 서프라이즈로 해석될 수 있다.",
+      "lower_meaning": "인하 폭이 크거나 인상 폭이 작다면 완화적 서프라이즈로 해석될 수 있다.",
+      "watch_points": "부호 정의를 UI에 명확히 표시하고, 시장 예상과의 차이를 함께 보여주는 것이 좋다.",
+      "sentiment_hint": "예상 밖 큰 변화는 방향과 무관하게 단기 변동성을 키울 수 있다.",
+      "related_indicators": [
+        "DFF",
+        "DGS2",
+        "fedwatch_prob_hold",
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "이번 회의의 금리 변화 폭",
+        "description": "FOMC가 이전 회의 대비 기준금리를 몇 bp 조정했는지를 나타낸다.",
+        "market_role": "정책 변화의 강도와 시장 예상 대비 서프라이즈를 판단하는 데 쓰인다.",
+        "higher_meaning": "인상 폭이 크거나 인하 폭이 작다면 긴축적 서프라이즈로 해석될 수 있다.",
+        "lower_meaning": "인하 폭이 크거나 인상 폭이 작다면 완화적 서프라이즈로 해석될 수 있다.",
+        "watch_points": "부호 정의를 UI에 명확히 표시하고, 시장 예상과의 차이를 함께 보여주는 것이 좋다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "not_applicable",
+          "falling": "not_applicable",
+          "flat": "not_applicable",
+          "confidence": "low",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_event_timing",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DFF",
+            "DGS2",
+            "fedwatch_prob_hold",
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fedwatch_prob_hold",
+      "display_name": "FOMC 동결 확률",
+      "category": "fedwatch",
+      "short_label": "시장이 보는 금리 동결 가능성",
+      "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 동결 가능성이다.",
+      "market_role": "현재 시장이 정책 변화를 얼마나 예상하는지 빠르게 확인하는 데 쓰인다.",
+      "higher_meaning": "정책 변화보다 현 수준 유지 기대가 강하다는 뜻이다.",
+      "lower_meaning": "인하 또는 인상 같은 정책 변화 가능성이 상대적으로 커졌다는 뜻이다.",
+      "watch_points": "인하 확률과 인상 확률 중 어느 쪽으로 이동했는지를 함께 확인해야 한다.",
+      "sentiment_hint": "동결 확률 상승은 상황에 따라 안정 신호 또는 정책 지연 우려로 해석될 수 있다.",
+      "related_indicators": [
+        "fedwatch_prob_cut",
+        "fedwatch_prob_hike",
+        "DGS2",
+        "DFF"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "시장이 보는 금리 동결 가능성",
+        "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 동결 가능성이다.",
+        "market_role": "현재 시장이 정책 변화를 얼마나 예상하는지 빠르게 확인하는 데 쓰인다.",
+        "higher_meaning": "정책 변화보다 현 수준 유지 기대가 강하다는 뜻이다.",
+        "lower_meaning": "인하 또는 인상 같은 정책 변화 가능성이 상대적으로 커졌다는 뜻이다.",
+        "watch_points": "인하 확률과 인상 확률 중 어느 쪽으로 이동했는지를 함께 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "policy_stability_tilt",
+          "falling": "policy_shift_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_rate_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "fedwatch_prob_cut",
+            "fedwatch_prob_hike",
+            "DGS2",
+            "DFF"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fedwatch_prob_cut",
+      "display_name": "FOMC 인하 확률",
+      "category": "fedwatch",
+      "short_label": "시장이 보는 금리 인하 가능성",
+      "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인하 가능성이다.",
+      "market_role": "정책 완화 기대와 경기·물가 둔화 해석이 시장에 얼마나 반영됐는지 보여준다.",
+      "higher_meaning": "금리 인하 기대가 강해졌음을 뜻하며, 원인은 물가 안정 또는 경기 둔화일 수 있다.",
+      "lower_meaning": "인하 기대가 약해지고 긴축 유지 가능성이 커졌음을 시사할 수 있다.",
+      "watch_points": "인하 기대가 위험자산에 우호적인지, 경기침체 우려 때문인지 구분해야 한다.",
+      "sentiment_hint": "완만한 상승은 금리 부담 완화, 급격한 상승은 경기 우려로 읽힐 수 있다.",
+      "related_indicators": [
+        "DGS2",
+        "DGS10",
+        "UNRATE",
+        "CPIAUCSL",
+        "PCEPILFE"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "시장이 보는 금리 인하 가능성",
+        "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인하 가능성이다.",
+        "market_role": "정책 완화 기대와 경기·물가 둔화 해석이 시장에 얼마나 반영됐는지 보여준다.",
+        "higher_meaning": "금리 인하 기대가 강해졌음을 뜻하며, 원인은 물가 안정 또는 경기 둔화일 수 있다.",
+        "lower_meaning": "인하 기대가 약해지고 긴축 유지 가능성이 커졌음을 시사할 수 있다.",
+        "watch_points": "인하 기대가 위험자산에 우호적인지, 경기침체 우려 때문인지 구분해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "easing_expectation_tilt",
+          "falling": "higher_for_longer_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_easing_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DGS10",
+            "UNRATE",
+            "CPIAUCSL",
+            "PCEPILFE"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    },
+    {
+      "key": "fedwatch_prob_hike",
+      "display_name": "FOMC 인상 확률",
+      "category": "fedwatch",
+      "short_label": "시장이 보는 금리 인상 가능성",
+      "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인상 가능성이다.",
+      "market_role": "물가 재가속 또는 긴축 강화 가능성이 시장에 얼마나 반영됐는지 보여준다.",
+      "higher_meaning": "추가 긴축 우려가 커졌으며 금리 민감 자산에 부담이 될 수 있다.",
+      "lower_meaning": "추가 인상 부담이 완화되고 정책 불확실성이 줄어들 수 있다.",
+      "watch_points": "물가 지표, 임금, 2년물 금리 상승과 함께 나타나는지 확인해야 한다.",
+      "sentiment_hint": "상승은 대체로 위험자산에 부담이 되는 신호로 해석된다.",
+      "related_indicators": [
+        "DGS2",
+        "DFF",
+        "CPIAUCSL",
+        "PCEPILFE",
+        "^IXIC"
+      ],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "시장이 보는 금리 인상 가능성",
+        "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인상 가능성이다.",
+        "market_role": "물가 재가속 또는 긴축 강화 가능성이 시장에 얼마나 반영됐는지 보여준다.",
+        "higher_meaning": "추가 긴축 우려가 커졌으며 금리 민감 자산에 부담이 될 수 있다.",
+        "lower_meaning": "추가 인상 부담이 완화되고 정책 불확실성이 줄어들 수 있다.",
+        "watch_points": "물가 지표, 임금, 2년물 금리 상승과 함께 나타나는지 확인해야 한다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "sentiment_mapping": {
+          "rising": "tightening_expectation_risk_off_tilt",
+          "falling": "tightening_pressure_relief_tilt",
+          "flat": "neutral",
+          "confidence": "medium",
+          "caveat": "정적 방향성 힌트이며, 실제 sentiment 산출값이 아니다. 최근 변화율, 발표 시점, 관련 지표와 함께 확인해야 한다."
+        },
+        "expectation_role": {
+          "primary_axis": "policy_tightening_expectation",
+          "requires_cross_check": true,
+          "cross_check_indicators": [
+            "DGS2",
+            "DFF",
+            "CPIAUCSL",
+            "PCEPILFE",
+            "^IXIC"
+          ],
+          "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
+        }
+      }
+    }
+  ]
 }

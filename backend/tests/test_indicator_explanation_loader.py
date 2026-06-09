@@ -39,8 +39,8 @@ class IndicatorExplanationLoaderTests(unittest.TestCase):
         self.assertTrue(items)
         self.assertTrue(all(item.get("key") for item in items))
         self.assertEqual(len(payload["timeseries_indicators"]), 41)
-        self.assertEqual(len(payload["non_series_display_metrics"]), 0)
-        self.assertEqual(len(items), 41)
+        self.assertEqual(len(payload["non_series_display_metrics"]), 6)
+        self.assertEqual(len(items), 47)
 
     def test_indicator_explanation_model_is_initializable(self):
         self.assertEqual(IndicatorExplanation.__tablename__, "indicator_explanations")

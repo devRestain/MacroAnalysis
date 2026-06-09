@@ -84,6 +84,24 @@ MacroAnalysis/
 - `workflow_status.is_runtime_signal`이 `false`인 항목은 런타임 신호로 사용하지 않습니다.
 - 현재 프론트엔드는 아직 이 데이터를 사용하지 않으며, 향후 프론트엔드 개편에서 지표 카드, 사이드패널, 시장 해석 영역에 연결할 예정입니다.
 
+### Seed 실행
+
+정적 설명 메타데이터를 DB에 반영하려면 아래 명령을 사용합니다.
+
+```bash
+docker compose exec backend python -m app.scripts.seed_indicator_explanations
+```
+
+로컬 가상환경 기준 예시는 아래와 같습니다.
+
+```bash
+cd backend
+../.venv/bin/python -m app.scripts.seed_indicator_explanations
+```
+
+- 이 seed는 지표 설명 및 정적 해석 힌트를 DB에 반영합니다.
+- observation 시계열 데이터, 수집 로그, raw response, debug/temp/cache 데이터는 수정하지 않습니다.
+
 ## 중복되거나 미완성인 코드
 
 현재 기준으로 눈에 띄는 항목은 아래와 같습니다.
