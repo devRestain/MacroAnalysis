@@ -102,6 +102,18 @@ cd backend
 - 이 seed는 지표 설명 및 정적 해석 힌트를 DB에 반영합니다.
 - observation 시계열 데이터, 수집 로그, raw response, debug/temp/cache 데이터는 수정하지 않습니다.
 
+### Indicator Explanation API
+
+```text
+GET /api/indicator-explanations
+GET /api/indicator-explanations/{indicator_key}
+GET /api/indicator-explanations?category=rates
+```
+
+- 이 API는 지표 설명과 정적 해석 힌트를 반환합니다.
+- `analysis_hints`는 현재 시장 sentiment/expectation 계산 결과가 아닙니다.
+- 현재 프론트엔드는 아직 이 API를 사용하지 않습니다.
+
 ## 중복되거나 미완성인 코드
 
 현재 기준으로 눈에 띄는 항목은 아래와 같습니다.

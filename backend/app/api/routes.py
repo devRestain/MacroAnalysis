@@ -7,9 +7,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from ..core.database import get_db
 from ..core.cache import cache_get, cache_set
+from .schemas import IndicatorExplanationListResponse, IndicatorExplanationResponse
 from ..models.indicators import (
     ChangeSnapshot, NewsItem, DailyInsight, FomcEvent, FedWatch,
     SentimentSignal, Expectation, DivergenceEvent, DivergenceReport,
+)
+from ..services.indicator_explanation_query_service import (
+    get_indicator_explanation,
+    list_indicator_explanations,
 )
 from ..services.daily_insight_service import (
     daily_insight_to_summary_response,
@@ -28,6 +33,31 @@ from ..core.config import settings
 
 router = APIRouter(prefix="/api")
 logger = logging.getLogger(__name__)
+
+
+# ─── /api/indicator-explanations ─────────────────────────────────────────────
+
+@router.get("/indicator-explanations", response_model=IndicatorExplanationListResponse)
+async def get_indicator_explanations(
+    category: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    rows = list_indicator_explanations(db, category=category)
+    return {
+        "indicator_explanations": rows,
+        "count": len(rows),
+    }
+
+
+@router.get("/indicator-explanations/{indicator_key}", response_model=IndicatorExplanationResponse)
+async def get_indicator_explanation_detail(
+    indicator_key: str,
+    db: Session = Depends(get_db),
+):
+    row = get_indicator_explanation(db, indicator_key)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Indicator explanation not found")
+    return row
 
 
 # ─── /api/summary ────────────────────────────────────────────────────────────
