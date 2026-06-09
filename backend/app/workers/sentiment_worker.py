@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from celery import shared_task, chain
+from kombu.exceptions import OperationalError
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -880,18 +881,14 @@ Return JSON with keys: headline, background, evidence, action_plan, risk_scenari
 # Celery Chain Entry Point
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def run_daily_sentiment_pipeline(batch_date: datetime | None = None):
-    """
-    daily Celery Beat 에서 호출하는 체인 진입점.
-    extract → update → detect 순서로 chain 실행.
-    """
+def _prepare_sentiment_pipeline(batch_date: datetime | None = None) -> dict[str, Any]:
     if not settings.SENTIMENT_PIPELINE_ENABLED:
         logger.info("[pipeline] sentiment pipeline disabled")
-        return {"skipped": True, "reason": "sentiment_pipeline_disabled"}
+        return {"status": "skipped", "reason": "sentiment_pipeline_disabled"}
 
     if not settings.OPENAI_API_KEY:
         logger.info("[pipeline] OPENAI_API_KEY 없음 — sentiment 파이프라인 스킵")
-        return {"skipped": True, "reason": "OPENAI_API_KEY not configured"}
+        return {"status": "skipped", "reason": "OPENAI_API_KEY not configured"}
 
     normalized_batch_date = _normalize_batch_date(batch_date=batch_date)
     db: Session = SessionLocal()
@@ -902,15 +899,63 @@ def run_daily_sentiment_pipeline(batch_date: datetime | None = None):
 
     if pending_count == 0:
         logger.info("[pipeline] 최근 미처리 뉴스 없음 — sentiment 파이프라인 스킵")
-        return {"skipped": True, "reason": "no_recent_unprocessed_news"}
+        return {"status": "skipped", "reason": "no_recent_unprocessed_news"}
 
-    bd_iso = normalized_batch_date.isoformat()
+    return {
+        "status": "ready",
+        "batch_date": normalized_batch_date,
+        "batch_date_iso": normalized_batch_date.isoformat(),
+        "pending_count": pending_count,
+    }
+
+
+def run_daily_sentiment_pipeline_sync(batch_date: datetime | None = None) -> dict[str, Any]:
+    prep = _prepare_sentiment_pipeline(batch_date=batch_date)
+    if prep["status"] != "ready":
+        return {"skipped": True, "reason": prep["reason"]}
+
+    bd_iso = prep["batch_date_iso"]
+    extract_result = extract_daily_sentiments.run(batch_date_iso=bd_iso)
+    expectation_result = update_expectations.run(extract_result=extract_result, batch_date_iso=bd_iso)
+    divergence_result = detect_divergence.run(expectation_result=expectation_result, batch_date_iso=bd_iso)
+    logger.info(
+        "[pipeline] sentiment 파이프라인 동기 실행 완료: %s (pending_count=%s)",
+        bd_iso,
+        prep["pending_count"],
+    )
+    return {
+        "mode": "sync",
+        "batch_date": bd_iso,
+        "pending_count": prep["pending_count"],
+        "extract": extract_result,
+        "expectation": expectation_result,
+        "divergence": divergence_result,
+    }
+
+
+def run_daily_sentiment_pipeline(batch_date: datetime | None = None):
+    """
+    daily Celery Beat 에서 호출하는 체인 진입점.
+    extract → update → detect 순서로 chain 실행.
+    """
+    prep = _prepare_sentiment_pipeline(batch_date=batch_date)
+    if prep["status"] != "ready":
+        return {"skipped": True, "reason": prep["reason"]}
+
+    bd_iso = prep["batch_date_iso"]
 
     pipeline = chain(
         extract_daily_sentiments.s(batch_date_iso=bd_iso),
         update_expectations.s(batch_date_iso=bd_iso),
         detect_divergence.s(batch_date_iso=bd_iso),
     )
-    pipeline.delay()
-    logger.info(f"[pipeline] 일일 sentiment 파이프라인 시작: {bd_iso} (pending_count={pending_count})")
-    return {"queued": True, "batch_date": bd_iso, "pending_count": pending_count}
+    try:
+        from .celery_app import celery
+
+        pipeline.apply_async(app=celery)
+    except OperationalError as exc:
+        logger.warning("[pipeline] broker unavailable, falling back to sync execution: %s", exc)
+        return run_daily_sentiment_pipeline_sync(batch_date=prep["batch_date"])
+
+    logger.info(f"[pipeline] 일일 sentiment 파이프라인 시작: {bd_iso} (pending_count={prep['pending_count']})")
+    return {"queued": True, "batch_date": bd_iso, "pending_count": prep["pending_count"]}

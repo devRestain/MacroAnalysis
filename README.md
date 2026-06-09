@@ -359,7 +359,7 @@ make ensure-ai-insight
 - `make collect`: `morning -> noon -> evening` batch를 순차 실행합니다.
 - `make collect-calendar`: 경제 일정 수집 batch를 수동 실행합니다.
 - `make collect-weekly`: FOMC calendar와 주간 maintenance hook만 실행합니다.
-- `make collect-sentiment`: 최근 미처리 핵심 뉴스가 있을 때만 sentiment/expectation 파이프라인을 큐잉합니다.
+- `make collect-sentiment`: 최근 미처리 핵심 뉴스가 있을 때만 sentiment/expectation 파이프라인을 현재 프로세스에서 동기 실행합니다.
 - 개별 batch를 연속 실행해도 guard가 같은 provider를 과도하게 재호출하지 않도록 설계되어 있습니다.
 - `make ensure-ai-insight`: 오늘 KST 기준 daily insight ensure를 수동 실행합니다.
 
