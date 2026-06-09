@@ -32,15 +32,23 @@ MacroAnalysis/
 ├── backend/
 │   ├── Dockerfile              # backend/worker/beat 공용 이미지
 │   ├── requirements.txt
+│   ├── alembic/                # DB migration 정의
 │   └── app/
 │       ├── main.py             # FastAPI 앱 시작점
-│       ├── api/routes.py       # REST API (/api/summary, /news, /fomc 등)
+│       ├── api/
+│       │   ├── routes.py       # REST API (/api/summary, /news, /fomc 등)
+│       │   └── schemas.py      # indicator explanation 응답 스키마
 │       ├── core/
 │       │   ├── config.py       # .env 기반 Settings
 │       │   ├── database.py     # engine/session/init_db
 │       │   └── cache.py        # Redis async 캐시
+│       ├── data/
+│       │   └── indicator_explanations_v1_1_workflow_aware.json
 │       ├── models/
 │       │   └── indicators.py   # 모든 SQLAlchemy 모델 정의
+│       ├── scripts/
+│       │   └── seed_indicator_explanations.py
+│       ├── services/           # query/seed/loader 및 도메인 서비스
 │       ├── collectors/         # 외부 데이터 수집 모듈
 │       └── workers/            # Celery 스케줄/태스크
 ├── frontend/
@@ -80,6 +88,7 @@ MacroAnalysis/
 - `backend/app/data/indicator_explanations_v1_1_workflow_aware.json`은 지표별 설명과 정적 해석 힌트를 담는 백엔드 내부 정적 리소스입니다.
 - DB 테이블명은 `indicator_explanations`입니다.
 - 이 파일은 loader(`backend/app/services/indicator_explanation_loader.py`)를 통해 로드되며, Docker 컨테이너 내부에서도 안정적으로 접근할 수 있습니다.
+- seed는 `backend/app/scripts/seed_indicator_explanations.py`에서 실행하며, 조회는 `backend/app/services/indicator_explanation_query_service.py`와 `/api/indicator-explanations*` endpoint를 통해 이뤄집니다.
 - `sentiment_mapping`, `expectation_role`, `analysis_hints`, `workflow_status`는 실제 런타임 계산 결과가 아니라 설명용 메타데이터와 향후 분석 로직의 rule seed입니다.
 - 특히 `sentiment_mapping`은 실제 sentiment score가 아니고, `expectation_role`도 실제 expectation 예측값이 아닙니다.
 - `workflow_status.is_runtime_signal`이 `false`인 항목은 런타임 신호로 사용하지 않습니다.
