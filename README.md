@@ -46,11 +46,15 @@ MacroAnalysis/
 │       │   └── indicator_explanations_v1_1_workflow_aware.json
 │       ├── models/
 │       │   └── indicators.py   # 모든 SQLAlchemy 모델 정의
+│       ├── commands/
+│       │   └── run_sentiment_pipeline.py   # sentiment/expectation 수동 실행 진입점
 │       ├── scripts/
 │       │   └── seed_indicator_explanations.py
 │       ├── services/           # query/seed/loader 및 도메인 서비스
 │       ├── collectors/         # 외부 데이터 수집 모듈
 │       └── workers/            # Celery 스케줄/태스크
+│   └── tests/
+│       └── test_sentiment_pipeline.py      # sentiment 파이프라인 idempotency/게이트 테스트
 ├── frontend/
 │   ├── Dockerfile              # React build + nginx 배포
 │   ├── nginx.conf              # SPA 서빙 + /api 프록시
@@ -62,7 +66,7 @@ MacroAnalysis/
 │       ├── lib/api.ts          # 프런트 API 클라이언트
 │       └── components/         # 대시보드 zone/panel UI
 └── migrations/
-    └── v2_sentiment_pipeline.sql # 수동 SQL 메모 성격의 보조 파일
+    └── v2_sentiment_pipeline.sql # 과거 수동 SQL 메모, 현재는 Alembic 체인이 source of truth
 ```
 
 ## 런타임 흐름
@@ -131,13 +135,28 @@ curl http://localhost:8000/api/indicator-explanations/DGS10
 curl "http://localhost:8000/api/indicator-explanations?category=rates"
 ```
 
+## Sentiment / Expectation Pipeline
+
+- sentiment 파이프라인은 `NewsItem -> SentimentSignal -> Expectation -> DivergenceEvent` 흐름으로 동작합니다.
+- 핵심 구현 위치는 `backend/app/workers/sentiment_worker.py`입니다.
+- 현재 운영 철학은 "핵심 분석 기능이되 AI 호출은 최소화"입니다.
+- 그래서 아래 원칙으로 동작합니다.
+  - 최근 미처리 뉴스가 없으면 파이프라인을 큐잉하지 않습니다.
+  - `general` 등 비핵심 뉴스는 LLM을 호출하지 않고 자동으로 제외 처리합니다.
+  - 같은 배치를 다시 실행해도 `upsert + UNIQUE` 제약으로 중복 row가 누적되지 않게 합니다.
+  - divergence 리포트 같은 2차 AI 호출은 `SENTIMENT_REPORTS_ENABLED=false`가 기본값이라 기본 운영에서는 꺼져 있습니다.
+- 현재 주 경로는 뉴스 기반 sentiment 복구가 완료된 상태입니다.
+- FOMC statement URL이 calendar 수집 결과에 포함되고, released 상태이며, 최근 lookback 범위 안에 있고, 아직 sentiment 신호가 없는 경우에는 collector가 statement 본문을 추출해 `extract_fomc_sentiment()`를 자동 큐잉합니다.
+- 이 경로도 중복 큐잉을 피하도록 기존 `SentimentSignal(source_type="fomc")` 존재 여부를 먼저 확인합니다.
+
 ## 중복되거나 미완성인 코드
 
 현재 기준으로 눈에 띄는 항목은 아래와 같습니다.
 
 - `backend/app/models/indicators.py`의 `SentimentIndicator` 모델은 현재 어떤 collector, worker, API에서도 사용되지 않습니다.
-- `migrations/v2_sentiment_pipeline.sql`은 Alembic에 연결된 정식 migration 체인이 아니라 참고용 수동 SQL 파일에 가깝습니다.
-- sentiment/divergence 관련 API와 워커는 존재하지만, 프런트 기본 대시보드에서는 아직 사용하지 않습니다.
+- `migrations/v2_sentiment_pipeline.sql`은 참고용 수동 SQL 파일이며, 현재 정식 source of truth는 Alembic revision 체인입니다.
+- sentiment/divergence 관련 API와 워커는 복구되었지만, 프런트 기본 대시보드에는 아직 연결되지 않았습니다.
+- FOMC sentiment는 statement URL 기반 자동 큐잉이 연결돼 있지만, Fed speech 등 비정형 커뮤니케이션 전반까지 일반화된 수집 경로는 아직 후속 작업입니다.
 - AI 기능은 `OPENAI_API_KEY`가 비어 있으면 정상적으로 비활성화되며, 이 경우 `/api/ai/chat`, `/api/ai/summary`는 빈 상태 또는 503/404가 될 수 있습니다.
 - 수집기 중 일부는 API 키가 없으면 스킵됩니다.
   - `FRED_API_KEY` 없음: FRED 금리/거시/크레딧 수집 불가
@@ -160,7 +179,17 @@ FINNHUB_API_KEY=
 EXCHANGERATE_API_KEY=
 OPENAI_API_KEY=
 AI_MODEL=gpt-4o-mini
+SENTIMENT_PIPELINE_ENABLED=true
+SENTIMENT_PIPELINE_HOUR_KST=22
+SENTIMENT_PIPELINE_MINUTE_KST=5
 SENTIMENT_BATCH_SIZE=20
+SENTIMENT_MAX_NEWS_ITEMS_PER_RUN=40
+SENTIMENT_LOOKBACK_DAYS=7
+SENTIMENT_REPORTS_ENABLED=false
+FOMC_SENTIMENT_ENABLED=true
+FOMC_SENTIMENT_LOOKBACK_DAYS=30
+FOMC_SENTIMENT_MIN_TEXT_LENGTH=500
+FOMC_SENTIMENT_PENDING_TTL_HOURS=24
 INERTIA_ALPHA=0.05
 DIVERGENCE_WARNING_THRESHOLD=0.25
 DIVERGENCE_ALERT_THRESHOLD=0.40
@@ -226,6 +255,7 @@ make doctor   # Docker/Colima 상태 점검
 make up       # compose up -d
 make logs     # 전체 로그
 make collect  # morning -> noon -> evening batch 순차 실행
+make collect-sentiment
 make collect-calendar
 make collect-weekly
 make ensure-ai-insight
@@ -242,6 +272,10 @@ make down     # 종료
 - worker 재시작, 수동 실행, 중복 beat 상황에서도 동일 `job_key`는 advisory lock 또는 local lock으로 중복 실행을 피합니다.
 - 이 프로젝트는 실시간 트레이딩 시스템이 아니라 거시경제 지표 추적 및 시사점 정리 대시보드입니다.
 - 따라서 수집 실시간성보다 유지보수성, 호출량 절감, 예측 가능한 운영을 우선합니다.
+- sentiment 파이프라인도 같은 철학을 따릅니다.
+  - 최근 미처리 뉴스가 없으면 skip합니다.
+  - 한 번의 실행에서 처리할 뉴스 수를 `SENTIMENT_MAX_NEWS_ITEMS_PER_RUN`으로 제한합니다.
+  - divergence 리포트 같은 2차 LLM 호출은 기본적으로 꺼 둡니다.
 
 ## 수집 스케줄 (KST)
 
@@ -252,6 +286,7 @@ make down     # 종료
 | Evening batch | 매일 18:30 | KR/Asia market data, 주요 FX, news, snapshot refresh, 당일 success insight가 없을 때 ensure trigger |
 | Weekly batch | 매주 월요일 08:00 | FOMC calendar, event calendar/maintenance hook |
 | Calendar event batch | 매일 08:10 | 경제 일정 calendar 수집(FRED release dates, BLS calendar, rule-based expiry, seed events) |
+| Sentiment pipeline | 매일 22:05 | 최근 미처리 핵심 뉴스만 대상으로 sentiment 추출, expectation 갱신, divergence 계산 |
 | Cleanup schedule | 매일 03:05 | retention cleanup |
 
 > FedWatch 확률은 공식 CME 상세 확률표가 아니라 공개 Fed Funds futures 가격과 최신 DFF 기준의 추정값입니다.
@@ -302,6 +337,11 @@ Celery 설정 메모:
 - 같은 지표와 같은 날짜 데이터를 다시 수집하면 새 row를 추가하지 않고 기존 row를 `upsert`로 갱신합니다.
 - 따라서 revision이나 장중 재수집으로 값이 바뀌면 기존 row의 값이 최신 수집 결과로 업데이트됩니다.
 - 중복 row 정리와 upsert는 적용되어 있으며, retention/cleanup은 비시계열 파생 데이터에만 제한적으로 적용됩니다.
+- sentiment/expectation 파생 테이블도 idempotent하게 관리합니다.
+  - `sentiment_signals`: `(source_type, source_id, batch_date, actor, dimension, stance)` 기준 중복 방지
+  - `expectations`: `(date, actor, dimension)` 기준 upsert
+  - `divergence_events`: `(batch_date, actor, dimension)` 기준 upsert
+  - `divergence_reports`: `event_id` 기준 upsert
 
 ## 수동 수집 명령
 
@@ -312,12 +352,14 @@ make collect-evening
 make collect-calendar
 make collect-weekly
 make collect-all-batched
+make collect-sentiment
 make ensure-ai-insight
 ```
 
 - `make collect`: `morning -> noon -> evening` batch를 순차 실행합니다.
 - `make collect-calendar`: 경제 일정 수집 batch를 수동 실행합니다.
 - `make collect-weekly`: FOMC calendar와 주간 maintenance hook만 실행합니다.
+- `make collect-sentiment`: 최근 미처리 핵심 뉴스가 있을 때만 sentiment/expectation 파이프라인을 큐잉합니다.
 - 개별 batch를 연속 실행해도 guard가 같은 provider를 과도하게 재호출하지 않도록 설계되어 있습니다.
 - `make ensure-ai-insight`: 오늘 KST 기준 daily insight ensure를 수동 실행합니다.
 
@@ -369,6 +411,7 @@ docker compose logs beat
 - `change_snapshots`, `sentiment_signals`, `divergence_events`, `divergence_reports`, `ai_summaries`는 재생성 가능하거나 파생 성격이 강하므로 retention 대상으로 정리합니다.
 - `daily_insights`는 운영상 의미가 있어 현재는 보존하는 쪽을 기본 정책으로 둡니다.
 - `collection_runs`는 운영 이력 성격이라 현재는 자동 cleanup 대상에 포함하지 않고 주간 maintenance hook만 남겨 둡니다.
+- 다만 `sentiment_extracted=false`인 미처리 `news_items`는 sentiment 백필 입력이므로 cleanup에서 삭제하지 않습니다.
 
 기본값:
 

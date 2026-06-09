@@ -77,6 +77,9 @@ class FomcEventDetail(Base):
     implementation_note_url = Column(Text, nullable=True)
     press_conference_url = Column(Text, nullable=True)
     projection_materials_url = Column(Text, nullable=True)
+    sentiment_status = Column(String(20), nullable=True)
+    sentiment_queued_at = Column(DateTime, nullable=True)
+    sentiment_extracted_at = Column(DateTime, nullable=True)
 
     has_sep = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, server_default=func.now())

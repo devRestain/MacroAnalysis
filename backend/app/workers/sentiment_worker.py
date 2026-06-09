@@ -19,13 +19,16 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from celery import shared_task, chain
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
 from ..core.database import SessionLocal
+from ..core.upsert import upsert_rows
+from ..models.calendar import FomcEventDetail
 from ..models.indicators import (
-    NewsItem,
     FomcEvent,
+    NewsItem,
     SentimentSignal,
     Expectation,
     DivergenceEvent,
@@ -56,6 +59,75 @@ ALERT_THRESHOLD = settings.DIVERGENCE_ALERT_THRESHOLD
 MULT_INERTIA_RESET = 1.5
 MULT_MOMENTUM_FLIP = 1.2
 MULT_MULTI_DIM     = 1.3
+RELEVANT_NEWS_CATEGORIES = {"fed", "macro", "fx", "geopolitics", "commodity"}
+
+
+def _normalize_batch_date(batch_date_iso: str | None = None, batch_date: datetime | None = None) -> datetime:
+    base = batch_date or (
+        datetime.fromisoformat(batch_date_iso)
+        if batch_date_iso
+        else datetime.utcnow()
+    )
+    return base.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _batch_window(batch_date: datetime) -> tuple[datetime, datetime]:
+    return batch_date, batch_date + timedelta(days=1)
+
+
+def _news_reference_time(item: NewsItem) -> datetime:
+    return item.published_at or item.collected_at or datetime.min
+
+
+def _is_sentiment_candidate(item: NewsItem) -> bool:
+    return (item.category or "general") in RELEVANT_NEWS_CATEGORIES
+
+
+def _count_recent_unprocessed_news(db: Session, batch_date: datetime) -> int:
+    recent_cutoff = batch_date - timedelta(days=settings.SENTIMENT_LOOKBACK_DAYS)
+    return (
+        db.query(NewsItem)
+        .filter(
+            NewsItem.sentiment_extracted == False,  # noqa: E712
+            or_(
+                NewsItem.published_at.is_(None),
+                NewsItem.published_at >= recent_cutoff,
+            ),
+        )
+        .count()
+    )
+
+
+def _load_sentiment_news_batch(db: Session, batch_date: datetime) -> tuple[list[NewsItem], int]:
+    recent_cutoff = batch_date - timedelta(days=settings.SENTIMENT_LOOKBACK_DAYS)
+    rows = (
+        db.query(NewsItem)
+        .filter(
+            NewsItem.sentiment_extracted == False,  # noqa: E712
+            or_(
+                NewsItem.published_at.is_(None),
+                NewsItem.published_at >= recent_cutoff,
+            ),
+        )
+        .order_by(NewsItem.published_at.asc(), NewsItem.id.asc())
+        .all()
+    )
+
+    candidates: list[NewsItem] = []
+    auto_marked_irrelevant = 0
+    for row in rows:
+        if not _is_sentiment_candidate(row):
+            row.sentiment_extracted = True
+            auto_marked_irrelevant += 1
+            continue
+        candidates.append(row)
+        if len(candidates) >= settings.SENTIMENT_MAX_NEWS_ITEMS_PER_RUN:
+            break
+
+    if auto_marked_irrelevant:
+        db.commit()
+
+    return candidates, auto_marked_irrelevant
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -106,6 +178,15 @@ def _parse_batch_response(raw: str) -> list[dict]:
         return []
 
 
+def _is_explicit_empty_array(raw: str) -> bool:
+    text = raw.strip()
+    if text.startswith("```"):
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
+    return text.strip() == "[]"
+
+
 def _call_llm(prompt: str) -> str:
     """OpenAI API 동기 호출 (Celery 워커 내부용)."""
     if not settings.OPENAI_API_KEY:
@@ -128,27 +209,18 @@ def extract_daily_sentiments(self, batch_date_iso: str | None = None):
     sentiment_extracted=False 인 미처리 뉴스를 BATCH_SIZE씩 LLM으로 분류.
     FOMC 발표문은 extract_fomc_sentiment 에서 별도 처리하므로 여기선 건너뜀.
     """
-    batch_date = (
-        datetime.fromisoformat(batch_date_iso)
-        if batch_date_iso
-        else datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    )
+    batch_date = _normalize_batch_date(batch_date_iso)
 
     db: Session = SessionLocal()
     try:
-        unprocessed = (
-            db.query(NewsItem)
-            .filter(
-                NewsItem.sentiment_extracted == False,  # noqa: E712
-                NewsItem.category != "fomc",            # FOMC는 별도 처리
-            )
-            .order_by(NewsItem.published_at)
-            .all()
-        )
+        unprocessed, auto_marked_irrelevant = _load_sentiment_news_batch(db, batch_date)
 
         if not unprocessed:
-            logger.info("[sentiment] 미처리 뉴스 없음 — 배치 스킵")
-            return {"processed": 0, "signals": 0}
+            logger.info(
+                "[sentiment] 분류 대상 뉴스 없음 — 배치 스킵 (auto_marked_irrelevant=%s)",
+                auto_marked_irrelevant,
+            )
+            return {"processed": 0, "signals": 0, "auto_marked_irrelevant": auto_marked_irrelevant}
 
         total_signals = 0
         for batch_start in range(0, len(unprocessed), BATCH_SIZE):
@@ -166,9 +238,12 @@ def extract_daily_sentiments(self, batch_date_iso: str | None = None):
                 raise self.retry(exc=exc, countdown=60)
 
             signals = _parse_batch_response(raw)
+            if raw.strip() and not signals and not _is_explicit_empty_array(raw):
+                raise self.retry(exc=RuntimeError("sentiment_parse_failed"), countdown=60)
 
             # index → NewsItem.id 매핑
             idx_to_id = {i + 1: n.id for i, n in enumerate(batch)}
+            signal_rows = []
 
             for sig in signals:
                 news_id = idx_to_id.get(sig.get("news_index"))
@@ -179,19 +254,29 @@ def extract_daily_sentiments(self, batch_date_iso: str | None = None):
                 if actor not in ACTORS or dimension not in DIMENSIONS:
                     continue
 
-                db.add(SentimentSignal(
-                    source_type  = "news",
-                    source_id    = news_id,
-                    batch_date   = batch_date,
-                    actor        = actor,
-                    dimension    = dimension,
-                    stance       = sig.get("stance", "neutral"),
-                    stance_score = float(sig.get("stance_score", 0.0)),
-                    intensity    = float(sig.get("intensity", 0.5)),
-                    confidence   = float(sig.get("confidence", 0.5)),
-                    evidence     = sig.get("evidence", ""),
-                ))
-                total_signals += 1
+                signal_rows.append(
+                    {
+                        "source_type": "news",
+                        "source_id": news_id,
+                        "batch_date": batch_date,
+                        "actor": actor,
+                        "dimension": dimension,
+                        "stance": sig.get("stance", "neutral"),
+                        "stance_score": float(sig.get("stance_score", 0.0)),
+                        "intensity": float(sig.get("intensity", 0.5)),
+                        "confidence": float(sig.get("confidence", 0.5)),
+                        "evidence": sig.get("evidence", ""),
+                    }
+                )
+
+            upsert_rows(
+                db,
+                SentimentSignal,
+                signal_rows,
+                conflict_columns=["source_type", "source_id", "batch_date", "actor", "dimension", "stance"],
+                update_columns=["stance_score", "intensity", "confidence", "evidence"],
+            )
+            total_signals += len(signal_rows)
 
             # 처리 완료 표시
             for n in batch:
@@ -204,7 +289,11 @@ def extract_daily_sentiments(self, batch_date_iso: str | None = None):
             )
 
         logger.info(f"[sentiment] 일일 배치 완료: {len(unprocessed)}건 뉴스, {total_signals}개 신호")
-        return {"processed": len(unprocessed), "signals": total_signals}
+        return {
+            "processed": len(unprocessed),
+            "signals": total_signals,
+            "auto_marked_irrelevant": auto_marked_irrelevant,
+        }
 
     finally:
         db.close()
@@ -218,7 +307,7 @@ def extract_fomc_sentiment(self, fomc_event_id: int, text: str):
     """
     db: Session = SessionLocal()
     try:
-        batch_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        batch_date = _normalize_batch_date()
         prompt = f"""You are a macro-economic sentiment classifier specializing in Fed communications.
 Analyze the following Federal Reserve statement/speech and extract sentiment signals.
 
@@ -238,28 +327,56 @@ TEXT:
             raise self.retry(exc=exc, countdown=30)
 
         signals = _parse_batch_response(raw)
+        if raw.strip() and not signals and not _is_explicit_empty_array(raw):
+            raise self.retry(exc=RuntimeError("sentiment_parse_failed"), countdown=30)
+        signal_rows = []
         for sig in signals:
             actor = sig.get("actor", "fed")
             dimension = sig.get("dimension", "rates")
             if actor not in ACTORS or dimension not in DIMENSIONS:
                 continue
-            db.add(SentimentSignal(
-                source_type  = "fomc",
-                source_id    = fomc_event_id,
-                batch_date   = batch_date,
-                actor        = actor,
-                dimension    = dimension,
-                stance       = sig.get("stance", "neutral"),
-                stance_score = float(sig.get("stance_score", 0.0)),
-                intensity    = float(sig.get("intensity", 0.7)),
-                confidence   = float(sig.get("confidence", 0.8)),
-                evidence     = sig.get("evidence", ""),
-            ))
+            signal_rows.append(
+                {
+                    "source_type": "fomc",
+                    "source_id": fomc_event_id,
+                    "batch_date": batch_date,
+                    "actor": actor,
+                    "dimension": dimension,
+                    "stance": sig.get("stance", "neutral"),
+                    "stance_score": float(sig.get("stance_score", 0.0)),
+                    "intensity": float(sig.get("intensity", 0.7)),
+                    "confidence": float(sig.get("confidence", 0.8)),
+                    "evidence": sig.get("evidence", ""),
+                }
+            )
+        upsert_rows(
+            db,
+            SentimentSignal,
+            signal_rows,
+            conflict_columns=["source_type", "source_id", "batch_date", "actor", "dimension", "stance"],
+            update_columns=["stance_score", "intensity", "confidence", "evidence"],
+        )
+        _mark_fomc_sentiment_extracted(db, fomc_event_id=fomc_event_id, extracted_at=datetime.utcnow())
         db.commit()
-        logger.info(f"[sentiment] FOMC {fomc_event_id} → {len(signals)}개 신호")
-        return {"signals": len(signals)}
+        logger.info(f"[sentiment] FOMC {fomc_event_id} → {len(signal_rows)}개 신호")
+        return {"signals": len(signal_rows)}
     finally:
         db.close()
+
+
+def _mark_fomc_sentiment_extracted(db: Session, *, fomc_event_id: int, extracted_at: datetime) -> None:
+    fomc_event = db.query(FomcEvent).filter(FomcEvent.id == fomc_event_id).first()
+    if fomc_event is None:
+        return
+    detail = (
+        db.query(FomcEventDetail)
+        .filter(FomcEventDetail.meeting_end_date == fomc_event.meeting_date)
+        .first()
+    )
+    if detail is None:
+        return
+    detail.sentiment_status = "success"
+    detail.sentiment_extracted_at = extracted_at
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -337,17 +454,17 @@ def update_expectations(self, extract_result: dict | None = None, batch_date_iso
     오늘 배치에서 추출된 신호로 Expectation 테이블 upsert.
     Celery chain 에서 extract_daily_sentiments 다음에 실행.
     """
-    batch_date = (
-        datetime.fromisoformat(batch_date_iso)
-        if batch_date_iso
-        else datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    )
+    batch_date = _normalize_batch_date(batch_date_iso)
+    window_start, window_end = _batch_window(batch_date)
     db: Session = SessionLocal()
     try:
         # 오늘 배치 신호 로드
         today_signals = (
             db.query(SentimentSignal)
-            .filter(SentimentSignal.batch_date >= batch_date)
+            .filter(
+                SentimentSignal.batch_date >= window_start,
+                SentimentSignal.batch_date < window_end,
+            )
             .all()
         )
 
@@ -362,6 +479,7 @@ def update_expectations(self, extract_result: dict | None = None, batch_date_iso
             groups[(s.actor, s.dimension)].append(s)
 
         updated = 0
+        rows_to_upsert = []
         for (actor, dimension), sigs in groups.items():
             raw_score, strength = _compute_raw_score(sigs)
 
@@ -381,20 +499,21 @@ def update_expectations(self, extract_result: dict | None = None, batch_date_iso
 
             if prev_exp is None:
                 # 첫 번째 기록: 관성 없이 raw = consensus
-                new_exp = Expectation(
-                    date               = batch_date,
-                    actor              = actor,
-                    dimension          = dimension,
-                    raw_score          = raw_score,
-                    consensus_score    = raw_score,
-                    consensus_strength = strength,
-                    inertia_age_days   = 1.0,
-                    inertia_coefficient = 0.0,
-                    inertia_reset      = False,
-                    consensus_7d_ago   = None,
-                    momentum_score     = None,
+                rows_to_upsert.append(
+                    {
+                        "date": batch_date,
+                        "actor": actor,
+                        "dimension": dimension,
+                        "raw_score": raw_score,
+                        "consensus_score": raw_score,
+                        "consensus_strength": strength,
+                        "inertia_age_days": 1.0,
+                        "inertia_coefficient": 0.0,
+                        "inertia_reset": False,
+                        "consensus_7d_ago": None,
+                        "momentum_score": None,
+                    }
                 )
-                db.add(new_exp)
             else:
                 # 최근 3일 raw 수집 (모멘텀·관성 계산)
                 recent = (
@@ -448,23 +567,40 @@ def update_expectations(self, extract_result: dict | None = None, batch_date_iso
                 c7 = seven_days_ago.consensus_score if seven_days_ago else None
                 momentum = (new_consensus - c7) / 2.0 if c7 is not None else None
 
-                new_exp = Expectation(
-                    date               = batch_date,
-                    actor              = actor,
-                    dimension          = dimension,
-                    raw_score          = raw_score,
-                    consensus_score    = round(new_consensus, 4),
-                    consensus_strength = strength,
-                    inertia_age_days   = age_days,
-                    inertia_coefficient = coeff,
-                    inertia_reset      = is_reset,
-                    consensus_7d_ago   = c7,
-                    momentum_score     = round(momentum, 4) if momentum is not None else None,
+                rows_to_upsert.append(
+                    {
+                        "date": batch_date,
+                        "actor": actor,
+                        "dimension": dimension,
+                        "raw_score": raw_score,
+                        "consensus_score": round(new_consensus, 4),
+                        "consensus_strength": strength,
+                        "inertia_age_days": age_days,
+                        "inertia_coefficient": coeff,
+                        "inertia_reset": is_reset,
+                        "consensus_7d_ago": c7,
+                        "momentum_score": round(momentum, 4) if momentum is not None else None,
+                    }
                 )
-                db.add(new_exp)
 
             updated += 1
 
+        upsert_rows(
+            db,
+            Expectation,
+            rows_to_upsert,
+            conflict_columns=["date", "actor", "dimension"],
+            update_columns=[
+                "raw_score",
+                "consensus_score",
+                "consensus_strength",
+                "inertia_age_days",
+                "inertia_coefficient",
+                "inertia_reset",
+                "consensus_7d_ago",
+                "momentum_score",
+            ],
+        )
         db.commit()
         logger.info(f"[expectation] {updated}개 actor×dimension 업데이트 완료")
         return {"updated": updated, "batch_date": batch_date.isoformat()}
@@ -483,19 +619,16 @@ def detect_divergence(self, expectation_result: dict | None = None, batch_date_i
     오늘 업데이트된 Expectation에서 괴리 탐지.
     adjusted_gap >= WARNING_THRESHOLD 이면 DivergenceEvent 저장.
     """
-    batch_date = (
-        datetime.fromisoformat(batch_date_iso)
-        if batch_date_iso
-        else datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    )
+    batch_date = _normalize_batch_date(batch_date_iso)
+    window_start, window_end = _batch_window(batch_date)
     db: Session = SessionLocal()
     try:
         # 오늘 Expectation 로드
         today_exps = (
             db.query(Expectation)
             .filter(
-                Expectation.date >= batch_date,
-                Expectation.date < batch_date + timedelta(days=1),
+                Expectation.date >= window_start,
+                Expectation.date < window_end,
             )
             .all()
         )
@@ -506,7 +639,7 @@ def detect_divergence(self, expectation_result: dict | None = None, batch_date_i
 
         # dimension별 ALERT 카운트 (복수 dimension 동시 승수용)
         alert_dims_today: list[tuple[str, str]] = []
-        events_to_add = []
+        events_to_upsert = []
 
         for exp in today_exps:
             base_gap = abs(exp.raw_score - exp.consensus_score)
@@ -552,51 +685,81 @@ def detect_divergence(self, expectation_result: dict | None = None, batch_date_i
             if severity == "ALERT":
                 alert_dims_today.append((exp.actor, exp.dimension))
 
-            events_to_add.append(
-                DivergenceEvent(
-                    batch_date           = batch_date,
-                    actor                = exp.actor,
-                    dimension            = exp.dimension,
-                    raw_score            = exp.raw_score,
-                    consensus_score      = exp.consensus_score,
-                    consensus_strength   = exp.consensus_strength,
-                    adjusted_gap         = adjusted_final,
-                    severity             = severity,
-                    inertia_coefficient  = exp.inertia_coefficient,
-                    inertia_reset        = exp.inertia_reset,
-                    momentum_score       = exp.momentum_score,
-                    momentum_sign_change = momentum_flip,
-                    multiplier_applied   = multiplier,
-                    report_generated     = False,
-                )
+            events_to_upsert.append(
+                {
+                    "batch_date": batch_date,
+                    "actor": exp.actor,
+                    "dimension": exp.dimension,
+                    "raw_score": exp.raw_score,
+                    "consensus_score": exp.consensus_score,
+                    "consensus_strength": exp.consensus_strength,
+                    "adjusted_gap": adjusted_final,
+                    "severity": severity,
+                    "inertia_coefficient": exp.inertia_coefficient,
+                    "inertia_reset": exp.inertia_reset,
+                    "momentum_score": exp.momentum_score,
+                    "momentum_sign_change": momentum_flip,
+                    "multiplier_applied": multiplier,
+                    "report_generated": False,
+                }
             )
 
         # 복수 dimension 동시 ALERT 승수 적용
         if len(alert_dims_today) >= 2:
-            for ev in events_to_add:
-                if ev.severity == "ALERT":
-                    ev.multiplier_applied = round(ev.multiplier_applied * MULT_MULTI_DIM, 4)
-                    ev.adjusted_gap = round(ev.adjusted_gap * MULT_MULTI_DIM, 4)
+            for ev in events_to_upsert:
+                if ev["severity"] == "ALERT":
+                    ev["multiplier_applied"] = round((ev["multiplier_applied"] or 1.0) * MULT_MULTI_DIM, 4)
+                    ev["adjusted_gap"] = round(ev["adjusted_gap"] * MULT_MULTI_DIM, 4)
 
-        for ev in events_to_add:
-            db.add(ev)
+        upsert_rows(
+            db,
+            DivergenceEvent,
+            events_to_upsert,
+            conflict_columns=["batch_date", "actor", "dimension"],
+            update_columns=[
+                "raw_score",
+                "consensus_score",
+                "consensus_strength",
+                "adjusted_gap",
+                "severity",
+                "inertia_coefficient",
+                "inertia_reset",
+                "momentum_score",
+                "momentum_sign_change",
+                "multiplier_applied",
+                "report_generated",
+            ],
+        )
         db.commit()
 
         # ALERT 이벤트 → 리포트 생성 Celery 태스크 비동기 호출
         alert_count = 0
-        for ev in events_to_add:
-            if ev.severity == "ALERT":
+        total_alerts = sum(1 for ev in events_to_upsert if ev["severity"] == "ALERT")
+        if settings.SENTIMENT_REPORTS_ENABLED and events_to_upsert:
+            alert_events = (
+                db.query(DivergenceEvent)
+                .filter(
+                    DivergenceEvent.batch_date >= window_start,
+                    DivergenceEvent.batch_date < window_end,
+                    DivergenceEvent.severity == "ALERT",
+                    DivergenceEvent.report_generated.is_(False),
+                )
+                .all()
+            )
+            for ev in alert_events:
                 generate_divergence_report.delay(ev.id)
-                alert_count += 1
+            alert_count = total_alerts
+        else:
+            alert_count = total_alerts
 
         logger.info(
-            f"[divergence] {len(events_to_add)}개 이벤트 저장 "
-            f"(ALERT {alert_count}, WARNING {len(events_to_add) - alert_count})"
+            f"[divergence] {len(events_to_upsert)}개 이벤트 저장 "
+            f"(ALERT {alert_count}, WARNING {len(events_to_upsert) - alert_count})"
         )
         return {
-            "events": len(events_to_add),
+            "events": len(events_to_upsert),
             "alerts": alert_count,
-            "warnings": len(events_to_add) - alert_count,
+            "warnings": len(events_to_upsert) - alert_count,
         }
 
     finally:
@@ -615,6 +778,10 @@ def generate_divergence_report(self, event_id: int):
     """
     db: Session = SessionLocal()
     try:
+        if not settings.SENTIMENT_REPORTS_ENABLED:
+            logger.info("[report] sentiment reports disabled — skip event_id=%s", event_id)
+            return {"skipped": True, "reason": "sentiment_reports_disabled"}
+
         event = db.query(DivergenceEvent).filter(DivergenceEvent.id == event_id).first()
         if not event:
             logger.warning(f"[report] event_id={event_id} 없음")
@@ -676,22 +843,31 @@ Return JSON with keys: headline, background, evidence, action_plan, risk_scenari
             # fallback: 전체 텍스트를 headline으로
             parsed = {"headline": raw[:200], "background": raw}
 
-        report = DivergenceReport(
-            event_id      = event_id,
-            headline      = parsed.get("headline", "divergence detected"),
-            background    = parsed.get("background", ""),
-            evidence      = json.dumps(
-                [{"source": f"{s.source_type}#{s.source_id}", "evidence": s.evidence} for s in signals],
-                ensure_ascii=False,
-            ),
-            action_plan   = parsed.get("action_plan", ""),
-            risk_scenario = parsed.get("risk_scenario", ""),
-            notified      = False,
+        report_rows = [
+            {
+                "event_id": event_id,
+                "headline": parsed.get("headline", "divergence detected"),
+                "background": parsed.get("background", ""),
+                "evidence": json.dumps(
+                    [{"source": f"{s.source_type}#{s.source_id}", "evidence": s.evidence} for s in signals],
+                    ensure_ascii=False,
+                ),
+                "action_plan": parsed.get("action_plan", ""),
+                "risk_scenario": parsed.get("risk_scenario", ""),
+                "notified": False,
+            }
+        ]
+        upsert_rows(
+            db,
+            DivergenceReport,
+            report_rows,
+            conflict_columns=["event_id"],
+            update_columns=["headline", "background", "evidence", "action_plan", "risk_scenario", "notified"],
         )
-        db.add(report)
 
         event.report_generated = True
         db.commit()
+        report = db.query(DivergenceReport).filter(DivergenceReport.event_id == event_id).first()
 
         logger.info(f"[report] event_id={event_id} 리포트 생성 완료")
         return {"report_id": report.id, "headline": report.headline}
@@ -709,13 +885,26 @@ def run_daily_sentiment_pipeline(batch_date: datetime | None = None):
     daily Celery Beat 에서 호출하는 체인 진입점.
     extract → update → detect 순서로 chain 실행.
     """
+    if not settings.SENTIMENT_PIPELINE_ENABLED:
+        logger.info("[pipeline] sentiment pipeline disabled")
+        return {"skipped": True, "reason": "sentiment_pipeline_disabled"}
+
     if not settings.OPENAI_API_KEY:
         logger.info("[pipeline] OPENAI_API_KEY 없음 — sentiment 파이프라인 스킵")
         return {"skipped": True, "reason": "OPENAI_API_KEY not configured"}
 
-    bd_iso = (batch_date or datetime.utcnow()).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    ).isoformat()
+    normalized_batch_date = _normalize_batch_date(batch_date=batch_date)
+    db: Session = SessionLocal()
+    try:
+        pending_count = _count_recent_unprocessed_news(db, normalized_batch_date)
+    finally:
+        db.close()
+
+    if pending_count == 0:
+        logger.info("[pipeline] 최근 미처리 뉴스 없음 — sentiment 파이프라인 스킵")
+        return {"skipped": True, "reason": "no_recent_unprocessed_news"}
+
+    bd_iso = normalized_batch_date.isoformat()
 
     pipeline = chain(
         extract_daily_sentiments.s(batch_date_iso=bd_iso),
@@ -723,4 +912,5 @@ def run_daily_sentiment_pipeline(batch_date: datetime | None = None):
         detect_divergence.s(batch_date_iso=bd_iso),
     )
     pipeline.delay()
-    logger.info(f"[pipeline] 일일 sentiment 파이프라인 시작: {bd_iso}")
+    logger.info(f"[pipeline] 일일 sentiment 파이프라인 시작: {bd_iso} (pending_count={pending_count})")
+    return {"queued": True, "batch_date": bd_iso, "pending_count": pending_count}

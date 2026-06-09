@@ -109,7 +109,6 @@ def run_cleanup(
         # news_items is the closest existing collected payload/log table.
         if _table_exists(table_names, NewsItem.__tablename__):
             success_cutoff = started_at - timedelta(days=policy.collection_success_log_retention_days)
-            failure_cutoff = started_at - timedelta(days=policy.collection_failure_log_retention_days)
             result["collection_success_logs_deleted"] = _delete_in_batches(
                 db,
                 NewsItem,
@@ -117,13 +116,9 @@ def run_cleanup(
                 success_cutoff,
                 NewsItem.sentiment_extracted.is_(True),
             )
-            result["collection_failure_logs_deleted"] = _delete_in_batches(
-                db,
-                NewsItem,
-                NewsItem.collected_at,
-                failure_cutoff,
-                NewsItem.sentiment_extracted.is_(False),
-            )
+            # Preserve unprocessed source news so the sentiment pipeline can backfill
+            # without requiring another provider fetch or triggering extra AI retries.
+            result["collection_failure_logs_deleted"] = 0
 
         # No persistent raw response table currently exists.
         result["raw_responses_deleted"] = 0

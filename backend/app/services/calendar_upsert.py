@@ -40,6 +40,9 @@ FOMC_DETAIL_UPDATE_COLUMNS = [
     "implementation_note_url",
     "press_conference_url",
     "projection_materials_url",
+    "sentiment_status",
+    "sentiment_queued_at",
+    "sentiment_extracted_at",
     "has_sep",
 ]
 

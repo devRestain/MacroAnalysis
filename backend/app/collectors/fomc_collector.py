@@ -1,15 +1,16 @@
 """FOMC calendar scraper + CME FedWatch probability parser."""
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import httpx
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 
+from ..core.config import settings
 from ..core.upsert import upsert_rows
-from ..models.calendar import EconomicCalendarEvent
-from ..models.indicators import FomcEvent, FedWatch
+from ..models.calendar import EconomicCalendarEvent, FomcEventDetail
+from ..models.indicators import FomcEvent, FedWatch, SentimentSignal
 from ..services.calendar_query_service import (
     FOMC_EVENT_KEY,
     FOMC_EVENT_SOURCE,
@@ -59,6 +60,7 @@ def collect_fomc_calendar(db: Session):
             resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "lxml")
         meetings = []
+        sentiment_candidates: list[dict[str, object]] = []
         for row in soup.select(".fomc-meeting"):
             month_el = row.select_one(".fomc-meeting__month")
             date_el = row.select_one(".fomc-meeting__date")
@@ -82,10 +84,21 @@ def collect_fomc_calendar(db: Session):
                     )
                 except Exception:
                     pass
+        now = datetime.now().replace(microsecond=0)
         for meeting in meetings:
             meeting_end_dt = meeting["meeting_end_date"]
-            if not db.query(FomcEvent).filter(FomcEvent.meeting_date == meeting_end_dt).first():
-                db.add(FomcEvent(meeting_date=meeting_end_dt))
+            fomc_event = db.query(FomcEvent).filter(FomcEvent.meeting_date == meeting_end_dt).first()
+            if fomc_event is None:
+                fomc_event = FomcEvent(meeting_date=meeting_end_dt)
+                db.add(fomc_event)
+                db.flush()
+
+            statement_url = meeting["links"].get("statement_url")
+            minutes_url = meeting["links"].get("minutes_url")
+            if statement_url:
+                fomc_event.statement_url = statement_url
+            if minutes_url:
+                fomc_event.minutes_url = minutes_url
 
             calendar_event = upsert_calendar_event(
                 db,
@@ -102,13 +115,15 @@ def collect_fomc_calendar(db: Session):
                     "source": FOMC_EVENT_SOURCE,
                     "source_url": FED_CALENDAR_URL,
                     "importance": "high",
-                    "status": "released" if meeting_end_dt < datetime.now().replace(microsecond=0) else "scheduled",
+                    "status": "released" if meeting_end_dt < now else "scheduled",
                     "related_indicator_key": None,
                     "related_asset": "rates",
                     "metadata_json": {"has_sep": meeting["has_sep"]},
                 },
             )
             existing_detail = calendar_event.fomc_detail
+            statement_url = statement_url or (existing_detail.statement_url if existing_detail else None)
+            minutes_url = minutes_url or (existing_detail.minutes_url if existing_detail else None)
             upsert_fomc_detail(
                 db,
                 {
@@ -119,8 +134,8 @@ def collect_fomc_calendar(db: Session):
                     "target_rate_lower": existing_detail.target_rate_lower if existing_detail else None,
                     "target_rate_upper": existing_detail.target_rate_upper if existing_detail else None,
                     "change_bp": existing_detail.change_bp if existing_detail else None,
-                    "statement_url": meeting["links"].get("statement_url") or (existing_detail.statement_url if existing_detail else None),
-                    "minutes_url": meeting["links"].get("minutes_url") or (existing_detail.minutes_url if existing_detail else None),
+                    "statement_url": statement_url,
+                    "minutes_url": minutes_url,
                     "implementation_note_url": meeting["links"].get("implementation_note_url") or (existing_detail.implementation_note_url if existing_detail else None),
                     "press_conference_url": meeting["links"].get("press_conference_url") or (existing_detail.press_conference_url if existing_detail else None),
                     "projection_materials_url": meeting["links"].get("projection_materials_url") or (existing_detail.projection_materials_url if existing_detail else None),
@@ -133,12 +148,33 @@ def collect_fomc_calendar(db: Session):
                 FedWatch.calendar_event_id.is_(None),
             ).update({"calendar_event_id": calendar_event.id}, synchronize_session=False)
 
+            sentiment_candidates.append(
+                {
+                    "fomc_event_id": fomc_event.id,
+                    "calendar_event_id": calendar_event.id,
+                    "meeting_end_dt": meeting_end_dt,
+                    "statement_url": statement_url,
+                }
+            )
+
         db.commit()
+        queued_sentiment_count = 0
+        for candidate in sentiment_candidates:
+            if _maybe_queue_fomc_statement_sentiment(
+                db,
+                fomc_event_id=int(candidate["fomc_event_id"]),
+                calendar_event_id=int(candidate["calendar_event_id"]),
+                meeting_end_dt=candidate["meeting_end_dt"],
+                statement_url=candidate["statement_url"],
+                now=now,
+            ):
+                queued_sentiment_count += 1
         logger.info(f"Collected {len(meetings)} FOMC meetings")
         return {
             "fetched_count": len(meetings),
             "inserted_count": len(meetings),
             "updated_count": len(meetings),
+            "queued_sentiment_count": queued_sentiment_count,
         }
     except Exception as e:
         db.rollback()
@@ -275,3 +311,121 @@ def _extract_fomc_links(row) -> dict[str, str | None]:
 def _has_sep(row) -> bool:
     text = row.get_text(" ", strip=True).lower()
     return "summary of economic projections" in text or "sep" in text
+
+
+def _maybe_queue_fomc_statement_sentiment(
+    db: Session,
+    *,
+    fomc_event_id: int,
+    calendar_event_id: int,
+    meeting_end_dt: datetime,
+    statement_url: str | None,
+    now: datetime,
+) -> bool:
+    if not settings.SENTIMENT_PIPELINE_ENABLED or not settings.FOMC_SENTIMENT_ENABLED:
+        return False
+    if not settings.OPENAI_API_KEY:
+        return False
+    if not statement_url or meeting_end_dt > now:
+        return False
+    if (now - meeting_end_dt).days > settings.FOMC_SENTIMENT_LOOKBACK_DAYS:
+        return False
+    fomc_detail = (
+        db.query(FomcEventDetail)
+        .filter(FomcEventDetail.calendar_event_id == calendar_event_id)
+        .first()
+    )
+    if fomc_detail is not None:
+        if fomc_detail.sentiment_status == "success":
+            return False
+        if (
+            fomc_detail.sentiment_status == "pending"
+            and fomc_detail.sentiment_queued_at is not None
+            and now - fomc_detail.sentiment_queued_at < timedelta(hours=settings.FOMC_SENTIMENT_PENDING_TTL_HOURS)
+        ):
+            return False
+    already_processed = (
+        db.query(SentimentSignal.id)
+        .filter(
+            SentimentSignal.source_type == "fomc",
+            SentimentSignal.source_id == fomc_event_id,
+        )
+        .first()
+    )
+    if already_processed:
+        return False
+
+    try:
+        statement_text = _fetch_fomc_statement_text(statement_url)
+    except Exception as exc:
+        logger.warning("FOMC statement fetch failed for %s: %s", statement_url, exc)
+        return False
+
+    if len(statement_text) < settings.FOMC_SENTIMENT_MIN_TEXT_LENGTH:
+        logger.info(
+            "FOMC statement text too short for sentiment extraction: event_id=%s chars=%s",
+            fomc_event_id,
+            len(statement_text),
+        )
+        return False
+
+    try:
+        if fomc_detail is not None:
+            fomc_detail.sentiment_status = "pending"
+            fomc_detail.sentiment_queued_at = now
+            db.commit()
+        _enqueue_fomc_sentiment_task(fomc_event_id=fomc_event_id, text=statement_text)
+    except Exception as exc:
+        if fomc_detail is not None:
+            fomc_detail.sentiment_status = "failed"
+            db.commit()
+        logger.warning("FOMC sentiment queue failed for event_id=%s: %s", fomc_event_id, exc)
+        return False
+    return True
+
+
+def _fetch_fomc_statement_text(statement_url: str) -> str:
+    with httpx.Client(timeout=20, follow_redirects=True) as client:
+        resp = client.get(statement_url, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+
+    soup = BeautifulSoup(resp.text, "lxml")
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
+
+    candidates = []
+    for selector in (
+        "#article p",
+        "article p",
+        "main p",
+        ".col-xs-12.col-sm-8.col-md-8 p",
+        ".col-md-8 p",
+    ):
+        paragraphs = [
+            _normalize_statement_text(node.get_text(" ", strip=True))
+            for node in soup.select(selector)
+        ]
+        paragraphs = [text for text in paragraphs if text]
+        if paragraphs:
+            candidates.append("\n".join(paragraphs))
+
+    if not candidates:
+        paragraphs = [
+            _normalize_statement_text(node.get_text(" ", strip=True))
+            for node in soup.select("p")
+        ]
+        paragraphs = [text for text in paragraphs if text]
+        if paragraphs:
+            candidates.append("\n".join(paragraphs))
+
+    return max(candidates, key=len) if candidates else ""
+
+
+def _normalize_statement_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _enqueue_fomc_sentiment_task(*, fomc_event_id: int, text: str) -> None:
+    from ..workers.sentiment_worker import extract_fomc_sentiment
+
+    extract_fomc_sentiment.delay(fomc_event_id, text)

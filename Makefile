@@ -1,4 +1,4 @@
-.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed collect-calendar collect-morning collect-noon collect-evening collect-weekly collect-all-batched ensure-ai-insight shell migrate db-stats db-size db-cleanup db-deduplicate-check
+.PHONY: help doctor check-docker check-env up down build logs shell-backend shell-db seed collect collect-fed collect-calendar collect-morning collect-noon collect-evening collect-weekly collect-all-batched collect-sentiment ensure-ai-insight shell migrate db-stats db-size db-cleanup db-deduplicate-check
 
 COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
@@ -18,6 +18,7 @@ help:
 	@echo "  make collect-calendar economic calendar batch 수동 실행"
 	@echo "  make collect-weekly   weekly batch 수동 실행"
 	@echo "  make collect-all-batched  morning -> noon -> evening batch 순차 실행"
+	@echo "  make collect-sentiment sentiment/expectation 파이프라인 수동 실행"
 	@echo "  make ensure-ai-insight  당일 AI insight ensure 실행"
 	@echo "  make collect-fed  weekly/Fed 관련 batch 수동 실행"
 	@echo "  make migrate     Alembic migration 적용"
@@ -99,6 +100,10 @@ collect-all-batched: check-docker check-env
 	@echo ">>> batched 수집 실행 (morning -> noon -> evening)..."
 	$(COMPOSE) exec backend python -m app.commands.collect_batches all-batched
 	@echo ">>> batched 수집 완료"
+
+collect-sentiment: check-docker check-env
+	@echo ">>> sentiment/expectation 파이프라인 실행..."
+	$(COMPOSE) exec backend python -m app.commands.run_sentiment_pipeline
 
 collect-fed: check-docker check-env
 	@$(MAKE) collect-weekly

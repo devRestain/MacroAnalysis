@@ -47,6 +47,14 @@ if settings.WEEKLY_BATCH_ENABLED:
         "task": "app.workers.celery_app.task_run_weekly_batch",
         "schedule": crontab(day_of_week=1, hour=8, minute=0),
     }
+if settings.SENTIMENT_PIPELINE_ENABLED:
+    beat_schedule["sentiment-pipeline"] = {
+        "task": "app.workers.celery_app.task_sentiment_pipeline",
+        "schedule": crontab(
+            hour=settings.SENTIMENT_PIPELINE_HOUR_KST,
+            minute=settings.SENTIMENT_PIPELINE_MINUTE_KST,
+        ),
+    }
 beat_schedule["calendar-events-batch"] = {
     "task": "app.workers.celery_app.task_collect_calendar_events",
     "schedule": crontab(hour=8, minute=10),
@@ -176,8 +184,11 @@ def task_ensure_daily_insight():
 @celery.task(name="app.workers.celery_app.task_sentiment_pipeline")
 def task_sentiment_pipeline():
     """Daily sentiment batch pipeline (extract → update → detect chain)."""
-    run_daily_sentiment_pipeline()
-    return {"status": "success", "job_key": "sentiment_pipeline"}
+    result = run_daily_sentiment_pipeline()
+    if result.get("skipped"):
+        result["job_key"] = "sentiment_pipeline"
+        return result
+    return {"status": "success", "job_key": "sentiment_pipeline", **result}
 
 
 @celery.task(name="app.workers.celery_app.task_cleanup_retention")

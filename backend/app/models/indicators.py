@@ -277,6 +277,15 @@ class SentimentSignal(Base):
     __table_args__ = (
         Index("ix_ss_batch_actor_dim", "batch_date", "actor", "dimension"),
         Index("ix_ss_source", "source_type", "source_id"),
+        UniqueConstraint(
+            "source_type",
+            "source_id",
+            "batch_date",
+            "actor",
+            "dimension",
+            "stance",
+            name="uq_sentiment_signal_source_batch_actor_dimension_stance",
+        ),
     )
 
 
@@ -304,6 +313,7 @@ class Expectation(Base):
 
     __table_args__ = (
         Index("ix_exp_date_actor_dim", "date", "actor", "dimension"),
+        UniqueConstraint("date", "actor", "dimension", name="uq_expectation_date_actor_dimension"),
     )
 
 
@@ -334,6 +344,7 @@ class DivergenceEvent(Base):
     __table_args__ = (
         Index("ix_de_batch_severity", "batch_date", "severity"),
         Index("ix_de_actor_dim", "actor", "dimension"),
+        UniqueConstraint("batch_date", "actor", "dimension", name="uq_divergence_event_batch_actor_dimension"),
     )
 
 
@@ -354,6 +365,7 @@ class DivergenceReport(Base):
 
     __table_args__ = (
         Index("ix_dr_event_id", "event_id"),
+        UniqueConstraint("event_id", name="uq_divergence_report_event_id"),
     )
 
 
