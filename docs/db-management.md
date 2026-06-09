@@ -63,7 +63,6 @@ make db-deduplicate-check
 make db-size
 make db-stats
 make db-cleanup
-make test
 ```
 
 설명:
@@ -76,7 +75,6 @@ make test
 - `make db-size`: 전체 크기와 큰 테이블을 간단히 봅니다.
 - `make db-stats`: 더 자세한 DB 상태를 확인합니다.
 - `make db-cleanup`: retention cleanup을 수동 실행합니다.
-- `make test`: backend 테스트를 실행합니다.
 
 ## 배포 환경 가이드
 

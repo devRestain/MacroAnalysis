@@ -32,8 +32,6 @@ MacroAnalysis/
 ├── backend/
 │   ├── Dockerfile              # backend/worker/beat 공용 이미지
 │   ├── requirements.txt
-│   ├── tests/
-│   │   └── test_fomc_collector.py
 │   └── app/
 │       ├── main.py             # FastAPI 앱 시작점
 │       ├── api/routes.py       # REST API (/api/summary, /news, /fomc 등)
@@ -95,7 +93,7 @@ MacroAnalysis/
 
 ## 실행 방법
 
-`.env`는 저장소 루트에 직접 두고, 기본값은 [.env.example](/Users/yuk/DevFolder/CodePractice/WorkingProject/MacroAnalysis/.env.example) 를 참고합니다.
+`.env`는 저장소 루트에 직접 둡니다.
 
 최소 예시는 아래와 같습니다.
 
@@ -280,10 +278,7 @@ docker compose up -d --build
 # 4. Migration 적용
 docker compose exec backend alembic -c alembic.ini upgrade head
 
-# 5. 테스트 실행
-docker compose exec backend pytest
-
-# 6. 로그 확인
+# 5. 로그 확인
 docker compose logs worker
 docker compose logs beat
 ```
@@ -292,7 +287,6 @@ docker compose logs beat
 
 - 이 저장소는 Colima 위 Docker 컨테이너 실행을 기본 전제로 합니다.
 - beat schedule 로딩 여부는 `docker compose logs beat`에서 확인합니다.
-- 테스트는 외부 provider API나 OpenAI API를 실제 호출하지 않도록 mock 기반으로 유지합니다.
 - 환경변수가 비어 있을 때는 collector가 skip되거나 fallback을 사용하도록 설계되어 있습니다.
 
 ## DB Retention
@@ -349,26 +343,21 @@ docker compose exec worker python -m app.services.cleanup_service
 Docker/Colima 기준 검증 절차:
 
 ```bash
-# 1. 로컬 단위 테스트
-cd backend
-../.venv/bin/python -m pytest
-
-# 2. 컨테이너 상태 확인
+# 1. 컨테이너 상태 확인
 docker compose ps
 
-# 3. docker context / compose config 확인
+# 2. docker context / compose config 확인
 docker context ls
 docker compose config
 
-# 4. backend 컨테이너 내부 migration / 테스트
+# 3. backend 컨테이너 내부 migration
 docker compose exec backend alembic -c alembic.ini upgrade head
-docker compose exec backend pytest
 
-# 5. worker/beat 로그 확인
+# 4. worker/beat 로그 확인
 docker compose logs worker
 docker compose logs beat
 
-# 6. worker 컨테이너에서 cleanup 수동 실행
+# 5. worker 컨테이너에서 cleanup 수동 실행
 docker compose exec worker python -m app.services.cleanup_service
 ```
 
@@ -408,7 +397,6 @@ make db-deduplicate-check
 make db-size
 make db-stats
 make db-cleanup
-make test
 ```
 
 - `docker compose up -d`: 로컬 Docker/Colima 스택 기동
@@ -419,7 +407,6 @@ make test
 - `make db-size`: 전체 DB 크기와 큰 테이블 확인
 - `make db-stats`: 테이블별 세부 DB 상태 확인
 - `make db-cleanup`: retention cleanup 수동 실행
-- `make test`: backend 테스트 실행
 
 ## 확인 결과
 
