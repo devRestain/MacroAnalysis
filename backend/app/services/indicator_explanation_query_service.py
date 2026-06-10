@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..models.indicators import IndicatorExplanation
+from ..models import IndicatorExplanation
 
 
 def list_indicator_explanations(

@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from ..models.indicators import CleanupRun
+from ..models import CleanupRun
 
 
 def get_db_stats(db: Session, *, top_n: int = 5) -> dict:

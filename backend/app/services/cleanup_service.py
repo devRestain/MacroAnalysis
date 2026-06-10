@@ -10,16 +10,7 @@ from sqlalchemy.orm import Session
 
 from ..core.config import settings
 from ..core.database import SessionLocal
-from ..models.indicators import (
-    AiSummary,
-    ChangeSnapshot,
-    CleanupRun,
-    DailyInsight,
-    DivergenceEvent,
-    DivergenceReport,
-    NewsItem,
-    SentimentSignal,
-)
+from ..models import AiSummary, ChangeSnapshot, CleanupRun, DailyInsight, DivergenceEvent, DivergenceReport, NewsItem, SentimentSignal
 
 logger = logging.getLogger(__name__)
 

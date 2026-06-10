@@ -4,7 +4,7 @@ import httpx
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from ..core.config import settings
-from ..models.indicators import NewsItem
+from ..models import NewsItem
 from .result_utils import empty_counts
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..models.indicators import IndicatorExplanation
+from ..models import IndicatorExplanation
 from .indicator_explanation_loader import (
     get_indicator_explanations_path,
     iter_indicator_explanation_items,

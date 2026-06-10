@@ -6,10 +6,7 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..models.indicators import (
-    Indicator,
-    Observation,
-)
+from ..models import Indicator, Observation
 
 
 DASHBOARD_EQUITY_KEYS = [

@@ -11,8 +11,7 @@ from sqlalchemy.orm import Session
 
 from ..core.config import settings
 from ..core.upsert import upsert_rows
-from ..models.calendar import EconomicCalendarEvent, FomcEventDetail
-from ..models.indicators import FomcEvent, FedWatch, SentimentSignal
+from ..models import EconomicCalendarEvent, FedWatch, FomcEvent, FomcEventDetail, SentimentSignal
 from ..services.calendar_query_service import (
     FOMC_EVENT_KEY,
     FOMC_EVENT_SOURCE,

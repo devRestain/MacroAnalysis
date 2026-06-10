@@ -12,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.core.database import Base
-from app.models.indicators import DivergenceEvent, Expectation, NewsItem, SentimentSignal
+from app.models import DivergenceEvent, Expectation, NewsItem, SentimentSignal
 from app.workers import sentiment_worker
 
 

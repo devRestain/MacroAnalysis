@@ -5,8 +5,7 @@ from datetime import datetime
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from ..models.calendar import EconomicCalendarEvent
-from ..models.indicators import FedWatch, FomcEvent
+from ..models import EconomicCalendarEvent, FedWatch, FomcEvent
 
 FOMC_EVENT_KEY = "FOMC_MEETING"
 FOMC_EVENT_SOURCE = "Federal Reserve"

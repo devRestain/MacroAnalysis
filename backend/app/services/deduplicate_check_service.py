@@ -3,10 +3,7 @@ from __future__ import annotations
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..models.indicators import (
-    FedWatch,
-    Observation,
-)
+from ..models import FedWatch, Observation
 
 
 DEDUP_TABLES = [

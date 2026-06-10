@@ -6,7 +6,7 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 
 from ..core.upsert import upsert_rows
-from ..models.indicators import Indicator, Observation
+from ..models import Indicator, Observation
 
 
 @dataclass(frozen=True)

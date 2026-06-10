@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.core.database import Base
-from app.models.indicators import Indicator, Observation
+from app.models import Indicator, Observation
 from app.services.indicator_registry import upsert_indicator_observations
 from app.services.observation_query_service import get_latest_observations, get_observation_history
 

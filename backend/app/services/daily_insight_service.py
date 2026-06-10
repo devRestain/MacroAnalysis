@@ -15,7 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
-from ..models.indicators import DailyInsight, NewsItem
+from ..models import DailyInsight, NewsItem
 from .calendar_query_service import get_latest_fedwatch_for_meeting, get_next_fomc_meeting_date
 from .observation_query_service import get_ai_context_payload
 

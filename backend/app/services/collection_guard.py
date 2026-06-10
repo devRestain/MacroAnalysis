@@ -12,7 +12,7 @@ from sqlalchemy import desc, text
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
-from ..models.indicators import CollectionRun
+from ..models import CollectionRun
 
 logger = logging.getLogger(__name__)
 

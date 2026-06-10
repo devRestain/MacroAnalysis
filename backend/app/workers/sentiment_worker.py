@@ -77,15 +77,7 @@ except ModuleNotFoundError:  # pragma: no cover - lightweight test fallback
 from ..core.config import settings
 from ..core.database import SessionLocal
 from ..core.upsert import upsert_rows
-from ..models.calendar import FomcEventDetail
-from ..models.indicators import (
-    FomcEvent,
-    NewsItem,
-    SentimentSignal,
-    Expectation,
-    DivergenceEvent,
-    DivergenceReport,
-)
+from ..models import DivergenceEvent, DivergenceReport, Expectation, FomcEvent, FomcEventDetail, NewsItem, SentimentSignal
 
 logger = logging.getLogger(__name__)
 

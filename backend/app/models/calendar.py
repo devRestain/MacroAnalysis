@@ -1,20 +1,38 @@
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    JSON,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from ..core.database import Base
+
+
+class FomcEvent(Base):
+    __tablename__ = "fomc_events"
+
+    id = Column(Integer, primary_key=True)
+    meeting_date = Column(DateTime, nullable=False, unique=True)
+    decision_rate = Column(Float)
+    change_bp = Column(Integer)
+    statement_url = Column(Text)
+    minutes_url = Column(Text)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class FedWatch(Base):
+    __tablename__ = "fed_watch"
+
+    id = Column(Integer, primary_key=True)
+    date = Column(DateTime, nullable=False)
+    meeting_date = Column(DateTime, nullable=False)
+    calendar_event_id = Column(Integer, ForeignKey("economic_calendar_events.id"), nullable=True)
+    prob_hike = Column(Float)
+    prob_hold = Column(Float)
+    prob_cut = Column(Float)
+    created_at = Column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_fw_date_meeting", "date", "meeting_date"),
+        UniqueConstraint("meeting_date", "date", name="uq_fed_watch_meeting_date_date"),
+    )
 
 
 class EconomicCalendarEvent(Base):

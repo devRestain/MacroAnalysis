@@ -3,7 +3,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .core.database import init_db
-from .api.routes import router
+from .api.routes import (
+    ai_router,
+    calendar_router,
+    indicators_router,
+    news_router,
+    sentiment_router,
+    summary_router,
+)
 
 app = FastAPI(
     title="MacroAnalysis API",
@@ -21,7 +28,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
+app.include_router(summary_router)
+app.include_router(indicators_router)
+app.include_router(news_router)
+app.include_router(calendar_router)
+app.include_router(ai_router)
+app.include_router(sentiment_router)
 
 
 @app.on_event("startup")

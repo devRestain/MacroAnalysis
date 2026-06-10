@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.core.database import Base
-from app.models.indicators import CollectionRun
+from app.models import CollectionRun
 from app.services.collection_orchestrator import run_guarded_job
 
 

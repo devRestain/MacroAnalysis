@@ -6,7 +6,7 @@ import logging
 import numpy as np
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from ..models.indicators import ChangeSnapshot
+from ..models import ChangeSnapshot
 from ..services.observation_query_service import (
     get_observation_history,
 )

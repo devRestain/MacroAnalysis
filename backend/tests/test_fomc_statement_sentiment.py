@@ -13,8 +13,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.collectors.fomc_collector import _maybe_queue_fomc_statement_sentiment
 from app.core.database import Base
-from app.models.calendar import EconomicCalendarEvent, FomcEventDetail
-from app.models.indicators import FomcEvent, SentimentSignal
+from app.models import EconomicCalendarEvent, FomcEvent, FomcEventDetail, SentimentSignal
 
 
 class FomcStatementSentimentTests(unittest.TestCase):
