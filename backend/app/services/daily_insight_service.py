@@ -11,8 +11,6 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from openai import OpenAI
-import redis
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -181,6 +179,8 @@ def _generate_daily_insight_payload(context: dict[str, Any]) -> dict[str, Any]:
     if not settings.OPENAI_API_KEY:
         return _fallback_insight_payload(context, reason="openai_not_configured")
 
+    from openai import OpenAI
+
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
     response = client.chat.completions.create(
         model=settings.AI_MODEL,
@@ -264,6 +264,8 @@ def _upsert_daily_insight(
 def _insight_lock(db: Session, as_of_date: date):
     lock_key = f"daily_insight:{as_of_date.isoformat()}"
     if settings.COLLECTION_LOCK_BACKEND == "redis":
+        import redis
+
         token = str(uuid.uuid4())
         client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
         acquired = bool(client.set(lock_key, token, nx=True, ex=900))

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """FOMC calendar scraper + CME FedWatch probability parser."""
 import logging
 import re

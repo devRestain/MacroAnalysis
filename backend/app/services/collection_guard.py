@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable
 
-import redis
 from sqlalchemy import desc, text
 from sqlalchemy.orm import Session
 
@@ -197,6 +196,8 @@ def get_default_min_interval(job_key: str) -> int:
 @contextmanager
 def _job_lock(db: Session, job_key: str):
     if settings.COLLECTION_LOCK_BACKEND == "redis":
+        import redis
+
         lock_key = f"collection_guard:{job_key}"
         token = str(uuid.uuid4())
         client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)

@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 """yfinance collector — equity indices, sectors, commodities."""
 import logging
 from datetime import datetime
 from sqlalchemy.orm import Session
-from ..core.upsert import upsert_rows
-from ..models.indicators import EquityIndex, SectorPerformance, RealEconomyIndicator
 from .result_utils import add_counts, empty_counts, format_error_summary
 from .yfinance_support import download_ticker_frames, normalize_price_history
+from ..services.indicator_registry import upsert_indicator_observations
 
 logger = logging.getLogger(__name__)
 
@@ -56,21 +57,14 @@ def collect_equity_indices(db: Session, tickers: list[str] | None = None):
             prev = hist.iloc[-2] if len(hist) >= 2 else None
             close = float(latest["Close"])
             date = latest.name.to_pydatetime().replace(tzinfo=None)
-            change_1d = float(latest["Close"] - prev["Close"]) if prev is not None else 0.0
-            change_1d_pct = (change_1d / float(prev["Close"]) * 100) if prev is not None else 0.0
-
-            upsert_rows(
+            series_key = "^SSEC" if ticker == "000001.SS" else ticker
+            upsert_indicator_observations(
                 db,
-                EquityIndex,
                 [{
                     "date": date,
-                    "ticker": ticker,
-                    "close": close,
-                    "change_1d": change_1d,
-                    "change_1d_pct": change_1d_pct,
+                    "series_key": series_key,
+                    "value": close,
                 }],
-                conflict_columns=["ticker", "date"],
-                update_columns=["close", "change_1d", "change_1d_pct"],
             )
             db.commit()
             add_counts(counts, {"fetched_count": 1, "inserted_count": 1, "updated_count": 1})
@@ -114,28 +108,13 @@ def collect_sectors(db: Session):
             else:
                 ytd_pct = 0.0
 
-            upsert_rows(
+            upsert_indicator_observations(
                 db,
-                SectorPerformance,
                 [{
                     "date": date,
-                    "ticker": ticker,
-                    "sector_name": name,
-                    "close": close,
-                    "change_1d_pct": pct(1),
-                    "change_1m_pct": pct(21),
-                    "change_3m_pct": pct(63),
-                    "change_ytd_pct": ytd_pct,
+                    "series_key": ticker,
+                    "value": close,
                 }],
-                conflict_columns=["ticker", "date"],
-                update_columns=[
-                    "sector_name",
-                    "close",
-                    "change_1d_pct",
-                    "change_1m_pct",
-                    "change_3m_pct",
-                    "change_ytd_pct",
-                ],
             )
             db.commit()
             add_counts(counts, {"fetched_count": 1, "inserted_count": 1, "updated_count": 1})
@@ -184,10 +163,7 @@ def collect_real_economy(db: Session):
 
 
 def _upsert_real(db: Session, date: datetime, key: str, value: float):
-    upsert_rows(
+    upsert_indicator_observations(
         db,
-        RealEconomyIndicator,
         [{"date": date, "series_key": key, "value": value}],
-        conflict_columns=["series_key", "date"],
-        update_columns=["value"],
     )

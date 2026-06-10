@@ -6,17 +6,9 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..core.config import settings
 from ..models.indicators import (
-    CreditSpread,
-    EquityIndex,
-    ExchangeRate,
     Indicator,
-    InterestRate,
-    MacroIndicator,
     Observation,
-    RealEconomyIndicator,
-    SectorPerformance,
 )
 
 
@@ -80,53 +72,6 @@ AI_CONTEXT_SERIES_KEYS = [
     "WTI_BRENT_SPREAD",
 ]
 
-LEGACY_SERIES_SOURCES = {
-    "DFF": (InterestRate, "series_key", "value", "date"),
-    "DGS2": (InterestRate, "series_key", "value", "date"),
-    "DGS10": (InterestRate, "series_key", "value", "date"),
-    "DGS30": (InterestRate, "series_key", "value", "date"),
-    "T10Y2Y": (InterestRate, "series_key", "value", "date"),
-    "SOFR": (InterestRate, "series_key", "value", "date"),
-    "CPIAUCSL": (MacroIndicator, "series_key", "value", "date"),
-    "PCEPILFE": (MacroIndicator, "series_key", "value", "date"),
-    "GDPC1": (MacroIndicator, "series_key", "value", "date"),
-    "UNRATE": (MacroIndicator, "series_key", "value", "date"),
-    "ICSA": (MacroIndicator, "series_key", "value", "date"),
-    "M2SL": (MacroIndicator, "series_key", "value", "date"),
-    "USSLIND": (MacroIndicator, "series_key", "value", "date"),
-    "MANEMP": (MacroIndicator, "series_key", "value", "date"),
-    "HY_OAS": (CreditSpread, "series_key", "value", "date"),
-    "IG_OAS": (CreditSpread, "series_key", "value", "date"),
-    "^GSPC": (EquityIndex, "ticker", "close", "date"),
-    "^IXIC": (EquityIndex, "ticker", "close", "date"),
-    "^KS11": (EquityIndex, "ticker", "close", "date"),
-    "^N225": (EquityIndex, "ticker", "close", "date"),
-    "^GDAXI": (EquityIndex, "ticker", "close", "date"),
-    "^SSEC": (EquityIndex, "ticker", "close", "date"),
-    "^VIX": (EquityIndex, "ticker", "close", "date"),
-    "DX-Y.NYB": (EquityIndex, "ticker", "close", "date"),
-    "CL=F": (EquityIndex, "ticker", "close", "date"),
-    "GC=F": (EquityIndex, "ticker", "close", "date"),
-    "HG=F": (EquityIndex, "ticker", "close", "date"),
-    "USDKRW": (ExchangeRate, "pair", "value", "date"),
-    "EURUSD": (ExchangeRate, "pair", "value", "date"),
-    "USDJPY": (ExchangeRate, "pair", "value", "date"),
-    "COPPER_GOLD": (RealEconomyIndicator, "series_key", "value", "date"),
-    "WTI_BRENT_SPREAD": (RealEconomyIndicator, "series_key", "value", "date"),
-    "XLK": (SectorPerformance, "ticker", "close", "date"),
-    "XLF": (SectorPerformance, "ticker", "close", "date"),
-    "XLE": (SectorPerformance, "ticker", "close", "date"),
-    "XLV": (SectorPerformance, "ticker", "close", "date"),
-    "XLI": (SectorPerformance, "ticker", "close", "date"),
-    "XLY": (SectorPerformance, "ticker", "close", "date"),
-    "XLP": (SectorPerformance, "ticker", "close", "date"),
-    "XLU": (SectorPerformance, "ticker", "close", "date"),
-    "XLB": (SectorPerformance, "ticker", "close", "date"),
-    "XLRE": (SectorPerformance, "ticker", "close", "date"),
-    "XLC": (SectorPerformance, "ticker", "close", "date"),
-}
-
-
 def get_latest_observations(db: Session, series_keys: list[str]) -> list[dict[str, Any]]:
     if not series_keys:
         return []
@@ -143,16 +88,7 @@ def get_latest_observations(db: Session, series_keys: list[str]) -> list[dict[st
     for series_key in series_keys:
         indicator = indicator_map.get(series_key)
         latest = latest_rows.get(indicator.id) if indicator else None
-        if indicator or latest:
-            results.append(_build_series_payload(series_key, indicator, latest))
-            continue
-
-        legacy_payload = _legacy_latest_payload(db, series_key)
-        if legacy_payload:
-            results.append(legacy_payload)
-            continue
-
-        results.append(_missing_payload(series_key))
+        results.append(_build_series_payload(series_key, indicator, latest) if indicator or latest else _missing_payload(series_key))
     return results
 
 
@@ -179,10 +115,6 @@ def get_observation_history(
         payload = _build_series_payload(series_key, indicator, latest)
         payload["data"] = [_observation_point(row) for row in rows]
         return payload
-
-    legacy_payload = _legacy_history_payload(db, series_key, start_date=start_date, end_date=end_date, limit=limit)
-    if legacy_payload:
-        return legacy_payload
 
     payload = _missing_payload(series_key)
     payload["data"] = []
@@ -383,88 +315,6 @@ def _missing_payload(series_key: str) -> dict[str, Any]:
         "updated_at": None,
         "value": None,
         "status": "missing",
-    }
-
-
-def _legacy_latest_payload(db: Session, series_key: str) -> dict[str, Any] | None:
-    if not settings.LEGACY_TABLE_FALLBACK_ENABLED:
-        return None
-
-    source = LEGACY_SERIES_SOURCES.get(series_key)
-    if not source:
-        return None
-
-    model, key_column, value_column, date_column = source
-    row = (
-        db.query(model)
-        .filter(getattr(model, key_column) == series_key)
-        .order_by(getattr(model, date_column).desc())
-        .first()
-    )
-    if not row:
-        return None
-
-    return {
-        "series_key": series_key,
-        "name": series_key,
-        "category": None,
-        "frequency": None,
-        "unit": None,
-        "provider": f"legacy:{model.__tablename__}",
-        "latest_value": getattr(row, value_column),
-        "latest_date": getattr(row, date_column),
-        "updated_at": getattr(row, "created_at", None),
-        "value": getattr(row, value_column),
-        "status": "legacy_fallback",
-    }
-
-
-def _legacy_history_payload(
-    db: Session,
-    series_key: str,
-    start_date=None,
-    end_date=None,
-    limit: int = 500,
-) -> dict[str, Any] | None:
-    if not settings.LEGACY_TABLE_FALLBACK_ENABLED:
-        return None
-
-    source = LEGACY_SERIES_SOURCES.get(series_key)
-    if not source:
-        return None
-
-    model, key_column, value_column, date_column = source
-    q = db.query(model).filter(getattr(model, key_column) == series_key)
-    start_dt = _to_date(start_date)
-    end_dt = _to_date(end_date)
-    if start_dt:
-        q = q.filter(getattr(model, date_column) >= start_dt)
-    if end_dt:
-        q = q.filter(getattr(model, date_column) <= end_dt)
-
-    rows = q.order_by(getattr(model, date_column).desc()).limit(limit).all()
-    rows.reverse()
-    if not rows:
-        return None
-
-    latest = rows[-1]
-    return {
-        "series_key": series_key,
-        "name": series_key,
-        "category": None,
-        "frequency": None,
-        "unit": None,
-        "provider": f"legacy:{model.__tablename__}",
-        "latest_value": getattr(latest, value_column),
-        "latest_date": getattr(latest, date_column),
-        "updated_at": getattr(latest, "created_at", None),
-        "value": getattr(latest, value_column),
-        "status": "legacy_fallback",
-        "data": [
-            {"date": str(getattr(row, date_column)), "value": float(getattr(row, value_column))}
-            for row in rows
-            if getattr(row, value_column) is not None
-        ],
     }
 
 

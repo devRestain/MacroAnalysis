@@ -1,6 +1,5 @@
 """News collector — Finnhub market news + Fed RSS feed."""
 import logging
-import feedparser
 import httpx
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
@@ -83,6 +82,8 @@ def collect_finnhub_news(db: Session):
 
 def collect_fed_rss(db: Session):
     try:
+        import feedparser
+
         feed = feedparser.parse(FED_RSS_URL)
         counts = empty_counts()
         counts["fetched_count"] = len(feed.entries[:15])

@@ -17,114 +17,6 @@ from sqlalchemy.sql import func
 from ..core.database import Base
 
 
-class InterestRate(Base):
-    __tablename__ = "interest_rates"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    series_key = Column(String(50), nullable=False)   # DFF, DGS2, DGS10, DGS30
-    value = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_ir_key_date", "series_key", "date"),
-        UniqueConstraint("series_key", "date", name="uq_interest_rates_series_key_date"),
-    )
-
-
-class MacroIndicator(Base):
-    __tablename__ = "macro_indicators"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    series_key = Column(String(50), nullable=False)   # CPI, PCE, GDP, UNRATE, etc.
-    value = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_macro_key_date", "series_key", "date"),
-        UniqueConstraint("series_key", "date", name="uq_macro_indicators_series_key_date"),
-    )
-
-
-class ExchangeRate(Base):
-    __tablename__ = "exchange_rates"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    pair = Column(String(20), nullable=False)          # USDKRW, EURUSD, DXY, etc.
-    value = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_fx_pair_date", "pair", "date"),
-        UniqueConstraint("pair", "date", name="uq_exchange_rates_pair_date"),
-    )
-
-
-class EquityIndex(Base):
-    __tablename__ = "equity_indices"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    ticker = Column(String(20), nullable=False)        # ^GSPC, ^IXIC, ^KS11, ^VIX
-    close = Column(Float)
-    change_1d = Column(Float)
-    change_1d_pct = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_eq_ticker_date", "ticker", "date"),
-        UniqueConstraint("ticker", "date", name="uq_equity_indices_ticker_date"),
-    )
-
-
-class SectorPerformance(Base):
-    __tablename__ = "sector_performance"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    ticker = Column(String(10), nullable=False)        # XLK, XLF, XLE, etc.
-    sector_name = Column(String(50))
-    close = Column(Float)
-    change_1d_pct = Column(Float)
-    change_1m_pct = Column(Float)
-    change_3m_pct = Column(Float)
-    change_ytd_pct = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_sec_ticker_date", "ticker", "date"),
-        UniqueConstraint("ticker", "date", name="uq_sector_performance_ticker_date"),
-    )
-
-
-class CreditSpread(Base):
-    __tablename__ = "credit_spreads"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    series_key = Column(String(50), nullable=False)    # HY_OAS, IG_OAS
-    value = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_cs_key_date", "series_key", "date"),
-        UniqueConstraint("series_key", "date", name="uq_credit_spreads_series_key_date"),
-    )
-
-
-class SentimentIndicator(Base):
-    __tablename__ = "sentiment_indicators"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    series_key = Column(String(50), nullable=False)    # AAII_BULL, AAII_BEAR, FEAR_GREED
-    value = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (Index("ix_sent_key_date", "series_key", "date"),)
-
-
-class RealEconomyIndicator(Base):
-    __tablename__ = "real_economy"
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False)
-    series_key = Column(String(50), nullable=False)    # BDI, COPPER_GOLD, WTI_BRENT_SPREAD
-    value = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
-    __table_args__ = (
-        Index("ix_re_key_date", "series_key", "date"),
-        UniqueConstraint("series_key", "date", name="uq_real_economy_series_key_date"),
-    )
-
-
 class FomcEvent(Base):
     __tablename__ = "fomc_events"
     id = Column(Integer, primary_key=True)
@@ -417,7 +309,7 @@ class Observation(Base):
     signals = relationship("Signal", back_populates="observation")
 
     __table_args__ = (
-        UniqueConstraint("indicator_id", "date", "value", name="uq_observation_indicator_date_value"),
+        UniqueConstraint("indicator_id", "date", name="uq_observation_indicator_date"),
         Index("ix_observation_indicator_date", "indicator_id", "date"),
     )
 

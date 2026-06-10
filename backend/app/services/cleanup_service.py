@@ -17,7 +17,6 @@ from ..models.indicators import (
     DailyInsight,
     DivergenceEvent,
     DivergenceReport,
-    InterestRate,
     NewsItem,
     SentimentSignal,
 )
@@ -161,10 +160,6 @@ def run_cleanup(
                 CleanupRun.created_at,
                 scheduler_cutoff,
             )
-
-        # Explicitly excluded: core observation time series such as interest_rates and peers.
-        if _table_exists(table_names, InterestRate.__tablename__):
-            db.query(InterestRate.id).limit(1).all()
 
         if _table_exists(table_names, CleanupRun.__tablename__):
             db.add(

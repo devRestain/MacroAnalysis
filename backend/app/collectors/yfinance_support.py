@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Iterable
-
-import pandas as pd
-import yfinance as yf
+from typing import Any, Iterable, TYPE_CHECKING
 
 from ..core.config import settings
 
@@ -12,11 +9,15 @@ logger = logging.getLogger(__name__)
 
 _YFINANCE_CONFIGURED = False
 
+if TYPE_CHECKING:
+    import pandas as pd
+
 
 def configure_yfinance() -> None:
     global _YFINANCE_CONFIGURED
     if _YFINANCE_CONFIGURED:
         return
+    import yfinance as yf
 
     try:
         yf.config.network.retries = settings.YFINANCE_RETRIES
@@ -38,7 +39,10 @@ def download_ticker_frames(
     *,
     period: str,
     interval: str = "1d",
-) -> dict[str, pd.DataFrame]:
+) -> dict[str, Any]:
+    import pandas as pd
+    import yfinance as yf
+
     configure_yfinance()
     tickers = list(dict.fromkeys(tickers))
     if not tickers:
@@ -73,7 +77,9 @@ def download_ticker_frames(
     return frames
 
 
-def normalize_price_history(frame: pd.DataFrame) -> pd.DataFrame:
+def normalize_price_history(frame: Any):
+    import pandas as pd
+
     if frame.empty or "Close" not in frame.columns:
         return pd.DataFrame()
     history = frame.dropna(subset=["Close"]).copy()

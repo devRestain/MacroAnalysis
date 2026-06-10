@@ -1,12 +1,10 @@
 """FRED API collector — interest rates, macro indicators, credit spreads."""
 import logging
 from datetime import datetime, timedelta
-from fredapi import Fred
 from sqlalchemy.orm import Session
 from ..core.config import settings
-from ..core.upsert import upsert_rows
-from ..models.indicators import InterestRate, MacroIndicator, CreditSpread
 from .result_utils import add_counts, empty_counts, format_error_summary
+from ..services.indicator_registry import upsert_indicator_observations
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +35,9 @@ CREDIT_SERIES = {
 }
 
 
-def get_fred_client() -> Fred:
+def get_fred_client():
+    from fredapi import Fred
+
     return Fred(api_key=settings.FRED_API_KEY)
 
 
@@ -57,13 +57,7 @@ def collect_rates(db: Session):
                 }
                 for date, value in data.dropna().items()
             ]
-            upsert_rows(
-                db,
-                InterestRate,
-                rows,
-                conflict_columns=["series_key", "date"],
-                update_columns=["value"],
-            )
+            upsert_indicator_observations(db, rows)
             db.commit()
             add_counts(
                 counts,
@@ -101,13 +95,7 @@ def collect_macro(db: Session):
                 }
                 for date, value in data.dropna().items()
             ]
-            upsert_rows(
-                db,
-                MacroIndicator,
-                rows,
-                conflict_columns=["series_key", "date"],
-                update_columns=["value"],
-            )
+            upsert_indicator_observations(db, rows)
             db.commit()
             add_counts(
                 counts,
@@ -145,13 +133,7 @@ def collect_credit_spreads(db: Session):
                 }
                 for date, value in data.dropna().items()
             ]
-            upsert_rows(
-                db,
-                CreditSpread,
-                rows,
-                conflict_columns=["series_key", "date"],
-                update_columns=["value"],
-            )
+            upsert_indicator_observations(db, rows)
             db.commit()
             add_counts(
                 counts,

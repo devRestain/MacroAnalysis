@@ -4,7 +4,6 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Callable
 
-import redis
 from sqlalchemy.orm import Session
 
 from ..collectors.fomc_collector import collect_fedwatch, collect_fomc_calendar
@@ -17,7 +16,6 @@ from ..collectors.result_utils import add_counts, empty_counts
 from .calendar_collection_service import collect_calendar_events
 from .daily_insight_service import get_existing_daily_insight, get_today_kst
 from .collection_guard import get_default_min_interval, run_with_guard
-from ..workers.snapshot_worker import compute_snapshots
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +38,7 @@ def run_morning_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fedwatch", "cme", lambda session: collect_fedwatch(session)),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
-        _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
         _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
         if settings.AI_DAILY_INSIGHT_TRIGGER_IN_MORNING_BATCH
         else _maintenance_job("daily_insight_enqueue_disabled"),
@@ -54,7 +52,7 @@ def run_noon_batch(db: Session) -> dict[str, Any]:
     jobs = [
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
-        _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
         _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
         if settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED
         else _maintenance_job("daily_insight_enqueue_disabled"),
@@ -73,7 +71,7 @@ def run_evening_batch(db: Session) -> dict[str, Any]:
         ),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
-        _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
         _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
         if settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED
         else _maintenance_job("daily_insight_enqueue_disabled"),
@@ -254,6 +252,12 @@ def _collect_us_global_market_bundle(db: Session):
     return counts
 
 
+def _compute_snapshots(db: Session):
+    from ..workers.snapshot_worker import compute_snapshots
+
+    return compute_snapshots(db)
+
+
 def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:
     if not settings.AI_DAILY_INSIGHT_ENABLED:
         return {
@@ -301,6 +305,8 @@ def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:
 
 def _invalidate_dashboard_cache():
     try:
+        import redis
+
         redis.Redis.from_url(settings.REDIS_URL, decode_responses=True).delete("summary:v1")
     except Exception as exc:
         logger.warning("Failed to invalidate dashboard cache after batch: %s", exc)
@@ -308,6 +314,8 @@ def _invalidate_dashboard_cache():
 
 def _invalidate_calendar_cache():
     try:
+        import redis
+
         client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
         keys = list(client.scan_iter(match="calendar:*"))
         if keys:
@@ -331,7 +339,7 @@ def _all_job_definitions() -> list[dict[str, Any]]:
         _guarded_job("fedwatch", "cme", lambda session: collect_fedwatch(session)),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
-        _guarded_job("snapshot_compute", "internal", lambda session: compute_snapshots(session)),
+        _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
         _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
     ]

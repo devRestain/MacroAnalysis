@@ -4,25 +4,13 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..models.indicators import (
-    CreditSpread,
-    EquityIndex,
-    ExchangeRate,
     FedWatch,
-    InterestRate,
-    MacroIndicator,
-    RealEconomyIndicator,
-    SectorPerformance,
+    Observation,
 )
 
 
 DEDUP_TABLES = [
-    (InterestRate, ["series_key", "date"]),
-    (MacroIndicator, ["series_key", "date"]),
-    (CreditSpread, ["series_key", "date"]),
-    (EquityIndex, ["ticker", "date"]),
-    (SectorPerformance, ["ticker", "date"]),
-    (ExchangeRate, ["pair", "date"]),
-    (RealEconomyIndicator, ["series_key", "date"]),
+    (Observation, ["indicator_id", "date"]),
     (FedWatch, ["meeting_date", "date"]),
 ]
 
