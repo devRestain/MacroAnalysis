@@ -1,4 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
+const API_ACCESS_KEY = import.meta.env.VITE_API_ACCESS_KEY || ''
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -23,6 +24,7 @@ export const api = {
   aiChat: (message: string) =>
     apiFetch<ChatResponse>('/ai/chat', {
       method: 'POST',
+      headers: API_ACCESS_KEY ? { 'X-API-Key': API_ACCESS_KEY } : undefined,
       body: JSON.stringify({ message }),
     }),
 }
