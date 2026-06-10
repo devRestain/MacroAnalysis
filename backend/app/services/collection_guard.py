@@ -196,18 +196,21 @@ def get_default_min_interval(job_key: str) -> int:
 @contextmanager
 def _job_lock(db: Session, job_key: str):
     if settings.COLLECTION_LOCK_BACKEND == "redis":
-        import redis
-
-        lock_key = f"collection_guard:{job_key}"
-        token = str(uuid.uuid4())
-        client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-        acquired = bool(client.set(lock_key, token, nx=True, ex=600))
         try:
-            yield {"acquired": acquired, "lock_id": lock_key}
-        finally:
-            if acquired and client.get(lock_key) == token:
-                client.delete(lock_key)
-        return
+            import redis
+
+            lock_key = f"collection_guard:{job_key}"
+            token = str(uuid.uuid4())
+            client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            acquired = bool(client.set(lock_key, token, nx=True, ex=600))
+            try:
+                yield {"acquired": acquired, "lock_id": lock_key}
+            finally:
+                if acquired and client.get(lock_key) == token:
+                    client.delete(lock_key)
+            return
+        except Exception as exc:
+            logger.warning("Redis lock backend unavailable for %s; falling back to local lock: %s", job_key, exc)
 
     if settings.COLLECTION_LOCK_BACKEND == "postgres" and db.get_bind().dialect.name == "postgresql":
         lock_id = int(zlib.crc32(job_key.encode("utf-8")))

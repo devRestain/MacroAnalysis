@@ -264,17 +264,20 @@ def _upsert_daily_insight(
 def _insight_lock(db: Session, as_of_date: date):
     lock_key = f"daily_insight:{as_of_date.isoformat()}"
     if settings.COLLECTION_LOCK_BACKEND == "redis":
-        import redis
-
-        token = str(uuid.uuid4())
-        client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-        acquired = bool(client.set(lock_key, token, nx=True, ex=900))
         try:
-            yield {"acquired": acquired}
-        finally:
-            if acquired and client.get(lock_key) == token:
-                client.delete(lock_key)
-        return
+            import redis
+
+            token = str(uuid.uuid4())
+            client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            acquired = bool(client.set(lock_key, token, nx=True, ex=900))
+            try:
+                yield {"acquired": acquired}
+            finally:
+                if acquired and client.get(lock_key) == token:
+                    client.delete(lock_key)
+            return
+        except Exception as exc:
+            logger.warning("Redis insight lock unavailable for %s; falling back to local lock: %s", as_of_date, exc)
 
     if settings.COLLECTION_LOCK_BACKEND == "postgres" and db.get_bind().dialect.name == "postgresql":
         lock_id = int(zlib.crc32(lock_key.encode("utf-8")))

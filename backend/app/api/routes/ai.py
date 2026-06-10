@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ...core.config import settings
 from ...core.database import get_db
 from ...models import DailyInsight
+from ..dependencies import require_ai_route_access
 from ...services.daily_insight_service import (
     daily_insight_to_summary_response,
     ensure_daily_insight,
@@ -64,7 +65,7 @@ async def ensure_ai_summary(
     return daily_insight_to_summary_response(result)
 
 
-@router.post("/ai/chat", response_model=AiChatResponse)
+@router.post("/ai/chat", response_model=AiChatResponse, dependencies=[Depends(require_ai_route_access)])
 async def ai_chat(payload: AiChatRequest, db: Session = Depends(get_db)):
     if not settings.OPENAI_API_KEY:
         raise HTTPException(status_code=503, detail="AI service not configured")

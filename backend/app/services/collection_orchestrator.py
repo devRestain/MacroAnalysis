@@ -11,6 +11,7 @@ from ..collectors.fred_collector import collect_credit_spreads, collect_macro, c
 from ..collectors.fx_collector import collect_exchange_rates
 from ..collectors.market_collector import collect_equity_indices, collect_real_economy, collect_sectors
 from ..collectors.news_collector import collect_fed_rss, collect_finnhub_news
+from ..core.cache import cache_delete_pattern_sync, cache_delete_sync
 from ..core.config import settings
 from ..collectors.result_utils import add_counts, empty_counts
 from .calendar_collection_service import collect_calendar_events
@@ -305,21 +306,14 @@ def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:
 
 def _invalidate_dashboard_cache():
     try:
-        import redis
-
-        redis.Redis.from_url(settings.REDIS_URL, decode_responses=True).delete("summary:v1")
+        cache_delete_sync("summary:v1")
     except Exception as exc:
         logger.warning("Failed to invalidate dashboard cache after batch: %s", exc)
 
 
 def _invalidate_calendar_cache():
     try:
-        import redis
-
-        client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-        keys = list(client.scan_iter(match="calendar:*"))
-        if keys:
-            client.delete(*keys)
+        cache_delete_pattern_sync("calendar:*")
     except Exception as exc:
         logger.warning("Failed to invalidate calendar cache after batch: %s", exc)
 

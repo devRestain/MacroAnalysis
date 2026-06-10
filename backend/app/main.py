@@ -1,6 +1,7 @@
 """FastAPI application entrypoint."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from .core.config import settings
 from .core.database import init_db
 from .api.routes import (
@@ -22,7 +23,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

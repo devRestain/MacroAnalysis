@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.sql import func
 
 from ..core.database import Base
@@ -91,7 +91,7 @@ class DivergenceReport(Base):
     __tablename__ = "divergence_reports"
 
     id = Column(Integer, primary_key=True)
-    event_id = Column(Integer, nullable=False)
+    event_id = Column(Integer, ForeignKey("divergence_events.id", ondelete="CASCADE"), nullable=False)
     generated_at = Column(DateTime, server_default=func.now())
     headline = Column(Text, nullable=False)
     background = Column(Text)

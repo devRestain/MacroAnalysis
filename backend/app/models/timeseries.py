@@ -68,6 +68,10 @@ class Indicator(Base):
 class Observation(Base):
     __tablename__ = "observations"
 
+    # Current product behavior keeps only the latest value per indicator/date.
+    # If revision history becomes a requirement later, add a dedicated vintage
+    # dimension in a follow-up migration instead of overloading this unique key.
+
     id = Column(Integer, primary_key=True)
     indicator_id = Column(Integer, ForeignKey("indicators.id", ondelete="CASCADE"), nullable=False)
     date = Column(Date, nullable=False)

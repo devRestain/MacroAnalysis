@@ -1,10 +1,13 @@
 """News collector — Finnhub market news + Fed RSS feed."""
 import logging
+
 import httpx
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+
 from ..core.config import settings
 from ..models import NewsItem
+from ..models.news import build_news_url_hash
 from .result_utils import empty_counts
 
 logger = logging.getLogger(__name__)
@@ -54,7 +57,13 @@ def collect_finnhub_news(db: Session):
                 counts["fetched_count"] += len(items)
                 for item in items:
                     url = item.get("url", "")
-                    if db.query(NewsItem).filter(NewsItem.url == url).first():
+                    url_hash = build_news_url_hash(
+                        source=item.get("source", "Finnhub"),
+                        title=item.get("headline", ""),
+                        url=url,
+                        published_at=item.get("datetime", 0),
+                    )
+                    if db.query(NewsItem).filter(NewsItem.url_hash == url_hash).first():
                         continue
                     pub = datetime.fromtimestamp(item.get("datetime", 0), tz=timezone.utc).replace(tzinfo=None)
                     title = item.get("headline", "")
@@ -64,6 +73,7 @@ def collect_finnhub_news(db: Session):
                         title=title,
                         summary=summary[:500] if summary else None,
                         url=url,
+                        url_hash=url_hash,
                         category=categorize(title, summary),
                         published_at=pub,
                     ))
@@ -89,19 +99,26 @@ def collect_fed_rss(db: Session):
         counts["fetched_count"] = len(feed.entries[:15])
         for entry in feed.entries[:15]:
             url = entry.get("link", "")
-            if db.query(NewsItem).filter(NewsItem.url == url).first():
-                continue
             try:
                 pub = datetime(*entry.published_parsed[:6])
             except Exception:
                 pub = datetime.now()
             title = entry.get("title", "")
             summary = entry.get("summary", "")
+            url_hash = build_news_url_hash(
+                source="Federal Reserve",
+                title=title,
+                url=url,
+                published_at=pub,
+            )
+            if db.query(NewsItem).filter(NewsItem.url_hash == url_hash).first():
+                continue
             db.add(NewsItem(
                 source="Federal Reserve",
                 title=title,
                 summary=summary[:500] if summary else None,
                 url=url,
+                url_hash=url_hash,
                 category="fed",
                 published_at=pub,
             ))

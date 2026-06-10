@@ -1,6 +1,7 @@
-from pydantic_settings import BaseSettings
-from pydantic import field_validator
 from functools import lru_cache
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 RETENTION_DEFAULTS = {
@@ -13,8 +14,11 @@ RETENTION_DEFAULTS = {
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
     # Database
     DATABASE_URL: str = "postgresql://macro:macro@postgres:5432/macrodb"
+    DEV_DATABASE_AUTO_INIT: bool = False
 
     # Redis
     REDIS_URL: str = "redis://redis:6379/0"
@@ -28,7 +32,17 @@ class Settings(BaseSettings):
 
     # App
     APP_ENV: str = "production"
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:80"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:80",
+        "http://127.0.0.1:80",
+    ]
+    API_ACCESS_KEY: str = ""
+    AI_ROUTE_RATE_LIMIT_WINDOW_SECONDS: int = 60
+    AI_ROUTE_RATE_LIMIT_MAX_REQUESTS: int = 20
 
     # AI
     AI_MODEL: str = "gpt-4o-mini"
@@ -84,6 +98,27 @@ class Settings(BaseSettings):
     YFINANCE_TIMEOUT_SECONDS: int = 20
     YFINANCE_TZ_CACHE_DIR: str = "/tmp/py-yfinance"
 
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            raw = value.strip()
+            if not raw:
+                return []
+            if raw.startswith("["):
+                import json
+
+                try:
+                    parsed = json.loads(raw)
+                except json.JSONDecodeError:
+                    parsed = None
+                if isinstance(parsed, list):
+                    return [str(item).strip() for item in parsed if str(item).strip()]
+            return [item.strip() for item in raw.split(",") if item.strip()]
+        return value
+
     @field_validator(
         "COLLECTION_SUCCESS_LOG_RETENTION_DAYS",
         "COLLECTION_FAILURE_LOG_RETENTION_DAYS",
@@ -100,10 +135,6 @@ class Settings(BaseSettings):
         except (TypeError, ValueError):
             return default
         return parsed if parsed > 0 else default
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 @lru_cache()
