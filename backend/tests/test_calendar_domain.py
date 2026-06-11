@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 import unittest
 from datetime import datetime
@@ -285,6 +286,10 @@ class CalendarDomainTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "success")
         self.assertIn("calendar_fred:calendar_fred_error:HTTPStatusError", result["reason"])
+
+    def test_bls_calendar_module_is_removed(self) -> None:
+        spec = importlib.util.find_spec("app.collectors.calendar.bls_calendar")
+        self.assertIsNone(spec)
 
 
 if __name__ == "__main__":

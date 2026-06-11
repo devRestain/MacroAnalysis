@@ -93,8 +93,6 @@ class Settings(BaseSettings):
     AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED: bool = True
     CALENDAR_FRED_ENABLED: bool = True
     CALENDAR_FRED_LOOKAHEAD_DAYS: int = 180
-    CALENDAR_BLS_ENABLED: bool = True
-    CALENDAR_BLS_ICS_URL: str = "https://www.bls.gov/schedule/news_release/bls.ics"
     YFINANCE_RETRIES: int = 2
     YFINANCE_TIMEOUT_SECONDS: int = 20
     YFINANCE_TZ_CACHE_DIR: str = "/tmp/py-yfinance"
