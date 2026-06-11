@@ -11,8 +11,16 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.collectors.calendar.rule_based_market_calendar import generate_monthly_opex, generate_triple_witching
+from app.api.route_helpers import calendar_event_to_dict
 from app.core.database import Base
 from app.models import CommunicationEvent
+from app.services.calendar_description_service import (
+    get_calendar_event_description,
+    get_related_indicator_keys,
+    get_watch_items,
+    get_why_it_matters,
+    list_calendar_event_descriptions,
+)
 from app.services.calendar_collection_service import collect_calendar_events
 from app.models.calendar import EconomicCalendarEvent
 from app.services.communication_event_service import upsert_communication_event
@@ -141,6 +149,8 @@ class CalendarDomainTests(unittest.TestCase):
         self.assertEqual(len(witching), 4)
         self.assertEqual(opex[0]["event_date"], datetime(2026, 1, 16, 0, 0))
         self.assertEqual(witching[1]["event_date"], datetime(2026, 6, 19, 0, 0))
+        self.assertEqual(opex[0]["event_key"], "US_MONTHLY_OPEX")
+        self.assertEqual(witching[0]["event_key"], "US_TRIPLE_WITCHING")
 
         upsert_calendar_event(
             self.db,
@@ -197,22 +207,76 @@ class CalendarDomainTests(unittest.TestCase):
         self.assertEqual(first.id, second.id)
         self.assertEqual(rows[0].url, "https://example.com/speech-v2")
 
-    def test_calendar_collection_tolerates_bls_failure(self) -> None:
-        with patch("app.services.calendar_collection_service.collect_fred_release_calendar") as fred, patch(
-            "app.services.calendar_collection_service.collect_bls_calendar"
-        ) as bls:
+    def test_calendar_event_dict_exposes_new_fields_with_legacy_fallbacks(self) -> None:
+        event = upsert_calendar_event(
+            self.db,
+            {
+                "event_date": datetime(2026, 6, 17, 14, 0),
+                "event_end_date": datetime(2026, 6, 17, 14, 0),
+                "event_time": "14:00",
+                "timezone": "America/New_York",
+                "event_key": "FOMC_MEETING",
+                "event_type": "central_bank",
+                "category": "fomc",
+                "title": "FOMC Meeting",
+                "country": "US",
+                "source": "Federal Reserve",
+                "importance": "high",
+                "status": "scheduled",
+                "related_indicator_key": "FEDFUNDS",
+            },
+        )
+        self.db.commit()
+
+        payload = calendar_event_to_dict(event, include_details=False)
+
+        self.assertEqual(payload["display_name"], "FOMC Meeting")
+        self.assertEqual(payload["short_name"], "FOMC Meeting")
+        self.assertEqual(payload["event_datetime_utc"], datetime(2026, 6, 17, 14, 0))
+        self.assertEqual(str(payload["event_date_local"]), "2026-06-17")
+        self.assertEqual(payload["event_time_local"], "14:00")
+        self.assertEqual(payload["date_precision"], "datetime_estimated")
+        self.assertEqual(payload["related_indicator_keys"], ["FEDFUNDS"])
+
+    def test_calendar_description_service_returns_static_metadata(self) -> None:
+        description = get_calendar_event_description("US_CPI")
+
+        self.assertEqual(description["event_key"], "US_CPI")
+        self.assertEqual(description["display_name"], "미국 CPI")
+        self.assertEqual(description["short_name"], "CPI")
+        self.assertEqual(description["provider"], "fred")
+        self.assertEqual(description["event_type"], "macro_release")
+        self.assertEqual(description["default_time"], "08:30")
+        self.assertEqual(description["timezone"], "America/New_York")
+        self.assertIn("CPIAUCSL", description["related_indicators"])
+        self.assertIn("S&P 500", description["watch_items"])
+
+    def test_calendar_description_service_fallback_is_safe(self) -> None:
+        description = get_calendar_event_description("UNKNOWN_EVENT")
+
+        self.assertEqual(description["event_key"], "UNKNOWN_EVENT")
+        self.assertFalse(description["enabled"])
+        self.assertEqual(description["related_indicators"], [])
+        self.assertEqual(description["watch_items"], [])
+        self.assertIsNone(description["why_it_matters"])
+
+    def test_calendar_description_service_lists_enabled_items(self) -> None:
+        items = list_calendar_event_descriptions(enabled_only=True)
+
+        self.assertEqual(len(items), 18)
+        self.assertTrue(all(item["enabled"] for item in items))
+        self.assertIn("CPILFESL", get_related_indicator_keys("US_CPI"))
+        self.assertIn("FedWatch", get_watch_items("FOMC_MEETING"))
+        self.assertIsNotNone(get_why_it_matters("US_GDP"))
+
+    def test_calendar_collection_records_fred_failure_without_crashing(self) -> None:
+        with patch(
+            "app.services.calendar_collection_service.FredReleaseDateLoader.collect"
+        ) as fred:
             fred.return_value = {
                 "job_key": "calendar_fred",
-                "status": "success",
-                "reason": "ok",
-                "fetched_count": 2,
-                "inserted_count": 2,
-                "updated_count": 2,
-            }
-            bls.return_value = {
-                "job_key": "calendar_bls",
-                "status": "skipped",
-                "reason": "bls_http_403",
+                "status": "failed",
+                "reason": "calendar_fred_error:HTTPStatusError",
                 "fetched_count": 0,
                 "inserted_count": 0,
                 "updated_count": 0,
@@ -220,7 +284,7 @@ class CalendarDomainTests(unittest.TestCase):
             result = collect_calendar_events(self.db)
 
         self.assertEqual(result["status"], "success")
-        self.assertIn("calendar_bls:bls_http_403", result["reason"])
+        self.assertIn("calendar_fred:calendar_fred_error:HTTPStatusError", result["reason"])
 
 
 if __name__ == "__main__":

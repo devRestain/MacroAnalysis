@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -63,21 +63,33 @@ class EconomicCalendarEvent(Base):
     event_end_date = Column(DateTime, nullable=True)
     event_time = Column(String(20), nullable=True)
     timezone = Column(String(50), nullable=False, default="America/New_York")
+    event_datetime_utc = Column(DateTime, nullable=True)
+    event_date_local = Column(Date, nullable=True)
+    event_time_local = Column(String(20), nullable=True)
 
     event_key = Column(String(100), nullable=False)
     event_type = Column(String(50), nullable=False)
     category = Column(String(50), nullable=False)
 
     title = Column(String(200), nullable=False)
+    display_name = Column(String(200), nullable=True)
+    short_name = Column(String(100), nullable=True)
     country = Column(String(20), nullable=False, default="US")
     source = Column(String(100), nullable=False, default="unknown")
     source_url = Column(Text, nullable=True)
 
     importance = Column(String(20), nullable=False, default="medium")
     status = Column(String(20), nullable=False, default="scheduled")
+    date_precision = Column(String(32), nullable=True)
+    time_source = Column(String(32), nullable=True)
+    time_confidence = Column(String(32), nullable=True)
 
     related_indicator_key = Column(String(50), nullable=True)
+    related_indicator_keys = Column(JSON, nullable=True)
     related_asset = Column(String(50), nullable=True)
+    beginner_description = Column(Text, nullable=True)
+    why_it_matters = Column(Text, nullable=True)
+    watch_items = Column(JSON, nullable=True)
 
     actual_value = Column(Float, nullable=True)
     forecast_value = Column(Float, nullable=True)

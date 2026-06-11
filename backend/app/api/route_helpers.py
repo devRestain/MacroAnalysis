@@ -58,10 +58,15 @@ def enqueue_daily_insight_if_missing() -> None:
 
 
 def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: bool) -> dict:
-    if event.event_date.tzinfo is None:
-        event_utc = event.event_date.replace(tzinfo=timezone.utc).isoformat()
+    event_dt = event.event_datetime_utc or event.event_date
+    if event_dt.tzinfo is None:
+        event_utc = event_dt.replace(tzinfo=timezone.utc).isoformat()
     else:
-        event_utc = event.event_date.astimezone(timezone.utc).isoformat()
+        event_utc = event_dt.astimezone(timezone.utc).isoformat()
+
+    related_indicator_keys = event.related_indicator_keys
+    if related_indicator_keys is None and event.related_indicator_key:
+        related_indicator_keys = [event.related_indicator_key]
 
     payload = {
         "id": event.id,
@@ -69,16 +74,28 @@ def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: boo
         "event_end_date": event.event_end_date,
         "event_time": event.event_time,
         "timezone": event.timezone,
+        "event_datetime_utc": event.event_datetime_utc or event.event_date,
+        "event_date_local": event.event_date_local or event.event_date.date(),
+        "event_time_local": event.event_time_local or event.event_time,
         "event_key": event.event_key,
         "event_type": event.event_type,
         "category": event.category,
         "title": event.title,
+        "display_name": event.display_name or event.title,
+        "short_name": event.short_name or event.display_name or event.title,
         "country": event.country,
         "source": event.source,
         "source_url": event.source_url,
         "importance": event.importance,
         "status": event.status,
+        "date_precision": event.date_precision or ("datetime_estimated" if (event.event_time_local or event.event_time) else "date_only"),
+        "time_source": event.time_source,
+        "time_confidence": event.time_confidence,
+        "beginner_description": event.beginner_description,
+        "why_it_matters": event.why_it_matters,
+        "watch_items": event.watch_items,
         "related_indicator_key": event.related_indicator_key,
+        "related_indicator_keys": related_indicator_keys,
         "related_asset": event.related_asset,
         "actual_value": event.actual_value,
         "forecast_value": event.forecast_value,
@@ -86,7 +103,7 @@ def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: boo
         "unit": event.unit,
         "metadata": {
             **(event.metadata_json or {}),
-            "event_local_date": event.event_date.date().isoformat(),
+            "event_local_date": (event.event_date_local or event.event_date.date()).isoformat(),
             "event_utc": event_utc,
         },
         "details": None,
