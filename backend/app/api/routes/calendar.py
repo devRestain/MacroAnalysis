@@ -3,13 +3,12 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from ...core.cache import cache_get, cache_set
 from ...core.database import get_db
-from ...models import CommunicationEvent, EconomicCalendarEvent, FedWatch
-from ...services.calendar_query_service import get_latest_fedwatch_for_meeting
+from ...models import CommunicationEvent, EconomicCalendarEvent
+from ...services.calendar_query_service import get_latest_fedwatch, get_latest_fedwatch_for_meeting
 from ..calendar_schemas import CalendarEventListResponse, CalendarEventResponse
 from ..route_helpers import calendar_event_to_dict
 
@@ -128,7 +127,7 @@ async def get_fomc(db: Session = Depends(get_db)):
             None,
         )
 
-    fedwatch = get_latest_fedwatch_for_meeting(db, next_meeting_date) or db.query(FedWatch).order_by(desc(FedWatch.date)).first()
+    fedwatch = get_latest_fedwatch_for_meeting(db, next_meeting_date) or get_latest_fedwatch(db)
     return {
         "meetings": meetings,
         "fedwatch": {

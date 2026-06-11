@@ -5,12 +5,13 @@ import os
 import unittest
 from datetime import datetime
 from unittest.mock import patch
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
+from app.collectors.fomc_collector import collect_fedwatch, collect_fomc_calendar
 from app.collectors.calendar.rule_based_market_calendar import generate_monthly_opex, generate_triple_witching
 from app.api.route_helpers import calendar_event_to_dict
 from app.core.database import Base
@@ -25,7 +26,7 @@ from app.services.calendar_description_service import (
 from app.services.calendar_collection_service import collect_calendar_events
 from app.models.calendar import EconomicCalendarEvent
 from app.services.communication_event_service import upsert_communication_event
-from app.services.calendar_query_service import get_next_fomc_meeting_date
+from app.services.calendar_query_service import get_next_fomc_meeting_date, has_fedwatch_table
 from app.services.calendar_upsert import upsert_calendar_event, upsert_fomc_detail
 
 
@@ -290,6 +291,66 @@ class CalendarDomainTests(unittest.TestCase):
     def test_bls_calendar_module_is_removed(self) -> None:
         spec = importlib.util.find_spec("app.collectors.calendar.bls_calendar")
         self.assertIsNone(spec)
+
+    def test_has_fedwatch_table_tracks_schema_presence(self) -> None:
+        self.assertTrue(has_fedwatch_table(self.db))
+
+        self.db.execute(text("DROP TABLE fed_watch"))
+        self.db.commit()
+
+        self.assertFalse(has_fedwatch_table(self.db))
+
+    def test_collect_fomc_calendar_tolerates_missing_fedwatch_table(self) -> None:
+        self.db.execute(text("DROP TABLE fed_watch"))
+        self.db.commit()
+
+        html = """
+        <html>
+          <body>
+            <h4>2026 FOMC Meetings</h4>
+            <div class="fomc-meeting">
+              <div class="fomc-meeting__month">June</div>
+              <div class="fomc-meeting__date">16-17</div>
+              <a href="/newsevents/pressreleases/monetary20260617a.htm">Statement</a>
+            </div>
+          </body>
+        </html>
+        """
+
+        class _Response:
+            text = html
+
+            def raise_for_status(self) -> None:
+                return None
+
+        class _Client:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def get(self, *_args, **_kwargs):
+                return _Response()
+
+        with patch("app.collectors.fomc_collector.httpx.Client", return_value=_Client()), patch(
+            "app.collectors.fomc_collector._maybe_queue_fomc_statement_sentiment",
+            return_value=False,
+        ):
+            result = collect_fomc_calendar(self.db)
+
+        self.assertEqual(result["fetched_count"], 1)
+        saved_event = self.db.query(EconomicCalendarEvent).filter_by(event_key="FOMC_MEETING").one()
+        self.assertEqual(saved_event.event_time, "14:00")
+
+    def test_collect_fedwatch_skips_when_table_is_missing(self) -> None:
+        self.db.execute(text("DROP TABLE fed_watch"))
+        self.db.commit()
+
+        result = collect_fedwatch(self.db)
+
+        self.assertEqual(result["status"], "skipped")
+        self.assertEqual(result["reason"], "fed_watch_table_missing")
 
 
 if __name__ == "__main__":

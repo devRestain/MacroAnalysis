@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ..core.config import settings
 from ..models import CommunicationEvent, SentimentSignal
 from ..services.communication_event_service import upsert_communication_event
+from ..services.task_dispatch_service import dispatch_task_or_run_sync
 from .result_utils import empty_counts
 
 logger = logging.getLogger(__name__)
@@ -128,14 +129,25 @@ def _maybe_queue_communication_sentiment(
 
     communication_event.sentiment_status = "pending"
     communication_event.sentiment_queued_at = now
-    db.flush()
+    db.commit()
     try:
         from ..workers.sentiment_worker import extract_communication_event_sentiment
 
-        extract_communication_event_sentiment.delay(communication_event.id, communication_event.content_text)
+        def _prepare_sync_fallback() -> None:
+            # Refresh the current session before running a sync fallback in a separate DB session.
+            db.expire_all()
+
+        dispatch_task_or_run_sync(
+            extract_communication_event_sentiment,
+            communication_event.id,
+            communication_event.content_text,
+            task_name="Communication sentiment",
+            logger=logger,
+            before_sync_fallback=_prepare_sync_fallback,
+        )
         return True
     except Exception as exc:
-        logger.warning("Communication sentiment queue failed for event_id=%s: %s", communication_event.id, exc)
+        logger.warning("Communication sentiment dispatch failed for event_id=%s: %s", communication_event.id, exc)
         communication_event.sentiment_status = "failed"
-        db.flush()
+        db.commit()
         return False

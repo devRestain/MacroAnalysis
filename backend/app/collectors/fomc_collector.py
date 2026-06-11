@@ -17,9 +17,11 @@ from ..services.calendar_query_service import (
     FOMC_EVENT_KEY,
     FOMC_EVENT_SOURCE,
     get_next_fomc_meeting_date,
+    has_fedwatch_table,
     get_upcoming_fomc_meeting_dates,
 )
 from ..services.calendar_upsert import upsert_calendar_event, upsert_fomc_detail
+from ..services.task_dispatch_service import dispatch_task_or_run_sync
 from .fomc_utils import (
     estimate_next_meeting_move_from_monthly_rates,
     get_fed_funds_futures_symbol,
@@ -57,6 +59,7 @@ def _upsert_fedwatch(
 
 def collect_fomc_calendar(db: Session):
     try:
+        fedwatch_available = has_fedwatch_table(db)
         with httpx.Client(timeout=20, follow_redirects=True) as client:
             resp = client.get(FED_CALENDAR_URL, headers={"User-Agent": "Mozilla/5.0"})
             resp.raise_for_status()
@@ -156,10 +159,11 @@ def collect_fomc_calendar(db: Session):
                 },
             )
 
-            db.query(FedWatch).filter(
-                FedWatch.meeting_date == meeting_end_dt,
-                FedWatch.calendar_event_id.is_(None),
-            ).update({"calendar_event_id": calendar_event.id}, synchronize_session=False)
+            if fedwatch_available:
+                db.query(FedWatch).filter(
+                    FedWatch.meeting_date == meeting_end_dt,
+                    FedWatch.calendar_event_id.is_(None),
+                ).update({"calendar_event_id": calendar_event.id}, synchronize_session=False)
 
             sentiment_candidates.append(
                 {
@@ -201,6 +205,15 @@ def collect_fedwatch(db: Session):
     published methodology and 30-Day Fed Funds futures monthly contracts.
     """
     try:
+        if not has_fedwatch_table(db):
+            logger.warning("FedWatch collection skipped because fed_watch table is missing")
+            return {
+                "fetched_count": 0,
+                "inserted_count": 0,
+                "updated_count": 0,
+                "status": "skipped",
+                "reason": "fed_watch_table_missing",
+            }
         now = datetime.now().replace(microsecond=0)
         observation_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
         meeting_date = _ensure_next_fomc_meeting_date(db, now=now)
@@ -392,15 +405,24 @@ def _maybe_queue_fomc_statement_sentiment(
             fomc_detail.sentiment_status = "pending"
             fomc_detail.sentiment_queued_at = now
         db.commit()
-        _enqueue_fomc_sentiment_task(communication_event_id=communication_event_id, text=statement_text)
+        from ..workers.sentiment_worker import extract_communication_event_sentiment
+
+        dispatch_task_or_run_sync(
+            extract_communication_event_sentiment,
+            communication_event_id,
+            statement_text,
+            task_name="FOMC sentiment",
+            logger=logger,
+            before_sync_fallback=db.expire_all,
+        )
     except Exception as exc:
         communication_event = db.query(CommunicationEvent).filter(CommunicationEvent.id == communication_event_id).first()
         if communication_event is not None:
             communication_event.sentiment_status = "failed"
         if fomc_detail is not None:
             fomc_detail.sentiment_status = "failed"
-            db.commit()
-        logger.warning("FOMC sentiment queue failed for event_id=%s: %s", communication_event_id, exc)
+        db.commit()
+        logger.warning("FOMC sentiment dispatch failed for event_id=%s: %s", communication_event_id, exc)
         return False
     return True
 
@@ -444,9 +466,3 @@ def _fetch_fomc_statement_text(statement_url: str) -> str:
 
 def _normalize_statement_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
-
-
-def _enqueue_fomc_sentiment_task(*, communication_event_id: int, text: str) -> None:
-    from ..workers.sentiment_worker import extract_communication_event_sentiment
-
-    extract_communication_event_sentiment.delay(communication_event_id, text)

@@ -4,11 +4,16 @@ from datetime import datetime
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect
 
 from ..models import CommunicationEvent, EconomicCalendarEvent, FedWatch
 
 FOMC_EVENT_KEY = "FOMC_MEETING"
 FOMC_EVENT_SOURCE = "Federal Reserve"
+
+
+def has_fedwatch_table(db: Session) -> bool:
+    return inspect(db.get_bind()).has_table(FedWatch.__tablename__)
 
 
 def get_next_fomc_calendar_event(db: Session, now: datetime | None = None) -> EconomicCalendarEvent | None:
@@ -84,7 +89,7 @@ def get_upcoming_fomc_meeting_dates(db: Session, now: datetime | None = None) ->
 
 
 def get_latest_fedwatch_for_meeting(db: Session, meeting_date: datetime | None) -> FedWatch | None:
-    if meeting_date is None:
+    if meeting_date is None or not has_fedwatch_table(db):
         return None
     return (
         db.query(FedWatch)
@@ -92,3 +97,9 @@ def get_latest_fedwatch_for_meeting(db: Session, meeting_date: datetime | None) 
         .order_by(desc(FedWatch.date))
         .first()
     )
+
+
+def get_latest_fedwatch(db: Session) -> FedWatch | None:
+    if not has_fedwatch_table(db):
+        return None
+    return db.query(FedWatch).order_by(desc(FedWatch.date)).first()

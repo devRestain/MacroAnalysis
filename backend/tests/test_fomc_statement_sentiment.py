@@ -84,7 +84,7 @@ class FomcStatementSentimentTests(unittest.TestCase):
             "app.collectors.fomc_collector._fetch_fomc_statement_text",
             return_value="Federal Reserve statement text long enough.",
         ) as fetch_text, patch(
-            "app.collectors.fomc_collector._enqueue_fomc_sentiment_task"
+            "app.workers.sentiment_worker.extract_communication_event_sentiment.delay"
         ) as enqueue_task:
             queued = _maybe_queue_fomc_statement_sentiment(
                 self.db,
@@ -98,8 +98,8 @@ class FomcStatementSentimentTests(unittest.TestCase):
         self.assertTrue(queued)
         fetch_text.assert_called_once()
         enqueue_task.assert_called_once_with(
-            communication_event_id=communication_event.id,
-            text="Federal Reserve statement text long enough.",
+            communication_event.id,
+            "Federal Reserve statement text long enough.",
         )
         detail = self.db.query(FomcEventDetail).filter_by(calendar_event_id=calendar_event.id).one()
         self.assertEqual(detail.sentiment_status, "pending")
@@ -158,7 +158,7 @@ class FomcStatementSentimentTests(unittest.TestCase):
         self.db.commit()
 
         with patch("app.collectors.fomc_collector._fetch_fomc_statement_text") as fetch_text, patch(
-            "app.collectors.fomc_collector._enqueue_fomc_sentiment_task"
+            "app.workers.sentiment_worker.extract_communication_event_sentiment.delay"
         ) as enqueue_task:
             queued = _maybe_queue_fomc_statement_sentiment(
                 self.db,
@@ -172,6 +172,80 @@ class FomcStatementSentimentTests(unittest.TestCase):
         self.assertFalse(queued)
         fetch_text.assert_not_called()
         enqueue_task.assert_not_called()
+
+    def test_broker_failure_falls_back_to_sync_fomc_sentiment(self) -> None:
+        communication_event = CommunicationEvent(
+            event_date=datetime(2026, 6, 18, 14, 0),
+            source="Federal Reserve",
+            title="FOMC Meeting",
+            event_type="fomc_meeting",
+            meeting_date=datetime(2026, 6, 18, 14, 0),
+            statement_url="https://example.com/statement",
+        )
+        calendar_event = EconomicCalendarEvent(
+            event_date=datetime(2026, 6, 18, 14, 0),
+            event_end_date=datetime(2026, 6, 18, 14, 0),
+            event_time="14:00",
+            timezone="America/New_York",
+            event_key="FOMC_MEETING",
+            event_type="central_bank",
+            category="fomc",
+            title="FOMC Meeting",
+            country="US",
+            source="Federal Reserve",
+            importance="high",
+            status="released",
+        )
+        self.db.add_all([communication_event, calendar_event])
+        self.db.commit()
+        self.db.add(
+            FomcEventDetail(
+                calendar_event_id=calendar_event.id,
+                meeting_start_date=datetime(2026, 6, 17, 0, 0),
+                meeting_end_date=datetime(2026, 6, 18, 14, 0),
+                statement_url="https://example.com/statement",
+                has_sep=False,
+            )
+        )
+        self.db.commit()
+
+        def _sync_run(event_id: int, _text: str):
+            event = self.db.query(CommunicationEvent).filter_by(id=event_id).one()
+            event.sentiment_status = "success"
+            detail = self.db.query(FomcEventDetail).filter_by(calendar_event_id=calendar_event.id).one()
+            detail.sentiment_status = "success"
+            self.db.commit()
+            return {"signals": 1}
+
+        with patch(
+            "app.collectors.fomc_collector._fetch_fomc_statement_text",
+            return_value="Federal Reserve statement text long enough.",
+        ), patch(
+            "app.workers.sentiment_worker.extract_communication_event_sentiment.delay",
+            side_effect=OSError("Connection refused"),
+        ), patch(
+            "app.workers.sentiment_worker.extract_communication_event_sentiment.run",
+            side_effect=_sync_run,
+        ) as run_task:
+            queued = _maybe_queue_fomc_statement_sentiment(
+                self.db,
+                communication_event_id=communication_event.id,
+                calendar_event_id=calendar_event.id,
+                meeting_end_dt=datetime(2026, 6, 18, 14, 0),
+                statement_url="https://example.com/statement",
+                now=datetime(2026, 6, 19, 9, 0),
+            )
+
+        self.assertTrue(queued)
+        run_task.assert_called_once()
+        self.assertEqual(
+            self.db.query(CommunicationEvent).filter_by(id=communication_event.id).one().sentiment_status,
+            "success",
+        )
+        self.assertEqual(
+            self.db.query(FomcEventDetail).filter_by(calendar_event_id=calendar_event.id).one().sentiment_status,
+            "success",
+        )
 
 
 if __name__ == "__main__":

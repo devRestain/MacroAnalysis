@@ -5,7 +5,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import patch
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -257,6 +257,40 @@ class CalendarApiTests(unittest.TestCase):
         self.assertEqual(meeting["event_time_local"], "14:00")
         self.assertEqual(meeting["rate"], 4.5)
         self.assertIsNotNone(meeting["details"])
+
+    def test_fomc_endpoint_returns_safely_when_fedwatch_table_is_missing(self) -> None:
+        event = upsert_calendar_event(
+            self.db,
+            {
+                "event_date": datetime(2026, 6, 17, 14, 0),
+                "event_end_date": datetime(2026, 6, 17, 14, 0),
+                "event_time": "14:00",
+                "timezone": "America/New_York",
+                "event_key": "FOMC_MEETING",
+                "event_type": "central_bank",
+                "category": "fed",
+                "title": "FOMC 금리결정",
+                "display_name": "FOMC 금리결정",
+                "short_name": "FOMC",
+                "country": "US",
+                "source": "Federal Reserve",
+                "importance": "critical",
+                "status": "scheduled",
+            },
+        )
+        self.db.commit()
+        self.db.execute(text("DROP TABLE fed_watch"))
+        self.db.commit()
+
+        with patch("app.main.init_db", return_value=None):
+            with TestClient(app) as client:
+                response = client.get("/api/fomc")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(len(payload["meetings"]), 1)
+        self.assertIsNone(payload["fedwatch"])
+        self.assertEqual(payload["meetings"][0]["id"], event.id)
 
 
 if __name__ == "__main__":
