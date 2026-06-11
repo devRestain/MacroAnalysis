@@ -17,6 +17,7 @@ class CalendarEventResponse(BaseModel):
     event_datetime_utc: datetime | None = None
     event_date_local: date | None = None
     event_time_local: str | None = None
+    display_time: str | None = None
     event_key: str
     event_type: str
     category: str

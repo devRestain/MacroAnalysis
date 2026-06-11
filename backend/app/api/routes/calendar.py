@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
@@ -10,7 +10,7 @@ from ...core.cache import cache_get, cache_set
 from ...core.database import get_db
 from ...models import CommunicationEvent, EconomicCalendarEvent, FedWatch
 from ...services.calendar_query_service import get_latest_fedwatch_for_meeting
-from ..calendar_schemas import CalendarEventListResponse
+from ..calendar_schemas import CalendarEventListResponse, CalendarEventResponse
 from ..route_helpers import calendar_event_to_dict
 
 router = APIRouter(prefix="/api")
@@ -59,6 +59,30 @@ async def get_calendar_events(
     return payload
 
 
+@router.get("/calendar/events/{event_id}", response_model=CalendarEventResponse)
+async def get_calendar_event_detail(
+    event_id: int,
+    include_details: bool = True,
+    db: Session = Depends(get_db),
+):
+    cache_key = f"calendar:event:{event_id}:{include_details}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    event = (
+        db.query(EconomicCalendarEvent)
+        .filter(EconomicCalendarEvent.id == event_id)
+        .first()
+    )
+    if event is None:
+        raise HTTPException(status_code=404, detail="Calendar event not found")
+
+    payload = calendar_event_to_dict(event, include_details=include_details)
+    await cache_set(cache_key, payload, ttl=1800)
+    return payload
+
+
 @router.get("/fomc")
 async def get_fomc(db: Session = Depends(get_db)):
     calendar_events = (
@@ -70,9 +94,16 @@ async def get_fomc(db: Session = Depends(get_db)):
     if calendar_events:
         meetings = [
             {
+                "id": event.id,
                 "date": str(event.event_date),
+                "event_key": event.event_key,
+                "display_name": event.display_name or event.title,
+                "event_date_local": (event.event_date_local or event.event_date.date()).isoformat(),
+                "event_time_local": event.event_time_local or event.event_time,
+                "timezone": event.timezone,
                 "rate": event.fomc_detail.decision_rate if event.fomc_detail else None,
                 "change_bp": event.fomc_detail.change_bp if event.fomc_detail else None,
+                "details": calendar_event_to_dict(event, include_details=True).get("details"),
             }
             for event in calendar_events
         ]

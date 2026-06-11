@@ -77,6 +77,7 @@ def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: boo
         "event_datetime_utc": event.event_datetime_utc or event.event_date,
         "event_date_local": event.event_date_local or event.event_date.date(),
         "event_time_local": event.event_time_local or event.event_time,
+        "display_time": _build_display_time(event.event_time_local or event.event_time, event.timezone),
         "event_key": event.event_key,
         "event_type": event.event_type,
         "category": event.category,
@@ -126,3 +127,10 @@ def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: boo
             }
         }
     return payload
+
+
+def _build_display_time(local_time: str | None, timezone_name: str | None) -> str | None:
+    if not local_time:
+        return None
+    tz_label = "ET" if timezone_name == "America/New_York" else timezone_name
+    return f"{local_time} {tz_label}".strip()
