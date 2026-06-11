@@ -1,0 +1,904 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "Static economic calendar event definitions for MacroAnalysis UI/API. This file is an allowlist for tracked calendar events and a shared explanation metadata source for backend and frontend consumers.",
+  "language": "ko-KR",
+  "tone_guidelines": {
+    "do": [
+      "경제 일정의 의미를 쉬운 문장으로 설명한다.",
+      "시장 해석에 필요한 맥락을 짧고 분명하게 제공한다.",
+      "사용자를 초보자로 직접 지칭하지 않는다.",
+      "AI 호출 없이 정적으로 사용할 수 있게 유지한다."
+    ],
+    "avoid": [
+      "매수/매도 권유",
+      "지나치게 기술적인 표현만으로 설명하기",
+      "항상, 반드시 같은 단정 표현",
+      "초보자, 입문자 등 사용자를 낮춰 보일 수 있는 표현"
+    ]
+  },
+  "field_definitions": {
+    "key": "Stable calendar event key used by collector, DB upsert, and API responses.",
+    "display_name": "User-facing display name.",
+    "category": "Logical grouping used by the calendar domain.",
+    "provider": "Primary upstream source used for date collection.",
+    "description": "Plain-language explanation of what the event is.",
+    "short_label": "Compact UI label for badges, cards, and tooltips.",
+    "market_role": "Why the market watches this event.",
+    "higher_meaning": "Common interpretation when the release or policy tone is stronger than expected.",
+    "lower_meaning": "Common interpretation when the release or policy tone is weaker than expected.",
+    "watch_points": "Context items to compare together when interpreting the event.",
+    "related_indicators": "Indicator keys that connect this event to existing indicator explanations.",
+    "display_text": "UI-safe text bundle that mirrors the core explanation fields.",
+    "workflow_status": "Marks this item as static calendar explanation metadata rather than runtime sentiment output.",
+    "analysis_hints": "Static rule seeds for future workflows; not runtime predictions.",
+    "event_definition": "Calendar-specific scheduling metadata used by collectors and API formatting."
+  },
+  "recommended_frontend_usage": "Use short_label on compact calendar chips and description/market_role/higher_meaning/lower_meaning/watch_points in event detail panels or tooltips.",
+  "recommended_backend_shape": "Load this JSON once and expose the same explanation fields used by indicator metadata, while reading event_definition for scheduling, source mapping, and collector allowlist logic.",
+  "calendar_events": [
+    {
+      "key": "US_CPI",
+      "event_key": "US_CPI",
+      "display_name": "미국 CPI",
+      "category": "inflation",
+      "provider": "fred",
+      "description": "소비자가 실제로 구매하는 상품과 서비스 가격의 변화를 보여주는 대표 물가 지표입니다.",
+      "short_label": "CPI",
+      "market_role": "물가 압력이 높으면 금리 인하 기대가 약해지고 주식시장에는 부담이 될 수 있습니다.",
+      "higher_meaning": "예상보다 높게 나오면 물가 압력이 강하다는 뜻으로 해석돼 금리 인하 기대가 약해질 수 있습니다.",
+      "lower_meaning": "예상보다 낮게 나오면 물가 압력이 완화되고 있다는 신호로 받아들여질 수 있습니다.",
+      "watch_points": "근원 CPI와 함께 보고, 발표 직후 2년물 금리와 달러, 주가지수 선물 반응을 같이 확인하는 것이 좋습니다.",
+      "watch_items": ["2Y Treasury Yield", "DXY", "S&P 500", "FedWatch"],
+      "related_indicators": ["CPIAUCSL", "CPILFESL"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "CPI",
+        "description": "소비자가 실제로 구매하는 상품과 서비스 가격의 변화를 보여주는 대표 물가 지표입니다.",
+        "market_role": "물가 압력이 높으면 금리 인하 기대가 약해지고 주식시장에는 부담이 될 수 있습니다.",
+        "higher_meaning": "예상보다 높게 나오면 물가 압력이 강하다는 뜻으로 해석돼 금리 인하 기대가 약해질 수 있습니다.",
+        "lower_meaning": "예상보다 낮게 나오면 물가 압력이 완화되고 있다는 신호로 받아들여질 수 있습니다.",
+        "watch_points": "근원 CPI와 함께 보고, 발표 직후 2년물 금리와 달러, 주가지수 선물 반응을 같이 확인하는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["2Y Treasury Yield", "DXY", "S&P 500", "FedWatch"],
+        "event_bias": "inflation",
+        "surprise_axis": "higher_inflation_vs_lower_inflation"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Consumer Price Index"]
+      }
+    },
+    {
+      "key": "US_PPI",
+      "event_key": "US_PPI",
+      "display_name": "미국 PPI",
+      "category": "inflation",
+      "provider": "fred",
+      "description": "기업이 생산 단계에서 마주하는 가격 변화를 보여주는 생산자 물가 지표입니다.",
+      "short_label": "PPI",
+      "market_role": "생산 단계의 비용 압력이 앞으로 소비자물가로 이어질 가능성을 가늠하는 데 쓰입니다.",
+      "higher_meaning": "예상보다 높게 나오면 향후 소비자물가 압력이 이어질 수 있다는 우려가 커질 수 있습니다.",
+      "lower_meaning": "예상보다 낮게 나오면 기업 비용 압력이 완화되고 있다는 신호로 해석될 수 있습니다.",
+      "watch_points": "CPI와 방향이 같은지 확인하고, 원자재 가격과 장단기 금리 반응을 함께 보는 것이 좋습니다.",
+      "watch_items": ["2Y Treasury Yield", "5Y Breakeven Inflation", "DXY", "S&P 500"],
+      "related_indicators": ["PPIACO", "WPSFD4"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "PPI",
+        "description": "기업이 생산 단계에서 마주하는 가격 변화를 보여주는 생산자 물가 지표입니다.",
+        "market_role": "생산 단계의 비용 압력이 앞으로 소비자물가로 이어질 가능성을 가늠하는 데 쓰입니다.",
+        "higher_meaning": "예상보다 높게 나오면 향후 소비자물가 압력이 이어질 수 있다는 우려가 커질 수 있습니다.",
+        "lower_meaning": "예상보다 낮게 나오면 기업 비용 압력이 완화되고 있다는 신호로 해석될 수 있습니다.",
+        "watch_points": "CPI와 방향이 같은지 확인하고, 원자재 가격과 장단기 금리 반응을 함께 보는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["2Y Treasury Yield", "5Y Breakeven Inflation", "DXY", "S&P 500"],
+        "event_bias": "inflation_pipeline",
+        "surprise_axis": "upstream_price_pressure"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium_high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Producer Price Index"]
+      }
+    },
+    {
+      "key": "US_PCE",
+      "event_key": "US_PCE",
+      "display_name": "미국 PCE 물가 / 개인소득·지출",
+      "category": "inflation",
+      "provider": "fred",
+      "description": "연준이 특히 중요하게 보는 소비 지출 기반 물가 지표와 개인소득·소비 흐름을 함께 보여줍니다.",
+      "short_label": "PCE",
+      "market_role": "연준의 금리 판단과 직접 연결되는 지표라서 CPI만큼 시장이 민감하게 반응합니다.",
+      "higher_meaning": "예상보다 높게 나오면 연준이 물가 둔화를 덜 확신할 수 있다는 해석으로 이어질 수 있습니다.",
+      "lower_meaning": "예상보다 낮게 나오면 물가 안정 기대가 커지며 통화정책 부담이 완화될 수 있습니다.",
+      "watch_points": "헤드라인보다 근원 PCE를 함께 보고, 개인소득과 소비지출이 같은 방향인지 확인하는 것이 중요합니다.",
+      "watch_items": ["2Y Treasury Yield", "FedWatch", "DXY", "Nasdaq 100"],
+      "related_indicators": ["PCEPI", "PCEPILFE", "DPI", "PCE"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "PCE",
+        "description": "연준이 특히 중요하게 보는 소비 지출 기반 물가 지표와 개인소득·소비 흐름을 함께 보여줍니다.",
+        "market_role": "연준의 금리 판단과 직접 연결되는 지표라서 CPI만큼 시장이 민감하게 반응합니다.",
+        "higher_meaning": "예상보다 높게 나오면 연준이 물가 둔화를 덜 확신할 수 있다는 해석으로 이어질 수 있습니다.",
+        "lower_meaning": "예상보다 낮게 나오면 물가 안정 기대가 커지며 통화정책 부담이 완화될 수 있습니다.",
+        "watch_points": "헤드라인보다 근원 PCE를 함께 보고, 개인소득과 소비지출이 같은 방향인지 확인하는 것이 중요합니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["2Y Treasury Yield", "FedWatch", "DXY", "Nasdaq 100"],
+        "event_bias": "fed_preferred_inflation",
+        "surprise_axis": "core_pce_pressure"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Personal Income and Outlays"]
+      }
+    },
+    {
+      "key": "US_EMPLOYMENT_SITUATION",
+      "event_key": "US_EMPLOYMENT_SITUATION",
+      "display_name": "미국 고용보고서",
+      "category": "labor",
+      "provider": "fred",
+      "description": "비농업 고용, 실업률, 임금 증가율을 함께 확인하는 미국의 핵심 고용 지표입니다.",
+      "short_label": "Jobs Report",
+      "market_role": "고용이 강하면 경기와 임금 압력이 강하다고 해석되어 금리 기대와 주식시장에 큰 영향을 줍니다.",
+      "higher_meaning": "고용과 임금이 예상보다 강하면 경기 체력이 좋다는 신호이지만 금리 부담 우려도 커질 수 있습니다.",
+      "lower_meaning": "고용이 예상보다 약하면 경기 둔화 우려가 커질 수 있지만 금리 인하 기대는 높아질 수 있습니다.",
+      "watch_points": "비농업 고용만 보지 말고 실업률과 시간당 임금, 이전 수치 수정 여부까지 함께 확인해야 합니다.",
+      "watch_items": ["2Y Treasury Yield", "FedWatch", "USD/JPY", "S&P 500 Futures"],
+      "related_indicators": ["PAYEMS", "UNRATE", "CES0500000003"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Jobs Report",
+        "description": "비농업 고용, 실업률, 임금 증가율을 함께 확인하는 미국의 핵심 고용 지표입니다.",
+        "market_role": "고용이 강하면 경기와 임금 압력이 강하다고 해석되어 금리 기대와 주식시장에 큰 영향을 줍니다.",
+        "higher_meaning": "고용과 임금이 예상보다 강하면 경기 체력이 좋다는 신호이지만 금리 부담 우려도 커질 수 있습니다.",
+        "lower_meaning": "고용이 예상보다 약하면 경기 둔화 우려가 커질 수 있지만 금리 인하 기대는 높아질 수 있습니다.",
+        "watch_points": "비농업 고용만 보지 말고 실업률과 시간당 임금, 이전 수치 수정 여부까지 함께 확인해야 합니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["2Y Treasury Yield", "FedWatch", "USD/JPY", "S&P 500 Futures"],
+        "event_bias": "labor_market_strength",
+        "surprise_axis": "jobs_and_wages"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Employment Situation"]
+      }
+    },
+    {
+      "key": "US_JOBLESS_CLAIMS",
+      "event_key": "US_JOBLESS_CLAIMS",
+      "display_name": "신규 실업수당 청구건수",
+      "category": "labor",
+      "provider": "fred",
+      "description": "새롭게 실업수당을 신청한 사람 수를 보여주는 주간 고용 지표입니다.",
+      "short_label": "Jobless Claims",
+      "market_role": "고용시장의 빠른 변화를 주간 단위로 확인할 수 있어서 경기 둔화 신호를 빨리 포착하는 데 유용합니다.",
+      "higher_meaning": "예상보다 높으면 고용시장이 약해지고 있다는 신호로 받아들여질 수 있습니다.",
+      "lower_meaning": "예상보다 낮으면 해고 압력이 크지 않고 고용시장이 버티고 있다는 뜻으로 해석될 수 있습니다.",
+      "watch_points": "한 주 수치보다 4주 평균과 지속 청구건수까지 같이 보는 편이 안정적입니다.",
+      "watch_items": ["2Y Treasury Yield", "DXY", "Russell 2000", "High Yield Credit Spreads"],
+      "related_indicators": ["ICSA", "CCSA"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Jobless Claims",
+        "description": "새롭게 실업수당을 신청한 사람 수를 보여주는 주간 고용 지표입니다.",
+        "market_role": "고용시장의 빠른 변화를 주간 단위로 확인할 수 있어서 경기 둔화 신호를 빨리 포착하는 데 유용합니다.",
+        "higher_meaning": "예상보다 높으면 고용시장이 약해지고 있다는 신호로 받아들여질 수 있습니다.",
+        "lower_meaning": "예상보다 낮으면 해고 압력이 크지 않고 고용시장이 버티고 있다는 뜻으로 해석될 수 있습니다.",
+        "watch_points": "한 주 수치보다 4주 평균과 지속 청구건수까지 같이 보는 편이 안정적입니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["2Y Treasury Yield", "DXY", "Russell 2000", "High Yield Credit Spreads"],
+        "event_bias": "labor_softening",
+        "surprise_axis": "claims_direction"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium_high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Unemployment Insurance Weekly Claims Report"]
+      }
+    },
+    {
+      "key": "US_JOLTS",
+      "event_key": "US_JOLTS",
+      "display_name": "JOLTS 구인·이직 보고서",
+      "category": "labor",
+      "provider": "fred",
+      "description": "기업의 구인 수요와 노동시장 긴장도를 보여주는 지표입니다.",
+      "short_label": "JOLTS",
+      "market_role": "구인 수요가 강하면 임금 압력과 고용 강세가 이어질 수 있어 연준 정책 해석에 참고됩니다.",
+      "higher_meaning": "구인 건수가 예상보다 많으면 노동 수요가 여전히 강하다는 뜻으로 받아들여질 수 있습니다.",
+      "lower_meaning": "구인 건수가 줄면 고용시장이 식고 있다는 신호로 해석될 수 있습니다.",
+      "watch_points": "채용, 이직률, 퇴사율 같은 세부 항목이 같은 방향인지 함께 확인하는 것이 좋습니다.",
+      "watch_items": ["2Y Treasury Yield", "FedWatch", "S&P 500", "Small Caps"],
+      "related_indicators": ["JTSJOL", "JTSQUR"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "JOLTS",
+        "description": "기업의 구인 수요와 노동시장 긴장도를 보여주는 지표입니다.",
+        "market_role": "구인 수요가 강하면 임금 압력과 고용 강세가 이어질 수 있어 연준 정책 해석에 참고됩니다.",
+        "higher_meaning": "구인 건수가 예상보다 많으면 노동 수요가 여전히 강하다는 뜻으로 받아들여질 수 있습니다.",
+        "lower_meaning": "구인 건수가 줄면 고용시장이 식고 있다는 신호로 해석될 수 있습니다.",
+        "watch_points": "채용, 이직률, 퇴사율 같은 세부 항목이 같은 방향인지 함께 확인하는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["2Y Treasury Yield", "FedWatch", "S&P 500", "Small Caps"],
+        "event_bias": "labor_tightness",
+        "surprise_axis": "job_openings_balance"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium",
+        "default_time": "10:00",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Job Openings and Labor Turnover Survey"]
+      }
+    },
+    {
+      "key": "US_GDP",
+      "event_key": "US_GDP",
+      "display_name": "미국 GDP",
+      "category": "growth",
+      "provider": "fred",
+      "description": "미국 경제 전체가 얼마나 성장했는지 보여주는 가장 대표적인 성장 지표입니다.",
+      "short_label": "GDP",
+      "market_role": "경기 둔화나 과열 여부를 판단하는 기본 자료라서 금리와 주식시장 해석의 출발점이 됩니다.",
+      "higher_meaning": "예상보다 높으면 경기 체력이 강하다는 뜻이지만 금리 부담 해석이 함께 붙을 수 있습니다.",
+      "lower_meaning": "예상보다 낮으면 경기 둔화 우려가 커질 수 있고 안전자산 선호가 강해질 수 있습니다.",
+      "watch_points": "헤드라인 성장률뿐 아니라 소비, 투자, 재고, 물가 디플레이터 구성도 함께 보는 것이 좋습니다.",
+      "watch_items": ["10Y Treasury Yield", "S&P 500", "Cyclical Sectors", "Atlanta Fed GDPNow"],
+      "related_indicators": ["GDP", "GDPC1"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "GDP",
+        "description": "미국 경제 전체가 얼마나 성장했는지 보여주는 가장 대표적인 성장 지표입니다.",
+        "market_role": "경기 둔화나 과열 여부를 판단하는 기본 자료라서 금리와 주식시장 해석의 출발점이 됩니다.",
+        "higher_meaning": "예상보다 높으면 경기 체력이 강하다는 뜻이지만 금리 부담 해석이 함께 붙을 수 있습니다.",
+        "lower_meaning": "예상보다 낮으면 경기 둔화 우려가 커질 수 있고 안전자산 선호가 강해질 수 있습니다.",
+        "watch_points": "헤드라인 성장률뿐 아니라 소비, 투자, 재고, 물가 디플레이터 구성도 함께 보는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["10Y Treasury Yield", "S&P 500", "Cyclical Sectors", "Atlanta Fed GDPNow"],
+        "event_bias": "broad_growth",
+        "surprise_axis": "growth_vs_slowdown"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Gross Domestic Product"]
+      }
+    },
+    {
+      "key": "US_RETAIL_SALES",
+      "event_key": "US_RETAIL_SALES",
+      "display_name": "소매판매",
+      "category": "growth",
+      "provider": "fred",
+      "description": "소비자들이 상품을 얼마나 구매했는지 보여주는 대표적인 소비 지표입니다.",
+      "short_label": "Retail Sales",
+      "market_role": "미국 경제에서 소비 비중이 크기 때문에 경기의 체력을 빠르게 판단하는 데 중요합니다.",
+      "higher_meaning": "예상보다 강하면 소비가 탄탄하다는 뜻으로 받아들여질 수 있지만 금리 부담 우려도 커질 수 있습니다.",
+      "lower_meaning": "예상보다 약하면 소비 둔화 우려가 커지며 경기 방어 심리가 강해질 수 있습니다.",
+      "watch_points": "자동차와 휘발유 영향을 제외한 핵심 소매판매가 같이 강한지 확인하는 것이 좋습니다.",
+      "watch_items": ["Consumer Discretionary", "S&P 500", "10Y Treasury Yield", "DXY"],
+      "related_indicators": ["RSAFS", "RRSFS"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Retail Sales",
+        "description": "소비자들이 상품을 얼마나 구매했는지 보여주는 대표적인 소비 지표입니다.",
+        "market_role": "미국 경제에서 소비 비중이 크기 때문에 경기의 체력을 빠르게 판단하는 데 중요합니다.",
+        "higher_meaning": "예상보다 강하면 소비가 탄탄하다는 뜻으로 받아들여질 수 있지만 금리 부담 우려도 커질 수 있습니다.",
+        "lower_meaning": "예상보다 약하면 소비 둔화 우려가 커지며 경기 방어 심리가 강해질 수 있습니다.",
+        "watch_points": "자동차와 휘발유 영향을 제외한 핵심 소매판매가 같이 강한지 확인하는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["Consumer Discretionary", "S&P 500", "10Y Treasury Yield", "DXY"],
+        "event_bias": "consumer_strength",
+        "surprise_axis": "core_consumption"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Advance Monthly Sales for Retail and Food Services"]
+      }
+    },
+    {
+      "key": "US_DURABLE_GOODS",
+      "event_key": "US_DURABLE_GOODS",
+      "display_name": "내구재 주문",
+      "category": "growth",
+      "provider": "fred",
+      "description": "오래 쓰는 제품에 대한 기업과 소비자의 주문 흐름을 보여주는 지표입니다.",
+      "short_label": "Durable Goods",
+      "market_role": "기업 투자와 제조업 수요의 방향을 가늠하는 데 도움이 됩니다.",
+      "higher_meaning": "예상보다 강하면 설비투자와 제조업 수요가 버티고 있다는 뜻으로 해석될 수 있습니다.",
+      "lower_meaning": "예상보다 약하면 기업 투자 심리가 둔화되고 있다는 신호가 될 수 있습니다.",
+      "watch_points": "항공기 같은 변동성이 큰 항목을 제외한 핵심 자본재 주문을 함께 보는 것이 좋습니다.",
+      "watch_items": ["Industrials", "10Y Treasury Yield", "Copper", "ISM Manufacturing"],
+      "related_indicators": ["DGORDER", "NEWORDER"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Durable Goods",
+        "description": "오래 쓰는 제품에 대한 기업과 소비자의 주문 흐름을 보여주는 지표입니다.",
+        "market_role": "기업 투자와 제조업 수요의 방향을 가늠하는 데 도움이 됩니다.",
+        "higher_meaning": "예상보다 강하면 설비투자와 제조업 수요가 버티고 있다는 뜻으로 해석될 수 있습니다.",
+        "lower_meaning": "예상보다 약하면 기업 투자 심리가 둔화되고 있다는 신호가 될 수 있습니다.",
+        "watch_points": "항공기 같은 변동성이 큰 항목을 제외한 핵심 자본재 주문을 함께 보는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["Industrials", "10Y Treasury Yield", "Copper", "ISM Manufacturing"],
+        "event_bias": "capex_cycle",
+        "surprise_axis": "business_investment"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["Manufacturers' Shipments, Inventories, and Orders"]
+      }
+    },
+    {
+      "key": "US_HOUSING_STARTS",
+      "event_key": "US_HOUSING_STARTS",
+      "display_name": "주택착공·건축허가",
+      "category": "housing",
+      "provider": "fred",
+      "description": "새 주택 건설이 얼마나 시작되고 허가되었는지 보여주는 주택 경기 지표입니다.",
+      "short_label": "Housing Starts",
+      "market_role": "주택시장은 금리에 민감해서 연준 정책이 실물경제에 미치는 영향을 확인하는 데 유용합니다.",
+      "higher_meaning": "예상보다 강하면 주택 수요와 건설 활동이 버티고 있다는 신호가 될 수 있습니다.",
+      "lower_meaning": "예상보다 약하면 고금리 부담이 주택시장에 더 크게 작용하고 있다는 뜻으로 해석될 수 있습니다.",
+      "watch_points": "착공과 허가가 같은 방향인지, 단독주택과 다세대 구성이 어떻게 다른지 함께 확인하는 것이 좋습니다.",
+      "watch_items": ["Homebuilders", "Mortgage Rates", "10Y Treasury Yield", "Regional Banks"],
+      "related_indicators": ["HOUST", "PERMIT"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Housing Starts",
+        "description": "새 주택 건설이 얼마나 시작되고 허가되었는지 보여주는 주택 경기 지표입니다.",
+        "market_role": "주택시장은 금리에 민감해서 연준 정책이 실물경제에 미치는 영향을 확인하는 데 유용합니다.",
+        "higher_meaning": "예상보다 강하면 주택 수요와 건설 활동이 버티고 있다는 신호가 될 수 있습니다.",
+        "lower_meaning": "예상보다 약하면 고금리 부담이 주택시장에 더 크게 작용하고 있다는 뜻으로 해석될 수 있습니다.",
+        "watch_points": "착공과 허가가 같은 방향인지, 단독주택과 다세대 구성이 어떻게 다른지 함께 확인하는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["Homebuilders", "Mortgage Rates", "10Y Treasury Yield", "Regional Banks"],
+        "event_bias": "rate_sensitive_housing",
+        "surprise_axis": "construction_cycle"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium",
+        "default_time": "08:30",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": ["New Residential Construction"]
+      }
+    },
+    {
+      "key": "US_NEW_HOME_SALES",
+      "event_key": "US_NEW_HOME_SALES",
+      "display_name": "신규주택판매",
+      "category": "housing",
+      "provider": "fred",
+      "description": "새로 지어진 주택의 판매 흐름을 보여주는 지표입니다.",
+      "short_label": "New Home Sales",
+      "market_role": "주택시장과 소비 여력을 함께 살펴볼 수 있어 경기 민감도를 판단하는 데 도움이 됩니다.",
+      "higher_meaning": "예상보다 강하면 주택 수요가 고금리 환경에서도 버티고 있다는 뜻으로 볼 수 있습니다.",
+      "lower_meaning": "예상보다 약하면 금리 부담이나 소비 여력 둔화가 주택 구매에 영향을 주고 있다는 신호일 수 있습니다.",
+      "watch_points": "판매 건수뿐 아니라 재고 개월 수와 평균 판매가격의 방향도 함께 보면 해석이 더 안정적입니다.",
+      "watch_items": ["Homebuilders", "Mortgage Rates", "XHB", "10Y Treasury Yield"],
+      "related_indicators": ["HSN1F"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "New Home Sales",
+        "description": "새로 지어진 주택의 판매 흐름을 보여주는 지표입니다.",
+        "market_role": "주택시장과 소비 여력을 함께 살펴볼 수 있어 경기 민감도를 판단하는 데 도움이 됩니다.",
+        "higher_meaning": "예상보다 강하면 주택 수요가 고금리 환경에서도 버티고 있다는 뜻으로 볼 수 있습니다.",
+        "lower_meaning": "예상보다 약하면 금리 부담이나 소비 여력 둔화가 주택 구매에 영향을 주고 있다는 신호일 수 있습니다.",
+        "watch_points": "판매 건수뿐 아니라 재고 개월 수와 평균 판매가격의 방향도 함께 보면 해석이 더 안정적입니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["Homebuilders", "Mortgage Rates", "XHB", "10Y Treasury Yield"],
+        "event_bias": "housing_demand",
+        "surprise_axis": "sales_and_inventory"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium",
+        "default_time": "10:00",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_medium",
+        "enabled": true,
+        "fred_release_names": ["New Residential Sales"]
+      }
+    },
+    {
+      "key": "US_ISM_MANUFACTURING",
+      "event_key": "US_ISM_MANUFACTURING",
+      "display_name": "ISM 제조업 PMI",
+      "category": "business_cycle",
+      "provider": "rule_generator",
+      "description": "제조업 기업들의 체감 경기와 주문, 생산, 고용 흐름을 보여주는 선행지표입니다.",
+      "short_label": "ISM Manufacturing",
+      "market_role": "경기 전환 신호를 비교적 빠르게 보여줘서 시장 방향을 해석할 때 자주 참고됩니다.",
+      "higher_meaning": "예상보다 강하면 제조업 경기와 기업 활동이 예상보다 탄탄하다는 해석으로 이어질 수 있습니다.",
+      "lower_meaning": "예상보다 약하면 제조업 둔화와 수요 약화 우려가 커질 수 있습니다.",
+      "watch_points": "헤드라인뿐 아니라 신규주문, 생산, 고용, 가격지수의 방향을 같이 보는 것이 중요합니다.",
+      "watch_items": ["S&P 500", "Industrials", "Copper", "10Y Treasury Yield"],
+      "related_indicators": ["NAPM"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "ISM Manufacturing",
+        "description": "제조업 기업들의 체감 경기와 주문, 생산, 고용 흐름을 보여주는 선행지표입니다.",
+        "market_role": "경기 전환 신호를 비교적 빠르게 보여줘서 시장 방향을 해석할 때 자주 참고됩니다.",
+        "higher_meaning": "예상보다 강하면 제조업 경기와 기업 활동이 예상보다 탄탄하다는 해석으로 이어질 수 있습니다.",
+        "lower_meaning": "예상보다 약하면 제조업 둔화와 수요 약화 우려가 커질 수 있습니다.",
+        "watch_points": "헤드라인뿐 아니라 신규주문, 생산, 고용, 가격지수의 방향을 같이 보는 것이 중요합니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["S&P 500", "Industrials", "Copper", "10Y Treasury Yield"],
+        "event_bias": "leading_business_cycle",
+        "surprise_axis": "manufacturing_momentum"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "10:00",
+        "timezone": "America/New_York",
+        "date_source": "rule_generator",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": []
+      }
+    },
+    {
+      "key": "US_ISM_SERVICES",
+      "event_key": "US_ISM_SERVICES",
+      "display_name": "ISM 서비스업 PMI",
+      "category": "business_cycle",
+      "provider": "rule_generator",
+      "description": "서비스업 기업들의 체감 경기를 보여주는 선행지표입니다.",
+      "short_label": "ISM Services",
+      "market_role": "미국 경제에서 서비스업 비중이 크기 때문에 경기 흐름과 물가 압력을 함께 해석하는 데 중요합니다.",
+      "higher_meaning": "예상보다 강하면 서비스 수요와 내수 체력이 여전히 좋다는 신호가 될 수 있습니다.",
+      "lower_meaning": "예상보다 약하면 미국 경제의 주력 부문이 식고 있다는 우려로 이어질 수 있습니다.",
+      "watch_points": "고용과 가격지수, 신규주문이 같은 방향인지 함께 확인해야 해석이 더 정확해집니다.",
+      "watch_items": ["S&P 500", "2Y Treasury Yield", "Consumer Discretionary", "Regional Banks"],
+      "related_indicators": ["NAPMS"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "ISM Services",
+        "description": "서비스업 기업들의 체감 경기를 보여주는 선행지표입니다.",
+        "market_role": "미국 경제에서 서비스업 비중이 크기 때문에 경기 흐름과 물가 압력을 함께 해석하는 데 중요합니다.",
+        "higher_meaning": "예상보다 강하면 서비스 수요와 내수 체력이 여전히 좋다는 신호가 될 수 있습니다.",
+        "lower_meaning": "예상보다 약하면 미국 경제의 주력 부문이 식고 있다는 우려로 이어질 수 있습니다.",
+        "watch_points": "고용과 가격지수, 신규주문이 같은 방향인지 함께 확인해야 해석이 더 정확해집니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["S&P 500", "2Y Treasury Yield", "Consumer Discretionary", "Regional Banks"],
+        "event_bias": "services_momentum",
+        "surprise_axis": "domestic_demand"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "high",
+        "default_time": "10:00",
+        "timezone": "America/New_York",
+        "date_source": "rule_generator",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": []
+      }
+    },
+    {
+      "key": "FOMC_MEETING",
+      "event_key": "FOMC_MEETING",
+      "display_name": "FOMC 금리결정",
+      "category": "fed",
+      "provider": "federal_reserve",
+      "description": "연준이 기준금리와 정책 방향을 결정하는 핵심 회의입니다.",
+      "short_label": "FOMC",
+      "market_role": "금리, 주식, 환율, 채권시장 전반에 큰 영향을 주는 가장 중요한 이벤트 중 하나입니다.",
+      "higher_meaning": "회의 결과가 예상보다 매파적으로 나오면 단기 금리와 달러가 오르고 위험자산은 부담을 받을 수 있습니다.",
+      "lower_meaning": "회의 결과가 예상보다 비둘기적으로 나오면 금리 인하 기대가 커지며 위험자산에는 우호적으로 작용할 수 있습니다.",
+      "watch_points": "결정 금리뿐 아니라 성명서 문구, 점도표, 기자회견 톤, FedWatch 변화까지 같이 봐야 합니다.",
+      "watch_items": ["FedWatch", "2Y Treasury Yield", "S&P 500", "DXY"],
+      "related_indicators": ["FEDFUNDS", "DFEDTARU", "DFEDTARL"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "FOMC",
+        "description": "연준이 기준금리와 정책 방향을 결정하는 핵심 회의입니다.",
+        "market_role": "금리, 주식, 환율, 채권시장 전반에 큰 영향을 주는 가장 중요한 이벤트 중 하나입니다.",
+        "higher_meaning": "회의 결과가 예상보다 매파적으로 나오면 단기 금리와 달러가 오르고 위험자산은 부담을 받을 수 있습니다.",
+        "lower_meaning": "회의 결과가 예상보다 비둘기적으로 나오면 금리 인하 기대가 커지며 위험자산에는 우호적으로 작용할 수 있습니다.",
+        "watch_points": "결정 금리뿐 아니라 성명서 문구, 점도표, 기자회견 톤, FedWatch 변화까지 같이 봐야 합니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["FedWatch", "2Y Treasury Yield", "S&P 500", "DXY"],
+        "event_bias": "policy_rate_path",
+        "surprise_axis": "hawkish_vs_dovish"
+      },
+      "event_definition": {
+        "event_type": "central_bank",
+        "importance": "critical",
+        "default_time": "14:00",
+        "timezone": "America/New_York",
+        "date_source": "federal_reserve",
+        "time_confidence": "confirmed",
+        "enabled": true,
+        "fred_release_names": []
+      }
+    },
+    {
+      "key": "FOMC_MINUTES",
+      "event_key": "FOMC_MINUTES",
+      "display_name": "FOMC 의사록",
+      "category": "fed",
+      "provider": "federal_reserve",
+      "description": "이전 FOMC 회의에서 어떤 논의가 있었는지 자세히 보여주는 문서입니다.",
+      "short_label": "Minutes",
+      "market_role": "연준 내부의 정책 시각과 향후 금리 경로 힌트를 읽는 데 중요합니다.",
+      "higher_meaning": "의사록 내용이 예상보다 매파적이면 시장은 추가 긴축 가능성이나 고금리 장기화를 의식할 수 있습니다.",
+      "lower_meaning": "의사록 내용이 예상보다 비둘기적이면 금리 부담 완화 기대가 커질 수 있습니다.",
+      "watch_points": "표결 자체보다 인플레이션, 고용, 리스크 균형에 대한 문장 변화와 이후 위원 발언을 함께 확인해야 합니다.",
+      "watch_items": ["FedWatch", "2Y Treasury Yield", "DXY", "Nasdaq 100"],
+      "related_indicators": ["FEDFUNDS", "DFEDTARU", "DFEDTARL"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Minutes",
+        "description": "이전 FOMC 회의에서 어떤 논의가 있었는지 자세히 보여주는 문서입니다.",
+        "market_role": "연준 내부의 정책 시각과 향후 금리 경로 힌트를 읽는 데 중요합니다.",
+        "higher_meaning": "의사록 내용이 예상보다 매파적이면 시장은 추가 긴축 가능성이나 고금리 장기화를 의식할 수 있습니다.",
+        "lower_meaning": "의사록 내용이 예상보다 비둘기적이면 금리 부담 완화 기대가 커질 수 있습니다.",
+        "watch_points": "표결 자체보다 인플레이션, 고용, 리스크 균형에 대한 문장 변화와 이후 위원 발언을 함께 확인해야 합니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["FedWatch", "2Y Treasury Yield", "DXY", "Nasdaq 100"],
+        "event_bias": "policy_communication",
+        "surprise_axis": "minutes_tone"
+      },
+      "event_definition": {
+        "event_type": "central_bank",
+        "importance": "high",
+        "default_time": "14:00",
+        "timezone": "America/New_York",
+        "date_source": "federal_reserve",
+        "time_confidence": "static_high",
+        "enabled": true,
+        "fred_release_names": []
+      }
+    },
+    {
+      "key": "US_MONTHLY_OPEX",
+      "event_key": "US_MONTHLY_OPEX",
+      "display_name": "월간 옵션 만기",
+      "category": "market_structure",
+      "provider": "rule_generator",
+      "description": "주식과 지수 옵션 계약이 만료되는 날입니다.",
+      "short_label": "Monthly OPEX",
+      "market_role": "포지션 정리와 헤지 조정이 몰리면서 장 마감 전후로 단기 변동성이 커질 수 있습니다.",
+      "higher_meaning": "가격이 높고 낮음보다 거래량과 헤지 수요가 얼마나 쏠리는지가 더 중요합니다.",
+      "lower_meaning": "가격이 높고 낮음보다 거래량과 헤지 수요가 얼마나 쏠리는지가 더 중요합니다.",
+      "watch_points": "옵션 만기일에는 지수 방향보다 장중 변동성, 거래대금, 마감 동시호가 흐름을 같이 보는 편이 좋습니다.",
+      "watch_items": ["S&P 500", "QQQ", "VIX", "Dealer Gamma"],
+      "related_indicators": [],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Monthly OPEX",
+        "description": "주식과 지수 옵션 계약이 만료되는 날입니다.",
+        "market_role": "포지션 정리와 헤지 조정이 몰리면서 장 마감 전후로 단기 변동성이 커질 수 있습니다.",
+        "higher_meaning": "가격이 높고 낮음보다 거래량과 헤지 수요가 얼마나 쏠리는지가 더 중요합니다.",
+        "lower_meaning": "가격이 높고 낮음보다 거래량과 헤지 수요가 얼마나 쏠리는지가 더 중요합니다.",
+        "watch_points": "옵션 만기일에는 지수 방향보다 장중 변동성, 거래대금, 마감 동시호가 흐름을 같이 보는 편이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["S&P 500", "QQQ", "VIX", "Dealer Gamma"],
+        "event_bias": "market_microstructure",
+        "surprise_axis": "volatility_and_flow"
+      },
+      "event_definition": {
+        "event_type": "market_structure",
+        "importance": "medium",
+        "default_time": "16:00",
+        "timezone": "America/New_York",
+        "date_source": "rule_generator",
+        "time_confidence": "static_medium",
+        "enabled": true,
+        "fred_release_names": []
+      }
+    },
+    {
+      "key": "US_TRIPLE_WITCHING",
+      "event_key": "US_TRIPLE_WITCHING",
+      "display_name": "분기 동시만기",
+      "category": "market_structure",
+      "provider": "rule_generator",
+      "description": "주가지수 선물, 주가지수 옵션, 개별주식 옵션 등이 함께 만기되는 분기 이벤트입니다.",
+      "short_label": "Triple Witching",
+      "market_role": "거래량과 변동성이 평소보다 크게 늘어날 수 있어 장중 흐름이 거칠어지기 쉽습니다.",
+      "higher_meaning": "방향성보다 거래량, 프로그램 매매, 헤지 재조정이 얼마나 크게 나오는지가 더 중요합니다.",
+      "lower_meaning": "방향성보다 거래량, 프로그램 매매, 헤지 재조정이 얼마나 크게 나오는지가 더 중요합니다.",
+      "watch_points": "월간 OPEX보다 규모가 크기 쉬워서 현물과 선물 베이시스, 마감 수급, 변동성 지표를 함께 보는 편이 좋습니다.",
+      "watch_items": ["S&P 500", "Nasdaq 100", "VIX", "Market Volume"],
+      "related_indicators": [],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Triple Witching",
+        "description": "주가지수 선물, 주가지수 옵션, 개별주식 옵션 등이 함께 만기되는 분기 이벤트입니다.",
+        "market_role": "거래량과 변동성이 평소보다 크게 늘어날 수 있어 장중 흐름이 거칠어지기 쉽습니다.",
+        "higher_meaning": "방향성보다 거래량, 프로그램 매매, 헤지 재조정이 얼마나 크게 나오는지가 더 중요합니다.",
+        "lower_meaning": "방향성보다 거래량, 프로그램 매매, 헤지 재조정이 얼마나 크게 나오는지가 더 중요합니다.",
+        "watch_points": "월간 OPEX보다 규모가 크기 쉬워서 현물과 선물 베이시스, 마감 수급, 변동성 지표를 함께 보는 편이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["S&P 500", "Nasdaq 100", "VIX", "Market Volume"],
+        "event_bias": "quarterly_expiry",
+        "surprise_axis": "flow_intensity"
+      },
+      "event_definition": {
+        "event_type": "market_structure",
+        "importance": "high",
+        "default_time": "16:00",
+        "timezone": "America/New_York",
+        "date_source": "rule_generator",
+        "time_confidence": "static_medium",
+        "enabled": true,
+        "fred_release_names": []
+      }
+    },
+    {
+      "key": "US_CONSUMER_SENTIMENT",
+      "event_key": "US_CONSUMER_SENTIMENT",
+      "display_name": "소비자심리지수",
+      "category": "sentiment",
+      "provider": "fred",
+      "description": "소비자들이 경제와 자신의 재정 상황을 어떻게 느끼는지 보여주는 심리 지표입니다.",
+      "short_label": "Sentiment",
+      "market_role": "소비 둔화나 회복 가능성을 미리 가늠하는 데 도움이 되고, 기대 인플레이션 해석에도 참고됩니다.",
+      "higher_meaning": "예상보다 높으면 소비 심리와 경기 체감이 양호하다는 뜻으로 해석될 수 있습니다.",
+      "lower_meaning": "예상보다 낮으면 소비 심리가 위축되고 있다는 신호로 받아들여질 수 있습니다.",
+      "watch_points": "기대 인플레이션 항목이 같이 오르는지, 다른 소비 지표와 같은 방향인지 확인하는 것이 좋습니다.",
+      "watch_items": ["Consumer Discretionary", "S&P 500", "10Y Treasury Yield", "Inflation Expectations"],
+      "related_indicators": ["UMCSENT"],
+      "workflow_status": {
+        "is_runtime_signal": false,
+        "is_static_explanation": true,
+        "safe_for_display": true,
+        "safe_for_scoring": false,
+        "display_only_until_workflow_connected": true
+      },
+      "display_text": {
+        "short_label": "Sentiment",
+        "description": "소비자들이 경제와 자신의 재정 상황을 어떻게 느끼는지 보여주는 심리 지표입니다.",
+        "market_role": "소비 둔화나 회복 가능성을 미리 가늠하는 데 도움이 되고, 기대 인플레이션 해석에도 참고됩니다.",
+        "higher_meaning": "예상보다 높으면 소비 심리와 경기 체감이 양호하다는 뜻으로 해석될 수 있습니다.",
+        "lower_meaning": "예상보다 낮으면 소비 심리가 위축되고 있다는 신호로 받아들여질 수 있습니다.",
+        "watch_points": "기대 인플레이션 항목이 같이 오르는지, 다른 소비 지표와 같은 방향인지 확인하는 것이 좋습니다."
+      },
+      "analysis_hints": {
+        "not_runtime_sentiment": true,
+        "not_runtime_expectation": true,
+        "requires_runtime_context": true,
+        "watch_items": ["Consumer Discretionary", "S&P 500", "10Y Treasury Yield", "Inflation Expectations"],
+        "event_bias": "consumer_psychology",
+        "surprise_axis": "confidence_and_inflation_expectations"
+      },
+      "event_definition": {
+        "event_type": "macro_release",
+        "importance": "medium",
+        "default_time": "10:00",
+        "timezone": "America/New_York",
+        "date_source": "fred",
+        "time_confidence": "static_medium",
+        "enabled": true,
+        "fred_release_names": ["University of Michigan Surveys of Consumers"]
+      }
+    }
+  ]
+}
