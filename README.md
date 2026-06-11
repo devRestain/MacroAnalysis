@@ -2,7 +2,7 @@
 
 MacroAnalysis is a Docker-first macro data platform for collecting market and economic signals, normalizing them into a single time-series model, exposing them through FastAPI, and layering AI briefing plus sentiment/divergence analysis on top.
 
-The current backend no longer uses legacy per-domain tables such as `interest_rates`, `macro_indicators`, or `exchange_rates`. The source of truth is now `indicators + observations + signals`, with calendar, news, AI, sentiment, and ops models separated by domain.
+The current backend no longer uses legacy per-domain tables such as `interest_rates`, `macro_indicators`, or `exchange_rates`. The source of truth is now `indicators + observations + signals`, with calendar, news, AI, sentiment, and ops models separated by domain. Central-bank communications are stored in a generalized `communication_events` table rather than a FOMC-only event model.
 
 ## What It Does
 
@@ -11,7 +11,7 @@ The current backend no longer uses legacy per-domain tables such as `interest_ra
 - Serves dashboard, history, calendar, news, AI, and sentiment APIs through FastAPI.
 - Runs scheduled collection and post-processing jobs with Celery worker/beat.
 - Stores application data in PostgreSQL and uses Redis for cache, broker, backend, and rate-limit state.
-- Generates daily AI insight summaries and sentiment/divergence signals when the required keys are configured.
+- Generates typed AI summaries (`macro`, `market`, `calendar`, `communication`) and sentiment/divergence signals when the required keys are configured.
 
 ## Architecture
 
@@ -83,9 +83,9 @@ MacroAnalysis/
 ### Backend Domain Boundaries
 
 - `backend/app/models/timeseries.py`: `Indicator`, `Observation`, `Signal`, `ChangeSnapshot`
-- `backend/app/models/calendar.py`: FOMC and economic calendar models
+- `backend/app/models/calendar.py`: `CommunicationEvent`, FOMC detail, and economic calendar models
 - `backend/app/models/news.py`: `NewsItem` and URL-hash deduplication
-- `backend/app/models/ai.py`: AI summary and explanation models
+- `backend/app/models/ai.py`: typed `AiSummary`, legacy `DailyInsight`, and explanation models
 - `backend/app/models/sentiment.py`: sentiment, expectation, divergence models
 - `backend/app/models/ops.py`: cleanup and collection run models
 
@@ -95,7 +95,7 @@ MacroAnalysis/
 - `indicators.py`: chart/history/explanation APIs
 - `calendar.py`: calendar and FOMC APIs
 - `news.py`: news listing API
-- `ai.py`: AI summary and AI chat APIs
+- `ai.py`: typed AI summary and AI chat APIs
 - `sentiment.py`: expectations, divergence, sentiment signal APIs
 
 ## Database Model and Migration Policy
@@ -106,6 +106,8 @@ MacroAnalysis/
 - `observations` keeps one latest value per `indicator_id + date`.
 - Vintage or revision history is not stored yet.
 - If vintage support becomes necessary, add a dedicated migration with `vintage_date` or `revision_tag` rather than weakening the current unique key.
+- Central-bank communication records are stored in `communication_events`.
+- FOMC-specific meeting outcome details remain in `fomc_event_details`, linked from `economic_calendar_events`.
 
 ### Migration Policy
 
@@ -120,6 +122,12 @@ MacroAnalysis/
 ### Legacy Bootstrap Note
 
 Older environments that were created during the `create_all()` era may have real tables but no `alembic_version` row. `backend/app/core/migration_bootstrap.py` detects that case and stamps the DB to the correct baseline before applying newer migrations.
+
+### Migration Safety
+
+- Back up PostgreSQL before applying schema changes in shared environments.
+- The communication generalization migration moves existing `fomc_events` rows into `communication_events`.
+- The AI summary migration expands `ai_summaries` with `summary_type` and `target_key`.
 
 ## Running the Stack
 
@@ -232,7 +240,7 @@ make test-container
 
 - `make collect`: runs `morning -> noon -> evening`
 - `make collect-calendar`: runs calendar collection batch
-- `make collect-weekly`: runs weekly calendar/FOMC maintenance batch
+- `make collect-weekly`: runs weekly calendar, FOMC, and Fed communication collection
 - `make collect-sentiment`: runs the sentiment pipeline synchronously
 - `make ensure-ai-insight`: forces or ensures daily AI insight generation
 
@@ -249,6 +257,7 @@ make test-container
 - `/api/ai/chat` supports `X-API-Key` validation through `API_ACCESS_KEY`.
 - If `API_ACCESS_KEY` is empty, the route is open but still rate-limited.
 - The frontend can forward this via `VITE_API_ACCESS_KEY` when needed.
+- `/api/ai/summary` supports `summary_type`, `target_key`, and `days` query parameters.
 
 Example:
 
@@ -332,6 +341,30 @@ curl "http://localhost:8000/api/calendar/events?days=30&include_details=true"
 curl http://localhost:8000/api/fomc
 ```
 
+### Typed AI Summary
+
+```bash
+curl "http://localhost:8000/api/ai/summary?summary_type=macro&days=7"
+curl "http://localhost:8000/api/ai/summary?summary_type=communication&target_key=Powell&days=30"
+```
+
+Response shape:
+
+```json
+{
+  "id": 1,
+  "summary_date": "2026-06-11T10:00:00",
+  "summary_type": "communication",
+  "target_key": "Powell",
+  "headline": "Communication summary (Powell)",
+  "body": "Recent Federal Reserve communication context...",
+  "model_used": "gpt-4o-mini",
+  "metadata": {
+    "event_count": 1
+  }
+}
+```
+
 ### Sentiment and Divergence
 
 ```bash
@@ -339,6 +372,8 @@ curl "http://localhost:8000/api/expectations?days=30"
 curl "http://localhost:8000/api/divergence?days=7"
 curl "http://localhost:8000/api/sentiment/signals?limit=50"
 ```
+
+Communication events can also feed this pipeline directly. The normalized source type stored in `sentiment_signals.source_type` is `communication_event`.
 
 ## Testing
 
@@ -373,6 +408,8 @@ cd backend
   4. README update if the operation surface changed
 - Do not reintroduce legacy per-domain time-series tables.
 - Prefer using `indicator_registry` and observation upserts for new time-series collectors.
+- Prefer `CommunicationEvent` over FOMC-specific ad hoc models for new central-bank content.
+- When adding AI summaries, scope them with `summary_type` and `target_key` instead of creating one-off tables.
 
 ## Known Follow-Up Work
 

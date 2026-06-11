@@ -5,16 +5,36 @@ from sqlalchemy.sql import func
 from ..core.database import Base
 
 
-class FomcEvent(Base):
-    __tablename__ = "fomc_events"
+class CommunicationEvent(Base):
+    __tablename__ = "communication_events"
 
     id = Column(Integer, primary_key=True)
-    meeting_date = Column(DateTime, nullable=False, unique=True)
+    event_date = Column(DateTime, nullable=False)
+    source = Column(String(100), nullable=False, default="Federal Reserve")
+    title = Column(String(255), nullable=False)
+    event_type = Column(String(50), nullable=False)
+    url = Column(Text, nullable=True)
+    institution = Column(String(100), nullable=False, default="Federal Reserve")
+    country = Column(String(20), nullable=False, default="US")
+    content_text = Column(Text, nullable=True)
+    meeting_date = Column(DateTime, nullable=True)
     decision_rate = Column(Float)
     change_bp = Column(Integer)
-    statement_url = Column(Text)
-    minutes_url = Column(Text)
+    statement_url = Column(Text, nullable=True)
+    minutes_url = Column(Text, nullable=True)
+    projection_url = Column(Text, nullable=True)
+    metadata_json = Column(JSON, nullable=True)
+    sentiment_status = Column(String(20), nullable=True)
+    sentiment_queued_at = Column(DateTime, nullable=True)
+    sentiment_extracted_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("ix_communication_events_type_date", "event_type", "event_date"),
+        Index("ix_communication_events_source_date", "source", "event_date"),
+        UniqueConstraint("source", "event_type", "event_date", "title", name="uq_communication_event_identity"),
+    )
 
 
 class FedWatch(Base):

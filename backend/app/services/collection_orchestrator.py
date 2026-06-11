@@ -6,6 +6,7 @@ from typing import Any, Callable
 
 from sqlalchemy.orm import Session
 
+from ..collectors.communication_collector import collect_fed_communications
 from ..collectors.fomc_collector import collect_fedwatch, collect_fomc_calendar
 from ..collectors.fred_collector import collect_credit_spreads, collect_macro, collect_rates
 from ..collectors.fx_collector import collect_exchange_rates
@@ -86,6 +87,7 @@ def run_weekly_batch(db: Session) -> dict[str, Any]:
     jobs = [
         _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
+        _guarded_job("fed_communications", "federalreserve", lambda session: collect_fed_communications(session)),
         _maintenance_job("collection_runs_maintenance"),
     ]
     return _run_batch(db, "weekly", jobs)
@@ -95,6 +97,7 @@ def run_calendar_batch(db: Session) -> dict[str, Any]:
     jobs = [
         _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
+        _guarded_job("fed_communications", "federalreserve", lambda session: collect_fed_communications(session)),
     ]
     return _run_batch(db, "calendar", jobs)
 
@@ -197,7 +200,7 @@ def _guarded_job(job_key: str, provider: str, fn: Callable[[Session], Any]) -> d
         "provider": provider,
         "min_interval_minutes": get_default_min_interval(job_key),
         "fn": fn,
-        "invalidate_cache": job_key in {"snapshot_compute", "fred_rates", "fred_macro", "credit_spreads", "equity_us_global", "equity_asia", "sector_performance", "fedwatch", "fx_rates", "news", "fomc_calendar", "calendar_events"},
+        "invalidate_cache": job_key in {"snapshot_compute", "fred_rates", "fred_macro", "credit_spreads", "equity_us_global", "equity_asia", "sector_performance", "fedwatch", "fx_rates", "news", "fomc_calendar", "fed_communications", "calendar_events"},
     }
 
 
@@ -336,6 +339,7 @@ def _all_job_definitions() -> list[dict[str, Any]]:
         _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
         _guarded_job("calendar_events", "calendar", lambda session: collect_calendar_events(session)),
         _guarded_job("fomc_calendar", "federalreserve", lambda session: collect_fomc_calendar(session)),
+        _guarded_job("fed_communications", "federalreserve", lambda session: collect_fed_communications(session)),
     ]
 
 

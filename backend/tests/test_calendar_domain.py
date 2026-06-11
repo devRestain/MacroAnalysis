@@ -12,8 +12,10 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.collectors.calendar.rule_based_market_calendar import generate_monthly_opex, generate_triple_witching
 from app.core.database import Base
+from app.models import CommunicationEvent
 from app.services.calendar_collection_service import collect_calendar_events
 from app.models.calendar import EconomicCalendarEvent
+from app.services.communication_event_service import upsert_communication_event
 from app.services.calendar_query_service import get_next_fomc_meeting_date
 from app.services.calendar_upsert import upsert_calendar_event, upsert_fomc_detail
 
@@ -164,6 +166,36 @@ class CalendarDomainTests(unittest.TestCase):
         self.db.commit()
         next_meeting = get_next_fomc_meeting_date(self.db, now=datetime(2026, 6, 1, 0, 0))
         self.assertEqual(next_meeting, datetime(2026, 7, 29, 14, 0))
+
+    def test_communication_event_supports_non_fomc_records(self) -> None:
+        first = upsert_communication_event(
+            self.db,
+            {
+                "event_date": datetime(2026, 6, 20, 10, 0),
+                "source": "Federal Reserve",
+                "title": "Chair speech on inflation outlook",
+                "event_type": "speech",
+                "url": "https://example.com/speech",
+                "content_text": "Inflation progress continues, but policy remains restrictive.",
+            },
+        )
+        second = upsert_communication_event(
+            self.db,
+            {
+                "event_date": datetime(2026, 6, 20, 10, 0),
+                "source": "Federal Reserve",
+                "title": "Chair speech on inflation outlook",
+                "event_type": "speech",
+                "url": "https://example.com/speech-v2",
+                "content_text": "Updated speech body.",
+            },
+        )
+        self.db.commit()
+
+        rows = self.db.query(CommunicationEvent).all()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(first.id, second.id)
+        self.assertEqual(rows[0].url, "https://example.com/speech-v2")
 
     def test_calendar_collection_tolerates_bls_failure(self) -> None:
         with patch("app.services.calendar_collection_service.collect_fred_release_calendar") as fred, patch(

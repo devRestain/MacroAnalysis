@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 
 from ..core.config import settings
 from ..core.upsert import upsert_rows
-from ..models import EconomicCalendarEvent, FedWatch, FomcEvent, FomcEventDetail, SentimentSignal
+from ..models import CommunicationEvent, EconomicCalendarEvent, FedWatch, FomcEventDetail, SentimentSignal
+from ..services.communication_event_service import upsert_communication_event
 from ..services.calendar_query_service import (
     FOMC_EVENT_KEY,
     FOMC_EVENT_SOURCE,
@@ -88,18 +89,29 @@ def collect_fomc_calendar(db: Session):
         now = datetime.now().replace(microsecond=0)
         for meeting in meetings:
             meeting_end_dt = meeting["meeting_end_date"]
-            fomc_event = db.query(FomcEvent).filter(FomcEvent.meeting_date == meeting_end_dt).first()
-            if fomc_event is None:
-                fomc_event = FomcEvent(meeting_date=meeting_end_dt)
-                db.add(fomc_event)
-                db.flush()
-
             statement_url = meeting["links"].get("statement_url")
             minutes_url = meeting["links"].get("minutes_url")
-            if statement_url:
-                fomc_event.statement_url = statement_url
-            if minutes_url:
-                fomc_event.minutes_url = minutes_url
+            communication_event = upsert_communication_event(
+                db,
+                {
+                    "event_date": meeting_end_dt,
+                    "source": FOMC_EVENT_SOURCE,
+                    "title": "FOMC Meeting",
+                    "event_type": "fomc_meeting",
+                    "url": statement_url or FED_CALENDAR_URL,
+                    "meeting_date": meeting_end_dt,
+                    "decision_rate": None,
+                    "change_bp": None,
+                    "statement_url": statement_url,
+                    "minutes_url": minutes_url,
+                    "projection_url": meeting["links"].get("projection_materials_url"),
+                    "metadata_json": {
+                        "has_sep": meeting["has_sep"],
+                        "implementation_note_url": meeting["links"].get("implementation_note_url"),
+                        "press_conference_url": meeting["links"].get("press_conference_url"),
+                    },
+                },
+            )
 
             calendar_event = upsert_calendar_event(
                 db,
@@ -151,7 +163,7 @@ def collect_fomc_calendar(db: Session):
 
             sentiment_candidates.append(
                 {
-                    "fomc_event_id": fomc_event.id,
+                    "communication_event_id": communication_event.id,
                     "calendar_event_id": calendar_event.id,
                     "meeting_end_dt": meeting_end_dt,
                     "statement_url": statement_url,
@@ -163,7 +175,7 @@ def collect_fomc_calendar(db: Session):
         for candidate in sentiment_candidates:
             if _maybe_queue_fomc_statement_sentiment(
                 db,
-                fomc_event_id=int(candidate["fomc_event_id"]),
+                communication_event_id=int(candidate["communication_event_id"]),
                 calendar_event_id=int(candidate["calendar_event_id"]),
                 meeting_end_dt=candidate["meeting_end_dt"],
                 statement_url=candidate["statement_url"],
@@ -317,7 +329,7 @@ def _has_sep(row) -> bool:
 def _maybe_queue_fomc_statement_sentiment(
     db: Session,
     *,
-    fomc_event_id: int,
+    communication_event_id: int,
     calendar_event_id: int,
     meeting_end_dt: datetime,
     statement_url: str | None,
@@ -348,8 +360,8 @@ def _maybe_queue_fomc_statement_sentiment(
     already_processed = (
         db.query(SentimentSignal.id)
         .filter(
-            SentimentSignal.source_type == "fomc",
-            SentimentSignal.source_id == fomc_event_id,
+            SentimentSignal.source_type == "communication_event",
+            SentimentSignal.source_id == communication_event_id,
         )
         .first()
     )
@@ -365,22 +377,30 @@ def _maybe_queue_fomc_statement_sentiment(
     if len(statement_text) < settings.FOMC_SENTIMENT_MIN_TEXT_LENGTH:
         logger.info(
             "FOMC statement text too short for sentiment extraction: event_id=%s chars=%s",
-            fomc_event_id,
+            communication_event_id,
             len(statement_text),
         )
         return False
 
     try:
+        communication_event = db.query(CommunicationEvent).filter(CommunicationEvent.id == communication_event_id).first()
+        if communication_event is not None:
+            communication_event.content_text = statement_text
+            communication_event.sentiment_status = "pending"
+            communication_event.sentiment_queued_at = now
         if fomc_detail is not None:
             fomc_detail.sentiment_status = "pending"
             fomc_detail.sentiment_queued_at = now
-            db.commit()
-        _enqueue_fomc_sentiment_task(fomc_event_id=fomc_event_id, text=statement_text)
+        db.commit()
+        _enqueue_fomc_sentiment_task(communication_event_id=communication_event_id, text=statement_text)
     except Exception as exc:
+        communication_event = db.query(CommunicationEvent).filter(CommunicationEvent.id == communication_event_id).first()
+        if communication_event is not None:
+            communication_event.sentiment_status = "failed"
         if fomc_detail is not None:
             fomc_detail.sentiment_status = "failed"
             db.commit()
-        logger.warning("FOMC sentiment queue failed for event_id=%s: %s", fomc_event_id, exc)
+        logger.warning("FOMC sentiment queue failed for event_id=%s: %s", communication_event_id, exc)
         return False
     return True
 
@@ -426,7 +446,7 @@ def _normalize_statement_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def _enqueue_fomc_sentiment_task(*, fomc_event_id: int, text: str) -> None:
-    from ..workers.sentiment_worker import extract_fomc_sentiment
+def _enqueue_fomc_sentiment_task(*, communication_event_id: int, text: str) -> None:
+    from ..workers.sentiment_worker import extract_communication_event_sentiment
 
-    extract_fomc_sentiment.delay(fomc_event_id, text)
+    extract_communication_event_sentiment.delay(communication_event_id, text)

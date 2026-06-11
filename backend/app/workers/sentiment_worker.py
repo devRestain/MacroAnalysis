@@ -7,7 +7,8 @@ Layer 3 : Divergence 탐지
 Layer 4 : 리포트 생성 (ALERT 등급)
 
 Celery chain: extract_daily_sentiments → update_expectations → detect_divergence
-FOMC/FED 발언은 이벤트 기반으로 즉시 처리 (extract_fomc_sentiment).
+Central-bank communication events are handled immediately through
+extract_communication_event_sentiment.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import or_
@@ -77,7 +78,7 @@ except ModuleNotFoundError:  # pragma: no cover - lightweight test fallback
 from ..core.config import settings
 from ..core.database import SessionLocal
 from ..core.upsert import upsert_rows
-from ..models import DivergenceEvent, DivergenceReport, Expectation, FomcEvent, FomcEventDetail, NewsItem, SentimentSignal
+from ..models import CommunicationEvent, DivergenceEvent, DivergenceReport, Expectation, FomcEventDetail, NewsItem, SentimentSignal
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ def _normalize_batch_date(batch_date_iso: str | None = None, batch_date: datetim
     base = batch_date or (
         datetime.fromisoformat(batch_date_iso)
         if batch_date_iso
-        else datetime.utcnow()
+        else datetime.now(timezone.utc).replace(tzinfo=None)
     )
     return base.replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -343,8 +344,8 @@ def extract_daily_sentiments(self, batch_date_iso: str | None = None):
         db.close()
 
 
-@shared_task(name="workers.extract_fomc_sentiment", bind=True, max_retries=3)
-def extract_fomc_sentiment(self, fomc_event_id: int, text: str):
+@shared_task(name="workers.extract_communication_event_sentiment", bind=True, max_retries=3)
+def extract_communication_event_sentiment(self, communication_event_id: int, text: str):
     """
     FOMC 발표문 / FED 연설 이벤트 기반 즉시 처리.
     fomc_collector 또는 news_collector 가 해당 이벤트 후 직접 호출.
@@ -381,8 +382,8 @@ TEXT:
                 continue
             signal_rows.append(
                 {
-                    "source_type": "fomc",
-                    "source_id": fomc_event_id,
+                    "source_type": "communication_event",
+                    "source_id": communication_event_id,
                     "batch_date": batch_date,
                     "actor": actor,
                     "dimension": dimension,
@@ -400,27 +401,44 @@ TEXT:
             conflict_columns=["source_type", "source_id", "batch_date", "actor", "dimension", "stance"],
             update_columns=["stance_score", "intensity", "confidence", "evidence"],
         )
-        _mark_fomc_sentiment_extracted(db, fomc_event_id=fomc_event_id, extracted_at=datetime.utcnow())
+        _mark_communication_event_sentiment_extracted(
+            db,
+            communication_event_id=communication_event_id,
+            extracted_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        )
         db.commit()
-        logger.info(f"[sentiment] FOMC {fomc_event_id} → {len(signal_rows)}개 신호")
+        logger.info(f"[sentiment] communication_event {communication_event_id} → {len(signal_rows)}개 신호")
         return {"signals": len(signal_rows)}
     finally:
         db.close()
 
 
-def _mark_fomc_sentiment_extracted(db: Session, *, fomc_event_id: int, extracted_at: datetime) -> None:
-    fomc_event = db.query(FomcEvent).filter(FomcEvent.id == fomc_event_id).first()
-    if fomc_event is None:
+@shared_task(name="workers.extract_fomc_sentiment", bind=True, max_retries=3)
+def extract_fomc_sentiment(self, fomc_event_id: int, text: str):
+    """Backward-compatible alias for older queues; expects a communication_event id now."""
+    return extract_communication_event_sentiment.run(fomc_event_id, text)
+
+
+def _mark_communication_event_sentiment_extracted(
+    db: Session,
+    *,
+    communication_event_id: int,
+    extracted_at: datetime,
+) -> None:
+    communication_event = db.query(CommunicationEvent).filter(CommunicationEvent.id == communication_event_id).first()
+    if communication_event is None:
         return
-    detail = (
-        db.query(FomcEventDetail)
-        .filter(FomcEventDetail.meeting_end_date == fomc_event.meeting_date)
-        .first()
-    )
-    if detail is None:
-        return
-    detail.sentiment_status = "success"
-    detail.sentiment_extracted_at = extracted_at
+    communication_event.sentiment_status = "success"
+    communication_event.sentiment_extracted_at = extracted_at
+    if communication_event.event_type == "fomc_meeting" and communication_event.meeting_date is not None:
+        detail = (
+            db.query(FomcEventDetail)
+            .filter(FomcEventDetail.meeting_end_date == communication_event.meeting_date)
+            .first()
+        )
+        if detail is not None:
+            detail.sentiment_status = "success"
+            detail.sentiment_extracted_at = extracted_at
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

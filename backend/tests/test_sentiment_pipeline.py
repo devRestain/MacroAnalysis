@@ -12,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.core.database import Base
-from app.models import DivergenceEvent, Expectation, NewsItem, SentimentSignal
+from app.models import CommunicationEvent, DivergenceEvent, Expectation, NewsItem, SentimentSignal
 from app.workers import sentiment_worker
 
 
@@ -149,6 +149,43 @@ class SentimentPipelineTests(unittest.TestCase):
 
         self.assertEqual(result["reason"], "sentiment_reports_disabled")
         mocked_llm.assert_not_called()
+
+    def test_extract_communication_event_sentiment_uses_generic_source_type(self) -> None:
+        event = CommunicationEvent(
+            event_date=datetime(2026, 6, 10, 9, 0),
+            source="Federal Reserve",
+            title="Powell remarks",
+            event_type="speech",
+            url="https://example.com/speech",
+            content_text="Policy should remain restrictive for longer.",
+        )
+        self.db.add(event)
+        self.db.commit()
+
+        llm_payload = """
+        [
+          {
+            "actor": "fed",
+            "dimension": "rates",
+            "stance": "hawkish",
+            "stance_score": 0.7,
+            "intensity": 0.9,
+            "confidence": 0.8,
+            "evidence": "Policy should remain restrictive for longer."
+          }
+        ]
+        """
+
+        with patch("app.workers.sentiment_worker._call_llm", return_value=llm_payload):
+            result = sentiment_worker.extract_communication_event_sentiment.run(
+                communication_event_id=event.id,
+                text=event.content_text,
+            )
+
+        self.assertEqual(result["signals"], 1)
+        saved = self.db.query(SentimentSignal).one()
+        self.assertEqual(saved.source_type, "communication_event")
+        self.assertEqual(saved.source_id, event.id)
 
 
 if __name__ == "__main__":

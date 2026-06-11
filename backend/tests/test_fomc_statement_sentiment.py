@@ -13,7 +13,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from app.collectors.fomc_collector import _maybe_queue_fomc_statement_sentiment
 from app.core.database import Base
-from app.models import EconomicCalendarEvent, FomcEvent, FomcEventDetail, SentimentSignal
+from app.models import CommunicationEvent, EconomicCalendarEvent, FomcEventDetail, SentimentSignal
 
 
 class FomcStatementSentimentTests(unittest.TestCase):
@@ -45,7 +45,14 @@ class FomcStatementSentimentTests(unittest.TestCase):
         self.engine.dispose()
 
     def test_recent_released_statement_is_queued_once(self) -> None:
-        fomc_event = FomcEvent(meeting_date=datetime(2026, 6, 18, 14, 0))
+        communication_event = CommunicationEvent(
+            event_date=datetime(2026, 6, 18, 14, 0),
+            source="Federal Reserve",
+            title="FOMC Meeting",
+            event_type="fomc_meeting",
+            meeting_date=datetime(2026, 6, 18, 14, 0),
+            statement_url="https://example.com/statement",
+        )
         calendar_event = EconomicCalendarEvent(
             event_date=datetime(2026, 6, 18, 14, 0),
             event_end_date=datetime(2026, 6, 18, 14, 0),
@@ -60,7 +67,7 @@ class FomcStatementSentimentTests(unittest.TestCase):
             importance="high",
             status="released",
         )
-        self.db.add_all([fomc_event, calendar_event])
+        self.db.add_all([communication_event, calendar_event])
         self.db.commit()
         self.db.add(
             FomcEventDetail(
@@ -81,7 +88,7 @@ class FomcStatementSentimentTests(unittest.TestCase):
         ) as enqueue_task:
             queued = _maybe_queue_fomc_statement_sentiment(
                 self.db,
-                fomc_event_id=fomc_event.id,
+                communication_event_id=communication_event.id,
                 calendar_event_id=calendar_event.id,
                 meeting_end_dt=datetime(2026, 6, 18, 14, 0),
                 statement_url="https://example.com/statement",
@@ -91,14 +98,22 @@ class FomcStatementSentimentTests(unittest.TestCase):
         self.assertTrue(queued)
         fetch_text.assert_called_once()
         enqueue_task.assert_called_once_with(
-            fomc_event_id=fomc_event.id,
+            communication_event_id=communication_event.id,
             text="Federal Reserve statement text long enough.",
         )
         detail = self.db.query(FomcEventDetail).filter_by(calendar_event_id=calendar_event.id).one()
         self.assertEqual(detail.sentiment_status, "pending")
 
     def test_existing_fomc_signal_prevents_requeue(self) -> None:
-        fomc_event = FomcEvent(meeting_date=datetime(2026, 6, 18, 14, 0))
+        communication_event = CommunicationEvent(
+            event_date=datetime(2026, 6, 18, 14, 0),
+            source="Federal Reserve",
+            title="FOMC Meeting",
+            event_type="fomc_meeting",
+            meeting_date=datetime(2026, 6, 18, 14, 0),
+            statement_url="https://example.com/statement",
+            sentiment_status="success",
+        )
         calendar_event = EconomicCalendarEvent(
             event_date=datetime(2026, 6, 18, 14, 0),
             event_end_date=datetime(2026, 6, 18, 14, 0),
@@ -113,7 +128,7 @@ class FomcStatementSentimentTests(unittest.TestCase):
             importance="high",
             status="released",
         )
-        self.db.add_all([fomc_event, calendar_event])
+        self.db.add_all([communication_event, calendar_event])
         self.db.commit()
         self.db.add(
             FomcEventDetail(
@@ -128,8 +143,8 @@ class FomcStatementSentimentTests(unittest.TestCase):
         self.db.commit()
         self.db.add(
             SentimentSignal(
-                source_type="fomc",
-                source_id=fomc_event.id,
+                source_type="communication_event",
+                source_id=communication_event.id,
                 batch_date=datetime(2026, 6, 19, 0, 0),
                 actor="fed",
                 dimension="rates",
@@ -147,7 +162,7 @@ class FomcStatementSentimentTests(unittest.TestCase):
         ) as enqueue_task:
             queued = _maybe_queue_fomc_statement_sentiment(
                 self.db,
-                fomc_event_id=fomc_event.id,
+                communication_event_id=communication_event.id,
                 calendar_event_id=calendar_event.id,
                 meeting_end_dt=datetime(2026, 6, 18, 14, 0),
                 statement_url="https://example.com/statement",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, Date, DateTime, Index, Integer, JSON, String, Text
+from sqlalchemy import Column, Date, DateTime, Index, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.sql import func
 
 from ..core.database import Base
@@ -10,12 +10,21 @@ class AiSummary(Base):
     __tablename__ = "ai_summaries"
 
     id = Column(Integer, primary_key=True)
-    summary_date = Column(DateTime, nullable=False, unique=True)
+    summary_date = Column(DateTime, nullable=False)
+    summary_type = Column(String(50), nullable=False, default="macro", server_default="macro")
+    target_key = Column(String(128), nullable=True)
     headline = Column(Text)
     body = Column(Text)
     indicators_snapshot = Column(JSON)
     model_used = Column(String(50))
+    metadata_json = Column(JSON)
     created_at = Column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_ai_summaries_type_date", "summary_type", "summary_date"),
+        Index("ix_ai_summaries_target_date", "target_key", "summary_date"),
+        UniqueConstraint("summary_date", "summary_type", "target_key", name="uq_ai_summary_scope"),
+    )
 
 
 class DailyInsight(Base):

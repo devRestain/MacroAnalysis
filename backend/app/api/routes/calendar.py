@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ...core.cache import cache_get, cache_set
 from ...core.database import get_db
-from ...models import EconomicCalendarEvent, FedWatch, FomcEvent
+from ...models import CommunicationEvent, EconomicCalendarEvent, FedWatch
 from ...services.calendar_query_service import get_latest_fedwatch_for_meeting
 from ..calendar_schemas import CalendarEventListResponse
 from ..route_helpers import calendar_event_to_dict
@@ -81,10 +81,16 @@ async def get_fomc(db: Session = Depends(get_db)):
             None,
         )
     else:
-        legacy_events = db.query(FomcEvent).order_by(FomcEvent.meeting_date).all()
+        legacy_events = (
+            db.query(CommunicationEvent)
+            .filter(CommunicationEvent.event_type == "fomc_meeting")
+            .order_by(CommunicationEvent.meeting_date)
+            .all()
+        )
         meetings = [
             {"date": str(event.meeting_date), "rate": event.decision_rate, "change_bp": event.change_bp}
             for event in legacy_events
+            if event.meeting_date is not None
         ]
         next_meeting_date = next(
             (event.meeting_date for event in legacy_events if event.meeting_date >= datetime.now().replace(microsecond=0)),

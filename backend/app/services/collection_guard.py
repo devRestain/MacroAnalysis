@@ -187,6 +187,7 @@ def get_default_min_interval(job_key: str) -> int:
         "fedwatch": settings.FEDWATCH_MIN_INTERVAL_MINUTES,
         "news": settings.NEWS_MIN_INTERVAL_MINUTES,
         "fomc_calendar": settings.FOMC_MIN_INTERVAL_MINUTES,
+        "fed_communications": settings.COMMUNICATION_MIN_INTERVAL_MINUTES,
         "calendar_events": settings.CALENDAR_MIN_INTERVAL_MINUTES,
         "snapshot_compute": settings.SNAPSHOT_MIN_INTERVAL_MINUTES,
     }
