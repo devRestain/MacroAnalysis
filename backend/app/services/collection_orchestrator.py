@@ -41,7 +41,7 @@ def run_morning_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
-        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session))
         if settings.AI_DAILY_INSIGHT_TRIGGER_IN_MORNING_BATCH
         else _maintenance_job("daily_insight_enqueue_disabled"),
     ]
@@ -55,7 +55,7 @@ def run_noon_batch(db: Session) -> dict[str, Any]:
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
-        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session))
         if settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED
         else _maintenance_job("daily_insight_enqueue_disabled"),
     ]
@@ -74,7 +74,7 @@ def run_evening_batch(db: Session) -> dict[str, Any]:
         _guarded_job("fx_rates", "exchangerate-api", lambda session: collect_exchange_rates(session)),
         _guarded_job("news", "news", lambda session: _collect_news_bundle(session)),
         _guarded_job("snapshot_compute", "internal", lambda session: _compute_snapshots(session)),
-        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session), invalidate_cache=False)
+        _callable_job("daily_insight_enqueue", lambda session: _enqueue_daily_insight_if_missing(session))
         if settings.AI_DAILY_INSIGHT_BACKFILL_TRIGGER_ENABLED
         else _maintenance_job("daily_insight_enqueue_disabled"),
     ]
@@ -112,16 +112,22 @@ def run_guarded_job(db: Session, job_key: str) -> dict[str, Any]:
 def _run_batch(db: Session, batch_name: str, jobs: list[dict[str, Any]]) -> dict[str, Any]:
     started_at = _utcnow()
     results = []
-    invalidate_cache = False
+    invalidate_dashboard_cache = False
+    invalidate_calendar_cache = False
 
     for job in jobs:
         result = _execute_job(db, job)
         results.append(result)
-        if result["status"] in {"success", "failed"} and job.get("invalidate_cache", False):
-            invalidate_cache = True
+        if result["status"] in {"success", "failed"}:
+            invalidate_groups = set(job.get("invalidate_groups", []))
+            if "dashboard" in invalidate_groups:
+                invalidate_dashboard_cache = True
+            if "calendar" in invalidate_groups:
+                invalidate_calendar_cache = True
 
-    if invalidate_cache:
+    if invalidate_dashboard_cache:
         _invalidate_dashboard_cache()
+    if invalidate_calendar_cache:
         _invalidate_calendar_cache()
 
     return {
@@ -200,7 +206,7 @@ def _guarded_job(job_key: str, provider: str, fn: Callable[[Session], Any]) -> d
         "provider": provider,
         "min_interval_minutes": get_default_min_interval(job_key),
         "fn": fn,
-        "invalidate_cache": job_key in {"snapshot_compute", "fred_rates", "fred_macro", "credit_spreads", "equity_us_global", "equity_asia", "sector_performance", "fedwatch", "fx_rates", "news", "fomc_calendar", "fed_communications", "calendar_events"},
+        "invalidate_groups": _invalidate_groups_for_job(job_key),
     }
 
 
@@ -209,16 +215,16 @@ def _placeholder_job(job_key: str, reason: str) -> dict[str, Any]:
         "type": "placeholder",
         "job_key": job_key,
         "reason": reason,
-        "invalidate_cache": False,
+        "invalidate_groups": [],
     }
 
 
-def _callable_job(job_key: str, fn: Callable[[Session], Any], *, invalidate_cache: bool = False) -> dict[str, Any]:
+def _callable_job(job_key: str, fn: Callable[[Session], Any], *, invalidate_groups: list[str] | None = None) -> dict[str, Any]:
     return {
         "type": "callable",
         "job_key": job_key,
         "fn": fn,
-        "invalidate_cache": invalidate_cache,
+        "invalidate_groups": invalidate_groups or [],
     }
 
 
@@ -226,7 +232,7 @@ def _maintenance_job(job_key: str) -> dict[str, Any]:
     return {
         "type": "maintenance",
         "job_key": job_key,
-        "invalidate_cache": False,
+        "invalidate_groups": [],
     }
 
 
@@ -319,6 +325,25 @@ def _invalidate_calendar_cache():
         cache_delete_pattern_sync("calendar:*")
     except Exception as exc:
         logger.warning("Failed to invalidate calendar cache after batch: %s", exc)
+
+
+def _invalidate_groups_for_job(job_key: str) -> list[str]:
+    if job_key in {
+        "snapshot_compute",
+        "fred_rates",
+        "fred_macro",
+        "credit_spreads",
+        "equity_us_global",
+        "equity_asia",
+        "sector_performance",
+        "fedwatch",
+        "fx_rates",
+        "news",
+    }:
+        return ["dashboard"]
+    if job_key in {"calendar_events", "fomc_calendar", "fed_communications"}:
+        return ["calendar"]
+    return []
 
 
 def _all_job_definitions() -> list[dict[str, Any]]:
