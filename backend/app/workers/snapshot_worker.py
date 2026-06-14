@@ -3,9 +3,9 @@ Change Snapshot Worker — calculates delta and Z-score for all indicators daily
 Runs after all collectors finish.
 """
 import logging
-import numpy as np
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+from ..core.schema_utils import has_table
 from ..models import ChangeSnapshot
 from ..services.observation_query_service import (
     get_observation_history,
@@ -92,6 +92,8 @@ def _build_snapshot(
     db: Session, today: datetime, key: str, label: str, category: str,
     current: float, history: list[float], unit: str = ""
 ):
+    import numpy as np
+
     history = [float(v) for v in history if v is not None]
     if current is None or not history:
         return
@@ -158,6 +160,19 @@ def _build_snapshot(
 
 
 def compute_snapshots(db: Session):
+    if not has_table(db, ChangeSnapshot.__tablename__):
+        logger.warning(
+            "Skipping snapshot computation because %s is missing",
+            ChangeSnapshot.__tablename__,
+        )
+        return {
+            "status": "skipped",
+            "reason": "change_snapshots_table_missing",
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+        }
+
     today = datetime.now()
     cutoff = today - timedelta(days=400)
 

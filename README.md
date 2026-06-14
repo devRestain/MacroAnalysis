@@ -2,7 +2,7 @@
 
 MacroAnalysis is a Docker-first macro data platform for collecting market and economic signals, normalizing them into a single time-series model, exposing them through FastAPI, and layering AI briefing plus sentiment/divergence analysis on top.
 
-The current backend no longer uses legacy per-domain tables such as `interest_rates`, `macro_indicators`, or `exchange_rates`. The source of truth is now `indicators + observations + signals`, with calendar, news, AI, sentiment, and ops models separated by domain. Central-bank communications are stored in a generalized `communication_events` table rather than a FOMC-only event model.
+The current backend no longer uses legacy per-domain tables such as `interest_rates`, `macro_indicators`, or `exchange_rates`. The source of truth is now `indicators + observations + signals`, with calendar, news, AI, sentiment, and ops models separated by domain. Central-bank communications are stored in a generalized `communication_events` table rather than a FOMC-only event model. Economic calendar data is handled as a separate, static allowlisted domain backed by `backend/app/data/calendar_event_definitions.json`.
 
 ## What It Does
 
@@ -88,6 +88,7 @@ MacroAnalysis/
 - `backend/app/models/ai.py`: typed `AiSummary`, legacy `DailyInsight`, and explanation models
 - `backend/app/models/sentiment.py`: sentiment, expectation, divergence models
 - `backend/app/models/ops.py`: cleanup and collection run models
+- `backend/app/data/calendar_event_definitions.json`: allowlisted calendar metadata, descriptions, and static timing
 
 ### API Route Split
 
@@ -128,6 +129,39 @@ Older environments that were created during the `create_all()` era may have real
 - Back up PostgreSQL before applying schema changes in shared environments.
 - The communication generalization migration moves existing `fomc_events` rows into `communication_events`.
 - The AI summary migration expands `ai_summaries` with `summary_type` and `target_key`.
+- `news_items` and `change_snapshots` are created by Alembic so `make collect` can run cleanly on a fresh database.
+
+## Economic Calendar
+
+Calendar is a standalone domain for core macro events, not a generic market-event scraper. It keeps a fixed allowlist, stores human-readable metadata alongside each event, and uses FRED release dates plus static timing to avoid extra vendor dependencies.
+
+### Calendar Sources
+
+- `FRED releases/dates` for most release dates.
+- Static time map for event time, timezone, precision, and confidence.
+- Federal Reserve FOMC calendar for meeting dates and minutes.
+- Rule generation for monthly OPEX and triple witching.
+- Optional BEA schedule only as a fallback for GDP and PCE timing.
+- BLS calendar download, ICS fetch, and schedule scraping are not used.
+
+### Tracked Events
+
+- Inflation: `US_CPI`, `US_PPI`, `US_PCE`
+- Labor: `US_EMPLOYMENT_SITUATION`, `US_JOBLESS_CLAIMS`, `US_JOLTS`
+- Growth / Consumption: `US_GDP`, `US_RETAIL_SALES`, `US_DURABLE_GOODS`
+- Housing: `US_HOUSING_STARTS`, `US_NEW_HOME_SALES`
+- Business Cycle: `US_ISM_MANUFACTURING`, `US_ISM_SERVICES`
+- Fed: `FOMC_MEETING`, `FOMC_MINUTES`
+- Market Calendar: `US_MONTHLY_OPEX`, `US_TRIPLE_WITCHING`
+- Sentiment: `US_CONSUMER_SENTIMENT`
+
+Each event definition includes display text, beginner-friendly description, why-it-matters guidance, related indicator keys, watch items, event type, category, importance, and static timing metadata.
+
+### FOMC Data Split
+
+- `economic_calendar_events` stores the meeting date itself.
+- `fomc_event_details` stores the outcome and document URLs such as statement, minutes, SEP, and press conference links.
+- `communication_events` continues to hold broader Fed communication items.
 
 ## Running the Stack
 
@@ -238,9 +272,9 @@ make test-container
 
 ### Batch Collection Commands
 
-- `make collect`: runs `morning -> noon -> evening`
-- `make collect-calendar`: runs calendar collection batch
-- `make collect-weekly`: runs weekly calendar, FOMC, and Fed communication collection
+- `make collect`: runs `morning -> noon -> evening`, with the news and snapshot jobs isolated so missing derived tables do not stop the rest of the batch
+- `make collect-calendar`: runs the allowlisted economic calendar batch based on FRED, static timing, Fed calendar, and rule generation
+- `make collect-weekly`: runs the calendar batch plus FOMC and Fed communication collection
 - `make collect-sentiment`: runs the sentiment pipeline synchronously
 - `make ensure-ai-insight`: forces or ensures daily AI insight generation
 
@@ -339,6 +373,34 @@ curl "http://localhost:8000/api/indicators/history/DGS10?period=3m"
 ```bash
 curl "http://localhost:8000/api/calendar/events?days=30&include_details=true"
 curl http://localhost:8000/api/fomc
+```
+
+Example response fields:
+
+```json
+{
+  "id": 1,
+  "event_key": "US_CPI",
+  "display_name": "미국 CPI",
+  "short_name": "CPI",
+  "event_type": "macro_release",
+  "category": "inflation",
+  "importance": "high",
+  "event_datetime_utc": "2026-06-10T12:30:00Z",
+  "event_date_local": "2026-06-10",
+  "event_time_local": "08:30",
+  "timezone": "America/New_York",
+  "display_time": "08:30 ET",
+  "status": "scheduled",
+  "source": "fred",
+  "date_precision": "datetime_estimated",
+  "time_source": "static_time_map",
+  "time_confidence": "static_high",
+  "beginner_description": "소비자가 실제로 구매하는 상품과 서비스 가격의 변화를 보여주는 대표 물가 지표입니다.",
+  "why_it_matters": "물가 압력이 높으면 금리 인하 기대가 약해지고 주식시장에는 부담이 될 수 있습니다.",
+  "watch_items": ["2Y Treasury Yield", "DXY", "S&P 500", "FedWatch"],
+  "related_indicator_keys": ["CPIAUCSL", "CPILFESL"]
+}
 ```
 
 ### Typed AI Summary

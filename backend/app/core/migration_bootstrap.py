@@ -5,7 +5,8 @@ from sqlalchemy import inspect, text
 from .database import engine
 
 BASELINE_PRE_HARDENING_REVISION = "20260610_0010"
-CURRENT_REVISION = "20260610_0011"
+NEWS_SCHEMA_REVISION = "20260610_0011"
+CURRENT_REVISION = "20260611_0015"
 
 
 def bootstrap_alembic_version_if_needed() -> str | None:
@@ -42,7 +43,9 @@ def _infer_existing_revision(inspector, table_names: set[str]) -> str:
     if "news_items" in table_names:
         news_columns = {column["name"] for column in inspector.get_columns("news_items")}
         if "url_hash" in news_columns:
-            return CURRENT_REVISION
+            if "change_snapshots" in table_names:
+                return CURRENT_REVISION
+            return NEWS_SCHEMA_REVISION
     return BASELINE_PRE_HARDENING_REVISION
 
 

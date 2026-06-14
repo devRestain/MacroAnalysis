@@ -15,6 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
+from ..core.schema_utils import has_table
 from ..models import DailyInsight, NewsItem
 from .calendar_query_service import get_latest_fedwatch_for_meeting, get_next_fomc_meeting_date
 from .observation_query_service import get_ai_context_payload
@@ -71,13 +72,16 @@ def build_ai_context_from_observations(db: Session, as_of_date) -> dict[str, Any
         datetime.min.time(),
     ).replace(tzinfo=ZoneInfo(settings.AI_DAILY_INSIGHT_TIMEZONE))
     prev_start = day_start - timedelta(days=1)
-    news_items = (
-        db.query(NewsItem)
-        .filter(NewsItem.published_at >= prev_start.replace(tzinfo=None))
-        .order_by(NewsItem.published_at.desc())
-        .limit(10)
-        .all()
-    )
+    if has_table(db, NewsItem.__tablename__):
+        news_items = (
+            db.query(NewsItem)
+            .filter(NewsItem.published_at >= prev_start.replace(tzinfo=None))
+            .order_by(NewsItem.published_at.desc())
+            .limit(10)
+            .all()
+        )
+    else:
+        news_items = []
     news_lines = [f"- [{item.source}] {item.title}" for item in news_items]
 
     next_fomc_date = get_next_fomc_meeting_date(db, now=datetime.now().replace(microsecond=0))

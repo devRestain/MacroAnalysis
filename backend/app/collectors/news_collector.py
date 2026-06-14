@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from ..core.config import settings
+from ..core.schema_utils import has_table
 from ..models import NewsItem
 from ..models.news import build_news_url_hash
 from .result_utils import empty_counts
@@ -37,9 +38,18 @@ def categorize(title: str, summary: str = "") -> str:
 
 
 def collect_finnhub_news(db: Session):
+    if not has_table(db, NewsItem.__tablename__):
+        logger.warning("Skipping Finnhub news collection because %s is missing", NewsItem.__tablename__)
+        return {
+            "status": "skipped",
+            "reason": "news_items_table_missing",
+            **empty_counts(),
+        }
+
     if not settings.FINNHUB_API_KEY:
         logger.warning("FINNHUB_API_KEY not set, skipping")
         return {
+            "status": "skipped",
             "fetched_count": 0,
             "inserted_count": 0,
             "updated_count": 0,
@@ -91,6 +101,14 @@ def collect_finnhub_news(db: Session):
 
 
 def collect_fed_rss(db: Session):
+    if not has_table(db, NewsItem.__tablename__):
+        logger.warning("Skipping Fed RSS collection because %s is missing", NewsItem.__tablename__)
+        return {
+            "status": "skipped",
+            "reason": "news_items_table_missing",
+            **empty_counts(),
+        }
+
     try:
         import feedparser
 

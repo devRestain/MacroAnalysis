@@ -14,7 +14,9 @@ from ..collectors.market_collector import collect_equity_indices, collect_real_e
 from ..collectors.news_collector import collect_fed_rss, collect_finnhub_news
 from ..core.cache import cache_delete_pattern_sync, cache_delete_sync
 from ..core.config import settings
+from ..core.schema_utils import has_table
 from ..collectors.result_utils import add_counts, empty_counts
+from ..models import ChangeSnapshot
 from .calendar_collection_service import collect_calendar_events
 from .daily_insight_service import get_existing_daily_insight, get_today_kst
 from .collection_guard import get_default_min_interval, run_with_guard
@@ -239,13 +241,24 @@ def _maintenance_job(job_key: str) -> dict[str, Any]:
 def _collect_news_bundle(db: Session):
     counts = empty_counts()
     errors: list[str] = []
+    skipped_reason: str | None = None
     for fn in (collect_finnhub_news, collect_fed_rss):
         try:
-            add_counts(counts, fn(db))
+            result = fn(db)
+            if isinstance(result, dict) and result.get("status") == "skipped":
+                skipped_reason = skipped_reason or result.get("reason")
+                continue
+            add_counts(counts, result)
         except Exception as exc:
             errors.append(str(exc))
     if counts["fetched_count"] == 0 and errors:
         raise RuntimeError("; ".join(errors))
+    if counts["fetched_count"] == 0 and skipped_reason and not errors:
+        return {
+            "status": "skipped",
+            "reason": skipped_reason,
+            **counts,
+        }
     return counts
 
 
@@ -263,6 +276,15 @@ def _collect_us_global_market_bundle(db: Session):
 
 
 def _compute_snapshots(db: Session):
+    if not has_table(db, ChangeSnapshot.__tablename__):
+        return {
+            "status": "skipped",
+            "reason": "change_snapshots_table_missing",
+            "fetched_count": 0,
+            "inserted_count": 0,
+            "updated_count": 0,
+        }
+
     from ..workers.snapshot_worker import compute_snapshots
 
     return compute_snapshots(db)

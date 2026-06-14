@@ -121,6 +121,9 @@ def run_with_guard(
     if not settings.COLLECTION_GUARD_ENABLED:
         try:
             result = fn(db)
+            if isinstance(result, dict) and result.get("status") in {"skipped", "failed"}:
+                counts = _normalize_counts(result)
+                return _result_payload(job_key, result["status"], counts=counts, reason=result.get("reason"))
             counts = _normalize_counts(result if isinstance(result, dict) else None)
             return _result_payload(job_key, "success", counts=counts)
         except Exception as exc:
@@ -165,6 +168,10 @@ def run_with_guard(
         )
         try:
             result = fn(db)
+            if isinstance(result, dict) and result.get("status") in {"skipped", "failed"}:
+                counts = _normalize_counts(result)
+                finish_run(db, run.id, result["status"], counts=counts, error_message=result.get("reason"))
+                return _result_payload(job_key, result["status"], counts=counts, reason=result.get("reason"))
             counts = _normalize_counts(result if isinstance(result, dict) else None)
             finish_run(db, run.id, "success", counts=counts)
             return _result_payload(job_key, "success", counts=counts)
