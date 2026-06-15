@@ -26,15 +26,15 @@ export function IndicatorsPage() {
   return (
     <Frame>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Indicators</h1>
-        <p className="mt-2 text-sm text-text-secondary">Normalized indicator observations with static explanations kept separate from runtime signals.</p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">Indicators</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">Normalized indicator observations with static explanations kept separate from runtime signals.</p>
       </div>
       <div className="space-y-5">
         {categories.map((category) => (
-          <Card key={category} title={category} eyebrow="indicator category">
+          <Card key={category} title={category} eyebrow="indicator category" tone="blue">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-xs text-text-muted">
+                <thead className="text-xs font-bold uppercase tracking-[0.16em] text-text-muted">
                   <tr className="border-b border-surface-border">
                     <th className="py-2 text-left font-medium">Indicator</th>
                     <th className="py-2 text-right font-medium">Latest</th>
@@ -47,15 +47,15 @@ export function IndicatorsPage() {
                   {rows.filter((row) => row.category === category).map((row) => {
                     const explanation = explanationMap.get(row.key)
                     return (
-                      <tr key={row.key} className="border-b border-surface-border/70 last:border-0">
-                        <td className="py-3">
-                          <a href={`/indicators/${encodeURIComponent(row.key)}`} className="font-medium text-text-primary hover:text-accent">{row.label}</a>
+                      <tr key={row.key} className="border-b border-surface-border/70 last:border-0 hover:bg-white/50">
+                        <td className="py-4">
+                          <a href={`/indicators/${encodeURIComponent(row.key)}`} className="font-bold text-text-primary hover:text-accent">{row.label}</a>
                           <div className="font-mono text-xs text-text-muted">{row.key}</div>
                         </td>
-                        <td className="py-3 text-right font-mono">{fmt(row.value, 2, row.unit ?? '')}</td>
-                        <td className={`py-3 text-right font-mono ${row.delta1mPct && row.delta1mPct < 0 ? 'text-signal-red' : 'text-signal-green'}`}>{fmtPct(row.delta1mPct)}</td>
-                        <td className="py-3 text-right"><Badge tone={row.signal === 'red' ? 'red' : row.signal === 'yellow' ? 'yellow' : 'green'}>{row.signal}</Badge></td>
-                        <td className="max-w-sm py-3 text-xs text-text-secondary">{explanation?.description ?? 'Static explanation not loaded.'}</td>
+                        <td className="py-4 text-right font-mono text-base">{fmt(row.value, 2, row.unit ?? '')}</td>
+                        <td className={`py-4 text-right font-mono font-semibold ${row.delta1mPct && row.delta1mPct < 0 ? 'text-signal-red' : 'text-signal-green'}`}>{fmtPct(row.delta1mPct)}</td>
+                        <td className="py-4 text-right"><Badge tone={row.signal === 'red' ? 'red' : row.signal === 'yellow' ? 'yellow' : 'green'}>{row.signal}</Badge></td>
+                        <td className="max-w-sm py-4 text-xs leading-6 text-text-secondary">{explanation?.description ?? 'Static explanation not loaded.'}</td>
                       </tr>
                     )
                   })}
@@ -70,5 +70,5 @@ export function IndicatorsPage() {
 }
 
 function Frame({ children }: { children: ReactNode }) {
-  return <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">{children}</div>
+  return <div className="page-shell animate-fade-up">{children}</div>
 }

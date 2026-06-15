@@ -25,38 +25,38 @@ export function CalendarPage() {
     : undefined
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
+    <div className="page-shell animate-fade-up">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Calendar</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
+        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">Calendar</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
           Economic releases, FOMC meetings, and watch items rendered as interpretation events rather than a simple date list.
         </p>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-5 flex flex-wrap items-center gap-2">
         {['all', 'high', 'medium', 'low'].map((item) => (
-          <button key={item} onClick={() => setImportance(item)} className={`border px-3 py-1.5 text-xs ${importance === item ? 'border-accent bg-accent/10 text-accent' : 'border-surface-border text-text-secondary hover:bg-surface-hover'}`}>
+          <button key={item} onClick={() => setImportance(item)} className={`filter-chip ${importance === item ? 'filter-chip-active' : ''}`}>
             {item}
           </button>
         ))}
         <span className="mx-1 h-7 border-l border-surface-border" />
         {['all', ...categories].map((item) => (
-          <button key={item} onClick={() => setCategory(item)} className={`border px-3 py-1.5 text-xs ${category === item ? 'border-accent bg-accent/10 text-accent' : 'border-surface-border text-text-secondary hover:bg-surface-hover'}`}>
+          <button key={item} onClick={() => setCategory(item)} className={`filter-chip ${category === item ? 'filter-chip-active' : ''}`}>
             {item}
           </button>
         ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card title="Upcoming Events" eyebrow="economic calendar">
+        <Card title="Upcoming Events" eyebrow="economic calendar" tone="amber">
           {events.state.status === 'loading' || events.state.status === 'idle' ? <LoadingState /> : events.state.status === 'disabled' ? <DisabledState /> : events.state.status === 'error' ? <ErrorState /> : filtered.length === 0 ? <EmptyState /> : (
             <div className="divide-y divide-surface-border">
               {filtered.map((event) => (
                 <article key={event.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold">{event.displayName}</h2>
-                      <div className="mt-1 text-xs text-text-muted">{fmtDate(event.eventDateLocal)} · {event.displayTime ?? event.eventTimeLocal ?? 'time pending'} · {event.status}</div>
+                      <h2 className="text-lg font-extrabold tracking-[-0.02em]">{event.displayName}</h2>
+                      <div className="mt-1 text-xs font-medium text-text-muted">{fmtDate(event.eventDateLocal)} · {event.displayTime ?? event.eventTimeLocal ?? 'time pending'} · {event.status}</div>
                     </div>
                     <div className="flex gap-2">
                       <Badge>{event.category}</Badge>
@@ -76,13 +76,13 @@ export function CalendarPage() {
         </Card>
 
         <div className="space-y-4">
-          <Card title="FOMC Watch" eyebrow="calendar + detail">
+          <Card title="FOMC Watch" eyebrow="calendar + detail" tone="rose">
             {fomc.state.status === 'success' ? (
               <div>
-                <div className="text-xs text-text-muted">Next meeting</div>
-                <div className="mt-1 text-xl font-semibold">{nextFomc ? fmtDate(nextFomc.eventDateLocal ?? nextFomc.date) : 'No upcoming meeting'}</div>
+                <div className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">Next meeting</div>
+                <div className="mt-2 text-2xl font-extrabold tracking-[-0.03em]">{nextFomc ? fmtDate(nextFomc.eventDateLocal ?? nextFomc.date) : 'No upcoming meeting'}</div>
                 {fomc.state.data.fedwatch ? (
-                  <div className="mt-4 grid grid-cols-3 gap-px border border-surface-border bg-surface-border">
+                  <div className="mt-4 grid grid-cols-3 gap-3">
                     <Prob label="Hold" value={fomc.state.data.fedwatch.probHold} />
                     <Prob label="Cut" value={fomc.state.data.fedwatch.probCut} />
                     <Prob label="Hike" value={fomc.state.data.fedwatch.probHike} />
@@ -92,13 +92,13 @@ export function CalendarPage() {
             ) : fomc.state.status === 'disabled' ? <DisabledState /> : fomc.state.status === 'error' ? <ErrorState /> : <LoadingState />}
           </Card>
 
-          <Card title="FOMC Details" eyebrow="documents and outcomes">
+          <Card title="FOMC Details" eyebrow="documents and outcomes" tone="blue">
             {fomc.state.status === 'success' && fomc.state.data.meetings.length > 0 ? (
               <div className="space-y-3">
                 {fomc.state.data.meetings.slice(0, 6).map((meeting) => (
-                  <div key={`${meeting.id ?? meeting.date}`} className="border-b border-surface-border pb-3 last:border-0 last:pb-0">
+                  <div key={`${meeting.id ?? meeting.date}`} className="rounded-[20px] border border-surface-border/80 bg-white/75 px-4 py-3">
                     <div className="flex justify-between gap-3 text-sm">
-                      <span>{meeting.displayName ?? 'FOMC Meeting'}</span>
+                      <span className="font-semibold">{meeting.displayName ?? 'FOMC Meeting'}</span>
                       <span className="font-mono text-text-secondary">{fmtDate(meeting.eventDateLocal ?? meeting.date)}</span>
                     </div>
                     <div className="mt-1 text-xs text-text-muted">Rate {meeting.rate ?? '-'} · Change {meeting.changeBp ?? '-'}</div>
@@ -115,32 +115,31 @@ export function CalendarPage() {
 
 function InfoBlock({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div>
-      <div className="text-xs font-semibold text-text-muted">{label}</div>
-      <p className="mt-1 text-sm leading-6 text-text-secondary">{value || 'No description available.'}</p>
+    <div className="rounded-[20px] border border-surface-border/80 bg-white/78 p-4">
+      <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-text-muted">{label}</div>
+      <p className="mt-2 text-sm leading-6 text-text-secondary">{value || 'No description available.'}</p>
     </div>
   )
 }
 
 function ListBlock({ label, items, monospace = false }: { label: string; items: string[]; monospace?: boolean }) {
   return (
-    <div>
-      <div className="text-xs font-semibold text-text-muted">{label}</div>
+    <div className="rounded-[20px] border border-surface-border/80 bg-white/78 p-4">
+      <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-text-muted">{label}</div>
       {items.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {items.map((item) => <Badge key={item}>{monospace ? <span className="font-mono">{item}</span> : item}</Badge>)}
         </div>
-      ) : <p className="mt-1 text-sm text-text-muted">No watch items.</p>}
+      ) : <p className="mt-2 text-sm text-text-muted">No watch items.</p>}
     </div>
   )
 }
 
 function Prob({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="bg-surface-card p-3 text-center">
-      <div className="text-xs text-text-muted">{label}</div>
-      <div className="mt-1 font-mono text-lg font-semibold">{fmtPct(value, 0, 'ratio')}</div>
+    <div className="rounded-[18px] border border-surface-border bg-white p-4 text-center">
+      <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-text-muted">{label}</div>
+      <div className="mt-2 font-mono text-2xl font-semibold">{fmtPct(value, 0, 'ratio')}</div>
     </div>
   )
 }
-

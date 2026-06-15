@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,20 +11,29 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: #f7f9fc;
   }
   body {
     @apply bg-surface text-text-primary font-sans;
     font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  a {
+    @apply transition-colors;
+  }
+  ::selection {
+    background: rgba(36, 87, 214, 0.16);
   }
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     @apply bg-surface;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-surface-border rounded;
+    @apply rounded-full bg-surface-border;
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-text-muted;
@@ -32,10 +41,39 @@
 }
 
 @layer utilities {
+  .page-shell {
+    @apply w-full px-4 py-6 lg:px-6 lg:py-8;
+  }
+
+  .panel-muted {
+    @apply rounded-[20px] border border-surface-border bg-white shadow-[0_12px_32px_-24px_rgba(20,34,56,0.18)];
+  }
+
+  .filter-chip {
+    @apply inline-flex items-center rounded-full border border-surface-border bg-white px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-accent/35 hover:text-text-primary;
+  }
+
+  .filter-chip-active {
+    @apply border-accent/35 bg-white text-accent;
+  }
+
+  .entity-strip {
+    @apply h-1.5 rounded-full;
+  }
+
+  .flat-metric {
+    @apply rounded-2xl border border-surface-border bg-white px-4 py-4;
+  }
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .text-safe {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }

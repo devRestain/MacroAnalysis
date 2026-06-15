@@ -16,21 +16,21 @@ export function NewsPage() {
   const sentiment = useResource(() => getSentimentSignals(50), [], { optional: true })
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
+    <div className="page-shell animate-fade-up">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">News</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">Recent collected news. The UI does not assume unlimited historical retention.</p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">News</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">Recent collected news. The UI does not assume unlimited historical retention.</p>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {categories.map((item) => (
-          <button key={item} onClick={() => setCategory(item)} className={`border px-3 py-1.5 text-xs ${category === item ? 'border-accent bg-accent/10 text-accent' : 'border-surface-border text-text-secondary hover:bg-surface-hover'}`}>
+          <button key={item} onClick={() => setCategory(item)} className={`filter-chip ${category === item ? 'filter-chip-active' : ''}`}>
             {item}
           </button>
         ))}
       </div>
 
-      <Card title="Recent News" eyebrow="listing">
+      <Card title="Recent News" eyebrow="listing" tone="amber">
         {news.state.status === 'loading' || news.state.status === 'idle' ? <LoadingState /> : news.state.status === 'disabled' ? <DisabledState /> : news.state.status === 'error' ? <ErrorState label="News API is unavailable." /> : news.state.status === 'empty' ? <EmptyState label="No recent news collected." /> : (
           <div className="divide-y divide-surface-border">
             {news.state.data.map((item) => {
@@ -38,16 +38,16 @@ export function NewsPage() {
                 ? sentiment.state.data.find((signal) => String(signal.sourceId) === String(item.id) || signal.sourceType === 'news_item')
                 : undefined
               return (
-                <a key={item.id} href={item.url ?? '#'} target={item.url ? '_blank' : undefined} rel="noreferrer" className="block py-4 first:pt-0 last:pb-0 hover:bg-surface-hover/40">
+                <a key={item.id} href={item.url ?? '#'} target={item.url ? '_blank' : undefined} rel="noreferrer" className="block rounded-[22px] px-3 py-4 first:pt-0 last:pb-0 hover:bg-white/65">
                   <div className="flex items-start gap-3">
                     <Badge>{item.category}</Badge>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start gap-2">
-                        <h2 className="text-sm font-semibold leading-6">{item.title}</h2>
+                        <h2 className="text-base font-extrabold leading-7 tracking-[-0.01em]">{item.title}</h2>
                         {item.url && <ExternalLink size={13} className="mt-1 shrink-0 text-text-muted" />}
                       </div>
-                      {item.summary && <p className="mt-1 line-clamp-2 text-sm leading-6 text-text-secondary">{item.summary}</p>}
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+                      {item.summary && <p className="mt-2 line-clamp-2 text-sm leading-7 text-text-secondary">{item.summary}</p>}
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-muted">
                         <span>{item.source}</span>
                         <span>{timeAgo(item.publishedAt)}</span>
                         {relatedSentiment && <Badge tone="blue">sentiment {relatedSentiment.stance ?? relatedSentiment.stanceScore ?? 'linked'}</Badge>}

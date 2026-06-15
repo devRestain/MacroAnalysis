@@ -15,10 +15,10 @@ const summaryConfigs: { type: AiSummaryType; title: string; days: number; target
 
 export function AiBriefingPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
+    <div className="page-shell animate-fade-up">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">AI Briefing</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">Typed AI summaries for macro, market, calendar, and communication contexts.</p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">AI Briefing</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">Typed AI summaries for macro, market, calendar, and communication contexts.</p>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         {summaryConfigs.map((config) => <SummaryCard key={`${config.type}-${config.targetKey ?? 'all'}`} {...config} />)}
@@ -31,12 +31,12 @@ export function AiBriefingPage() {
 function SummaryCard({ type, title, days, targetKey }: { type: AiSummaryType; title: string; days: number; targetKey?: string }) {
   const summary = useResource(() => getTypedAiSummary(type, { days, targetKey }), [type, days, targetKey], { optional: true })
   return (
-    <Card title={title} eyebrow={targetKey ? `${type} / ${targetKey}` : type}>
+    <Card title={title} eyebrow={targetKey ? `${type} / ${targetKey}` : type} tone={type === 'communication' ? 'rose' : type === 'calendar' ? 'amber' : 'blue'}>
       {summary.state.status === 'success' ? (
         <article>
-          <h2 className="text-lg font-semibold leading-7">{summary.state.data.headline ?? title}</h2>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text-secondary">{summary.state.data.body ?? 'No summary body available.'}</p>
-          <div className="mt-4 text-xs text-text-muted">{summary.state.data.summaryDate ?? '-'} · {summary.state.data.modelUsed ?? 'model unavailable'}</div>
+          <h2 className="text-xl font-extrabold leading-8 tracking-[-0.02em]">{summary.state.data.headline ?? title}</h2>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-text-secondary">{summary.state.data.body ?? 'No summary body available.'}</p>
+          <div className="mt-4 text-xs font-medium text-text-muted">{summary.state.data.summaryDate ?? '-'} · {summary.state.data.modelUsed ?? 'model unavailable'}</div>
         </article>
       ) : summary.state.status === 'disabled' ? <DisabledState label="AI summary is not enabled or not authorized." /> : summary.state.status === 'error' ? <ErrorState label="AI summary could not be loaded." /> : <LoadingState />}
     </Card>
@@ -66,11 +66,11 @@ function AiChatPanel() {
   }
 
   return (
-    <Card title="AI Chat" eyebrow="optional X-API-Key on chat only" className="xl:col-span-2">
+    <Card title="AI Chat" eyebrow="optional X-API-Key on chat only" tone="green" className="xl:col-span-2">
       <div className="min-h-56 space-y-3">
         {messages.length === 0 && <p className="text-sm text-text-muted">Ask about latest collected macro context, policy communications, or watch items.</p>}
         {messages.map((message, index) => (
-          <div key={index} className={`max-w-3xl border px-3 py-2 text-sm leading-6 ${message.role === 'user' ? 'ml-auto border-accent/30 bg-accent/10' : 'border-surface-border bg-surface-hover'}`}>
+          <div key={index} className={`max-w-3xl rounded-[20px] border px-4 py-3 text-sm leading-7 shadow-sm ${message.role === 'user' ? 'ml-auto border-accent/20 bg-accent/10' : 'border-surface-border bg-white/80'}`}>
             {message.content}
           </div>
         ))}
@@ -82,14 +82,13 @@ function AiChatPanel() {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={(event) => event.key === 'Enter' && submit(input)}
-          className="min-w-0 flex-1 border border-surface-border bg-surface-hover px-3 py-2 text-sm outline-none focus:border-accent"
+          className="min-w-0 flex-1 rounded-full border border-surface-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
           placeholder="Ask for macro context..."
         />
-        <button onClick={() => submit(input)} disabled={!input.trim() || loading} className="inline-flex items-center gap-2 bg-accent/20 px-3 py-2 text-sm text-accent disabled:opacity-40">
+        <button onClick={() => submit(input)} disabled={!input.trim() || loading} className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-bold text-white disabled:opacity-40">
           <Send size={14} />Send
         </button>
       </div>
     </Card>
   )
 }
-
