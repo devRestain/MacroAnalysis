@@ -9,16 +9,21 @@ interface CalendarEventResponse {
   display_time?: string | null
   event_key: string
   event_type: string
+  event_type_label?: string | null
   category: string
+  category_label?: string | null
   title: string
   display_name?: string | null
   short_name?: string | null
   source?: string | null
   importance: string
+  importance_label?: string | null
   status: string
+  status_label?: string | null
   beginner_description?: string | null
   why_it_matters?: string | null
   watch_items?: string[] | null
+  source_label?: string | null
   related_indicator_key?: string | null
   related_indicator_keys?: string[] | null
   details?: Record<string, unknown> | null
@@ -58,14 +63,19 @@ export function normalizeCalendarEvent(row: CalendarEventResponse): CalendarEven
     displayName: row.display_name ?? row.title,
     shortName: row.short_name,
     eventType: row.event_type,
+    eventTypeLabel: row.event_type_label,
     category: row.category,
+    categoryLabel: row.category_label,
     importance: row.importance,
+    importanceLabel: row.importance_label,
     eventDateTimeUtc: row.event_datetime_utc,
     eventDateLocal: row.event_date_local,
     eventTimeLocal: row.event_time_local,
     displayTime: row.display_time,
     status: row.status,
+    statusLabel: row.status_label,
     source: row.source,
+    sourceLabel: row.source_label,
     beginnerDescription: row.beginner_description,
     whyItMatters: row.why_it_matters,
     watchItems: row.watch_items ?? [],
@@ -109,4 +119,3 @@ export async function getCalendarEvents(days = 30, includeDetails = true): Promi
 export async function getFomcOverview(): Promise<FomcOverview> {
   return normalizeFomc(await apiGet<FomcResponse>('/fomc'))
 }
-

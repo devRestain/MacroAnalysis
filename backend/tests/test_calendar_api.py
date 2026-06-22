@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from sqlalchemy import create_engine, text
@@ -158,11 +158,13 @@ class CalendarApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_calendar_events_include_fomc_details_when_requested(self) -> None:
+        meeting_end = datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(days=7)
+        meeting_start = meeting_end - timedelta(days=1, hours=14)
         event = upsert_calendar_event(
             self.db,
             {
-                "event_date": datetime(2026, 6, 17, 14, 0),
-                "event_end_date": datetime(2026, 6, 17, 14, 0),
+                "event_date": meeting_end,
+                "event_end_date": meeting_end,
                 "event_time": "14:00",
                 "timezone": "America/New_York",
                 "event_key": "FOMC_MEETING",
@@ -184,8 +186,8 @@ class CalendarApiTests(unittest.TestCase):
             self.db,
             {
                 "calendar_event_id": event.id,
-                "meeting_start_date": datetime(2026, 6, 16, 0, 0),
-                "meeting_end_date": datetime(2026, 6, 17, 14, 0),
+                "meeting_start_date": meeting_start,
+                "meeting_end_date": meeting_end,
                 "decision_rate": 4.5,
                 "target_rate_lower": 4.25,
                 "target_rate_upper": 4.5,
@@ -197,9 +199,11 @@ class CalendarApiTests(unittest.TestCase):
         )
         self.db.commit()
 
+        from_date = (meeting_end - timedelta(days=1)).date().isoformat()
+        to_date = (meeting_end + timedelta(days=1)).date().isoformat()
         with patch("app.main.init_db", return_value=None):
             with TestClient(app) as client:
-                response = client.get("/api/calendar/events?days=30&include_details=true")
+                response = client.get(f"/api/calendar/events?from={from_date}&to={to_date}&include_details=true")
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
@@ -210,11 +214,13 @@ class CalendarApiTests(unittest.TestCase):
         self.assertEqual(details["fomc"]["statement_url"], "https://example.com/statement")
 
     def test_fomc_endpoint_returns_enriched_calendar_meetings(self) -> None:
+        meeting_end = datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(days=7)
+        meeting_start = meeting_end - timedelta(days=1, hours=14)
         event = upsert_calendar_event(
             self.db,
             {
-                "event_date": datetime(2026, 6, 17, 14, 0),
-                "event_end_date": datetime(2026, 6, 17, 14, 0),
+                "event_date": meeting_end,
+                "event_end_date": meeting_end,
                 "event_time": "14:00",
                 "timezone": "America/New_York",
                 "event_key": "FOMC_MEETING",
@@ -233,8 +239,8 @@ class CalendarApiTests(unittest.TestCase):
             self.db,
             {
                 "calendar_event_id": event.id,
-                "meeting_start_date": datetime(2026, 6, 16, 0, 0),
-                "meeting_end_date": datetime(2026, 6, 17, 14, 0),
+                "meeting_start_date": meeting_start,
+                "meeting_end_date": meeting_end,
                 "decision_rate": 4.5,
                 "change_bp": 0,
                 "statement_url": "https://example.com/statement",

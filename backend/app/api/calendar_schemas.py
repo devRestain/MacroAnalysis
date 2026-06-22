@@ -20,15 +20,20 @@ class CalendarEventResponse(BaseModel):
     display_time: str | None = None
     event_key: str
     event_type: str
+    event_type_label: str | None = None
     category: str
+    category_label: str | None = None
     title: str
     display_name: str | None = None
     short_name: str | None = None
     country: str
     source: str | None = None
+    source_label: str | None = None
     source_url: str | None = None
     importance: str
+    importance_label: str | None = None
     status: str
+    status_label: str | None = None
     date_precision: str | None = None
     time_source: str | None = None
     time_confidence: str | None = None

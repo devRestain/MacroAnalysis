@@ -128,7 +128,7 @@ class CalendarRefactorAuditTests(unittest.TestCase):
         self.assertEqual(description["provider"], "fred")
         self.assertEqual(description["event_type"], "macro_release")
         self.assertEqual(description["default_time"], "08:30")
-        self.assertIn("CPILFESL", description["related_indicators"])
+        self.assertIn("PCEPILFE", description["related_indicators"])
         self.assertIn("S&P 500", description["watch_items"])
         self.assertEqual(get_calendar_event_definitions_path().name, "calendar_event_definitions.json")
 

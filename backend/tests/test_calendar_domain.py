@@ -230,10 +230,10 @@ class CalendarDomainTests(unittest.TestCase):
         )
         self.db.commit()
 
-        payload = calendar_event_to_dict(event, include_details=False)
+        payload = calendar_event_to_dict(event, include_details=False, locale="en")
 
         self.assertEqual(payload["display_name"], "FOMC Meeting")
-        self.assertEqual(payload["short_name"], "FOMC Meeting")
+        self.assertEqual(payload["short_name"], "FOMC")
         self.assertEqual(payload["event_datetime_utc"], datetime(2026, 6, 17, 14, 0))
         self.assertEqual(str(payload["event_date_local"]), "2026-06-17")
         self.assertEqual(payload["event_time_local"], "14:00")
@@ -267,7 +267,7 @@ class CalendarDomainTests(unittest.TestCase):
 
         self.assertEqual(len(items), 18)
         self.assertTrue(all(item["enabled"] for item in items))
-        self.assertIn("CPILFESL", get_related_indicator_keys("US_CPI"))
+        self.assertIn("PCEPILFE", get_related_indicator_keys("US_CPI"))
         self.assertIn("FedWatch", get_watch_items("FOMC_MEETING"))
         self.assertIsNotNone(get_why_it_matters("US_GDP"))
 

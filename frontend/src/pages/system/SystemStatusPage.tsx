@@ -3,46 +3,48 @@ import { getHealth, getSystemAvailability } from '../../shared/api/system'
 import { Badge } from '../../shared/components/Badge'
 import { Card } from '../../shared/components/Card'
 import { DataFreshness } from '../../shared/components/DataFreshness'
+import { useLanguage } from '../../shared/i18n'
 import { ErrorState, LoadingState } from '../../shared/components/StateViews'
 import { useResource } from '../../shared/hooks/useResource'
 
 export function SystemStatusPage() {
+  const { t } = useLanguage()
   const health = useResource(() => getHealth(), [], { optional: true })
   const availability = useResource(() => getSystemAvailability(), [], { optional: true })
 
   return (
     <div className="page-shell animate-fade-up">
       <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">System</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">Safe frontend-visible status only. Admin operations, migrations, cleanup, and collection controls are intentionally not exposed.</p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">{t('system.title')}</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">{t('system.description')}</p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card title="Frontend Runtime" eyebrow="build status" tone="green">
+        <Card title={t('system.card.runtime')} eyebrow={t('system.card.runtimeEyebrow')} tone="green">
           <div className="space-y-3 text-sm">
-            <StatusRow label="Frontend" value={<Badge tone="green">ready</Badge>} />
-            <StatusRow label="Mode" value={import.meta.env.MODE} />
-            <StatusRow label="API base" value={import.meta.env.VITE_API_URL || '/api'} />
+            <StatusRow label={t('system.frontend')} value={<Badge tone="green">{t('system.ready')}</Badge>} />
+            <StatusRow label={t('system.mode')} value={import.meta.env.MODE} />
+            <StatusRow label={t('system.apiBase')} value={import.meta.env.VITE_API_URL || '/api'} />
           </div>
         </Card>
 
-        <Card title="API Health" eyebrow="/health" tone="blue">
+        <Card title={t('system.card.health')} eyebrow={t('system.card.healthEyebrow')} tone="blue">
           {health.state.status === 'success' ? (
             <pre className="overflow-auto text-xs leading-5 text-text-secondary">{JSON.stringify(health.state.data, null, 2)}</pre>
-          ) : health.state.status === 'error' || health.state.status === 'disabled' ? <ErrorState label="Health endpoint is unavailable." /> : <LoadingState />}
+          ) : health.state.status === 'error' || health.state.status === 'disabled' ? <ErrorState label={t('system.healthUnavailable')} /> : <LoadingState />}
         </Card>
 
-        <Card title="Capability Availability" eyebrow="inferred from API responses" tone="amber" className="xl:col-span-2">
+        <Card title={t('system.card.capabilities')} eyebrow={t('system.card.capabilitiesEyebrow')} tone="amber" className="xl:col-span-2">
           {availability.state.status === 'success' ? (
             <div className="grid gap-4 md:grid-cols-3">
               <div>
-                <div className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">Dashboard updated</div>
+                <div className="text-xs font-bold uppercase tracking-[0.18em] text-text-muted">{t('system.dashboardUpdated')}</div>
                 <div className="mt-2"><DataFreshness updatedAt={availability.state.data.dashboardUpdatedAt} /></div>
               </div>
-              <StatusRow label="AI" value={<Badge tone={availability.state.data.aiAvailable ? 'green' : 'yellow'}>{availability.state.data.aiAvailable ? 'available' : 'disabled/unavailable'}</Badge>} />
-              <StatusRow label="Sentiment" value={<Badge tone={availability.state.data.sentimentAvailable ? 'green' : 'yellow'}>{availability.state.data.sentimentAvailable ? 'available' : 'disabled/unavailable'}</Badge>} />
+              <StatusRow label={t('system.ai')} value={<Badge tone={availability.state.data.aiAvailable ? 'green' : 'yellow'}>{availability.state.data.aiAvailable ? t('system.available') : t('system.disabledUnavailable')}</Badge>} />
+              <StatusRow label={t('system.sentiment')} value={<Badge tone={availability.state.data.sentimentAvailable ? 'green' : 'yellow'}>{availability.state.data.sentimentAvailable ? t('system.available') : t('system.disabledUnavailable')}</Badge>} />
             </div>
-          ) : availability.state.status === 'error' || availability.state.status === 'disabled' ? <ErrorState label="Could not infer optional API availability." /> : <LoadingState />}
+          ) : availability.state.status === 'error' || availability.state.status === 'disabled' ? <ErrorState label={t('system.capabilityUnavailable')} /> : <LoadingState />}
         </Card>
       </div>
     </div>

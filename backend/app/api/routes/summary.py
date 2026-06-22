@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
@@ -10,16 +10,19 @@ from ...core.cache import cache_get, cache_set
 from ...core.database import get_db
 from ...models import ChangeSnapshot, DailyInsight, NewsItem
 from ...services.calendar_query_service import get_latest_fedwatch_for_meeting, get_next_fomc_meeting_date
+from ...services.localization import label_for, normalize_locale
 from ...services.daily_insight_service import get_existing_daily_insight, get_today_kst
 from ...services.observation_query_service import get_dashboard_observation_payload
 from ..route_helpers import daily_insight_headline, enqueue_daily_insight_if_missing, news_to_dict, snap_to_dict
 
 router = APIRouter(prefix="/api")
+SUMMARY_CACHE_PREFIX = "summary:v2"
 
 
 @router.get("/summary")
-async def get_summary(db: Session = Depends(get_db)):
-    cached = await cache_get("summary:v1")
+async def get_summary(lang: str | None = Query(None), db: Session = Depends(get_db)):
+    locale = normalize_locale(lang)
+    cached = await cache_get(f"{SUMMARY_CACHE_PREFIX}:{locale}")
     if cached:
         if cached.get("ai_as_of_date") != get_today_kst().isoformat():
             enqueue_daily_insight_if_missing()
@@ -27,12 +30,7 @@ async def get_summary(db: Session = Depends(get_db)):
 
     today = datetime.now()
     today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-    snapshots = (
-        db.query(ChangeSnapshot)
-        .filter(ChangeSnapshot.snapshot_date >= today_start - timedelta(days=2))
-        .order_by(desc(ChangeSnapshot.snapshot_date))
-        .all()
-    )
+    snapshots = _latest_snapshots(db, since=today_start - timedelta(days=2))
 
     snapshot_map: dict[str, ChangeSnapshot] = {}
     for snapshot in snapshots:
@@ -40,7 +38,7 @@ async def get_summary(db: Session = Depends(get_db)):
             snapshot_map[snapshot.indicator_key] = snapshot
 
     alerts = [
-        snap_to_dict(snapshot)
+        snap_to_dict(snapshot, locale=locale)
         for snapshot in snapshot_map.values()
         if snapshot.signal == "red" or (snapshot.z_score_1y and abs(snapshot.z_score_1y) >= 1.5)
     ]
@@ -61,11 +59,12 @@ async def get_summary(db: Session = Depends(get_db)):
 
     news = db.query(NewsItem).order_by(desc(NewsItem.published_at)).limit(5).all()
     dashboard_payload = get_dashboard_observation_payload(db)
+    latest_snapshot_at = max((snapshot.snapshot_date for snapshot in snapshot_map.values()), default=None)
 
     result = {
-        "updated_at": today.isoformat(),
+        "updated_at": (latest_snapshot_at or today).isoformat(),
         "alerts": alerts[:6],
-        "snapshots": {key: snap_to_dict(value) for key, value in snapshot_map.items()},
+        "snapshots": {key: snap_to_dict(value, locale=locale) for key, value in snapshot_map.items()},
         "equities": dashboard_payload["equities"],
         "yield_curve": dashboard_payload["yield_curve"],
         "fomc": {
@@ -75,34 +74,51 @@ async def get_summary(db: Session = Depends(get_db)):
             "prob_cut": latest_fw.prob_cut if latest_fw else None,
             "prob_hike": latest_fw.prob_hike if latest_fw else None,
             "prob_method": "fed_funds_futures_estimate" if latest_fw else None,
+            "prob_method_label": label_for("prob_method", "fed_funds_futures_estimate", locale=locale, fallback="fed_funds_futures_estimate") if latest_fw else None,
         },
         "ai_headline": daily_insight_headline(ai_summary) if ai_summary else None,
         "ai_as_of_date": ai_summary.as_of_date.isoformat() if ai_summary else None,
         "news_preview": [news_to_dict(item) for item in news],
     }
-    await cache_set("summary:v1", result, ttl=3600)
+    await cache_set(f"{SUMMARY_CACHE_PREFIX}:{locale}", result, ttl=3600)
     return result
 
 
 @router.get("/changes")
-async def get_changes(category: str | None = None, db: Session = Depends(get_db)):
+async def get_changes(category: str | None = None, lang: str | None = Query(None), db: Session = Depends(get_db)):
+    locale = normalize_locale(lang)
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    query = (
-        db.query(ChangeSnapshot)
-        .filter(ChangeSnapshot.snapshot_date >= today_start - timedelta(days=2))
-        .order_by(desc(ChangeSnapshot.snapshot_date))
-    )
-    if category:
-        query = query.filter(ChangeSnapshot.category == category)
-
+    snapshots = _latest_snapshots(db, since=today_start - timedelta(days=2), category=category)
     seen: dict[str, ChangeSnapshot] = {}
-    for snapshot in query.all():
+    for snapshot in snapshots:
         if snapshot.indicator_key not in seen:
             seen[snapshot.indicator_key] = snapshot
-    return {"changes": [snap_to_dict(snapshot) for snapshot in seen.values()]}
+    return {"changes": [snap_to_dict(snapshot, locale=locale) for snapshot in seen.values()]}
 
 
 @router.get("/sectors")
 async def get_sectors(db: Session = Depends(get_db)):
     dashboard_payload = get_dashboard_observation_payload(db)
     return {"sectors": dashboard_payload["sectors"]}
+
+
+def _latest_snapshots(
+    db: Session,
+    *,
+    since: datetime,
+    category: str | None = None,
+) -> list[ChangeSnapshot]:
+    query = db.query(ChangeSnapshot)
+    if category:
+        query = query.filter(ChangeSnapshot.category == category)
+
+    recent = (
+        query
+        .filter(ChangeSnapshot.snapshot_date >= since)
+        .order_by(desc(ChangeSnapshot.snapshot_date))
+        .all()
+    )
+    if recent:
+        return recent
+
+    return query.order_by(desc(ChangeSnapshot.snapshot_date)).all()

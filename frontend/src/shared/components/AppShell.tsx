@@ -1,18 +1,21 @@
 import { ReactNode } from 'react'
 import { Activity, BrainCircuit, CalendarDays, LineChart, Newspaper, Radio, ServerCog, Signal } from 'lucide-react'
+import { useLanguage } from '../i18n'
 
 const nav = [
-  { href: '/dashboard', label: 'Dashboard', meta: 'Overview', icon: Activity },
-  { href: '/indicators', label: 'Indicators', meta: 'Observations', icon: LineChart },
-  { href: '/calendar', label: 'Calendar', meta: 'Events', icon: CalendarDays },
-  { href: '/communications', label: 'Communications', meta: 'Fed trail', icon: Radio },
-  { href: '/narrative', label: 'Narrative', meta: 'Signals', icon: Signal },
-  { href: '/news', label: 'News', meta: 'Coverage', icon: Newspaper },
-  { href: '/ai', label: 'AI', meta: 'Briefings', icon: BrainCircuit },
-  { href: '/system', label: 'System', meta: 'Health', icon: ServerCog },
+  { href: '/dashboard', labelKey: 'nav.dashboard', metaKey: 'nav.dashboardMeta', icon: Activity },
+  { href: '/indicators', labelKey: 'nav.indicators', metaKey: 'nav.indicatorsMeta', icon: LineChart },
+  { href: '/calendar', labelKey: 'nav.calendar', metaKey: 'nav.calendarMeta', icon: CalendarDays },
+  { href: '/communications', labelKey: 'nav.communications', metaKey: 'nav.communicationsMeta', icon: Radio },
+  { href: '/narrative', labelKey: 'nav.narrative', metaKey: 'nav.narrativeMeta', icon: Signal },
+  { href: '/news', labelKey: 'nav.news', metaKey: 'nav.newsMeta', icon: Newspaper },
+  { href: '/ai', labelKey: 'nav.ai', metaKey: 'nav.aiMeta', icon: BrainCircuit },
+  { href: '/system', labelKey: 'nav.system', metaKey: 'nav.systemMeta', icon: ServerCog },
 ]
 
 export function AppShell({ children, route }: { children: ReactNode; route: string }) {
+  const { locale, setLocale, t } = useLanguage()
+
   return (
     <div className="min-h-screen bg-surface text-text-primary">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 border-r border-surface-border bg-[#f9fbfd] px-4 py-5 xl:block">
@@ -21,11 +24,27 @@ export function AppShell({ children, route }: { children: ReactNode; route: stri
             <Activity size={16} />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-extrabold tracking-[-0.02em]">MacroAnalysis</div>
-            <div className="text-[11px] text-text-muted">Macro intelligence</div>
+            <div className="text-sm font-extrabold tracking-[-0.02em]">{t('app.title')}</div>
+            <div className="text-[11px] text-text-muted">{t('app.tagline')}</div>
           </div>
         </div>
-        <div className="mb-3 px-2 text-[11px] font-bold uppercase tracking-[0.22em] text-text-muted">Entities</div>
+        <div className="mb-3 flex items-center justify-between gap-2 px-2">
+          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-text-muted">{t('app.entities')}</div>
+          <div className="inline-flex rounded-full border border-surface-border bg-white p-1 text-[11px] font-bold">
+            <button
+              onClick={() => setLocale('ko')}
+              className={`rounded-full px-2 py-1 ${locale === 'ko' ? 'bg-accent text-white' : 'text-text-muted'}`}
+            >
+              {t('locale.ko')}
+            </button>
+            <button
+              onClick={() => setLocale('en')}
+              className={`rounded-full px-2 py-1 ${locale === 'en' ? 'bg-accent text-white' : 'text-text-muted'}`}
+            >
+              {t('locale.en')}
+            </button>
+          </div>
+        </div>
         <nav className="space-y-1">
           {nav.map((item) => {
             const Icon = item.icon
@@ -44,8 +63,8 @@ export function AppShell({ children, route }: { children: ReactNode; route: stri
                   <Icon size={15} />
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">{item.label}</div>
-                  <div className="truncate text-[11px] text-text-muted">{item.meta}</div>
+                  <div className="truncate text-sm font-semibold">{t(item.labelKey)}</div>
+                  <div className="truncate text-[11px] text-text-muted">{t(item.metaKey)}</div>
                 </div>
               </a>
             )
@@ -55,7 +74,13 @@ export function AppShell({ children, route }: { children: ReactNode; route: stri
 
       <header className="sticky top-0 z-30 border-b border-surface-border bg-surface/95 backdrop-blur xl:hidden">
         <div className="flex h-14 items-center gap-3 overflow-x-auto px-3">
-          <span className="shrink-0 text-sm font-extrabold tracking-[-0.02em]">MacroAnalysis</span>
+          <span className="shrink-0 text-sm font-extrabold tracking-[-0.02em]">{t('app.title')}</span>
+          <button
+            onClick={() => setLocale(locale === 'ko' ? 'en' : 'ko')}
+            className="shrink-0 rounded-full border border-surface-border bg-white px-3 py-1.5 text-[11px] font-bold text-text-secondary"
+          >
+            {locale === 'ko' ? t('locale.en') : t('locale.ko')}
+          </button>
           {nav.map((item) => (
             <a
               key={item.href}
@@ -66,7 +91,7 @@ export function AppShell({ children, route }: { children: ReactNode; route: stri
                   : 'text-text-secondary'
               }`}
             >
-              {item.label}
+              {t(item.labelKey)}
             </a>
           ))}
         </div>

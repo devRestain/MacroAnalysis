@@ -13,13 +13,15 @@ interface IndicatorHistoryResponse {
 interface IndicatorExplanationResponse {
   indicator_key?: string
   key?: string
+  display_name?: string | null
+  short_label?: string | null
   name?: string | null
   title?: string | null
   category?: string | null
   description?: string | null
-  why_it_matters?: string | null
-  analysis_hints?: string[] | null
-  related_indicator_keys?: string[] | null
+  market_role?: string | null
+  analysis_hints?: Record<string, unknown> | null
+  related_indicators?: string[] | null
 }
 
 interface IndicatorExplanationListResponse {
@@ -38,12 +40,13 @@ export function normalizeIndicatorHistory(row: IndicatorHistoryResponse): Indica
 export function normalizeIndicatorExplanation(row: IndicatorExplanationResponse): IndicatorExplanation {
   return {
     indicatorKey: row.indicator_key ?? row.key ?? '',
-    name: row.name ?? row.title,
+    name: row.display_name ?? row.name ?? row.title,
+    shortLabel: row.short_label,
     category: row.category,
     description: row.description,
-    whyItMatters: row.why_it_matters,
+    whyItMatters: row.market_role,
     analysisHints: row.analysis_hints,
-    relatedIndicatorKeys: row.related_indicator_keys ?? [],
+    relatedIndicatorKeys: row.related_indicators ?? [],
   }
 }
 
@@ -63,4 +66,3 @@ export async function getIndicatorExplanation(indicatorKey: string): Promise<Ind
     await apiGet<IndicatorExplanationResponse>(`/indicator-explanations/${encodeURIComponent(indicatorKey)}`)
   )
 }
-

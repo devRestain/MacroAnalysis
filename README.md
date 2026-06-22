@@ -99,6 +99,22 @@ MacroAnalysis/
 - `ai.py`: typed AI summary and AI chat APIs
 - `sentiment.py`: expectations, divergence, sentiment signal APIs
 
+## Localization
+
+- The frontend now supports `한국어 / English` switching with a persisted locale key: `macroanalysis.locale`.
+- Static metadata remains JSON-seed owned. Indicator explanations and calendar definitions now carry `translations.ko` / `translations.en` blocks while preserving the existing top-level Korean content for seed compatibility.
+- Static-text APIs accept `lang=ko|en` and currently apply locale overlay to:
+  - `/api/indicator-explanations`
+  - `/api/indicator-explanations/{indicator_key}`
+  - `/api/calendar/events`
+  - `/api/calendar/events/{event_id}`
+  - `/api/fomc`
+  - `/api/summary`
+  - `/api/changes`
+- Fallback order is: requested locale -> opposite locale -> existing DB/static value -> key/code.
+- Dynamic content such as news headlines, AI summary body text, daily insight prose, and communication full text is intentionally left untranslated in this phase.
+- The current static metadata request artifact for ChatGPT-assisted backfill lives at `backend/app/data/static_metadata_translation_request.json`.
+
 ## Database Model and Migration Policy
 
 ### Source of Truth

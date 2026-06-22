@@ -337,7 +337,7 @@ def _enqueue_daily_insight_if_missing(db: Session) -> dict[str, Any]:
 
 def _invalidate_dashboard_cache():
     try:
-        cache_delete_sync("summary:v1")
+        cache_delete_pattern_sync("summary:v*")
     except Exception as exc:
         logger.warning("Failed to invalidate dashboard cache after batch: %s", exc)
 

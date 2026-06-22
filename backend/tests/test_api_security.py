@@ -9,7 +9,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")
 try:
     from fastapi.testclient import TestClient
 
-    from app.core.cache import clear_local_fallback_state
+    from app.core.cache import cache_delete_pattern_sync, clear_local_fallback_state
     from app.core.config import settings
     from app.main import app
 
@@ -22,9 +22,11 @@ except ModuleNotFoundError:
 class ApiSecurityTests(unittest.TestCase):
     def setUp(self) -> None:
         clear_local_fallback_state()
+        cache_delete_pattern_sync("rate_limit:ai_chat:*")
 
     def tearDown(self) -> None:
         clear_local_fallback_state()
+        cache_delete_pattern_sync("rate_limit:ai_chat:*")
 
     def test_ai_chat_requires_api_key_when_configured(self) -> None:
         with patch("app.main.init_db", return_value=None), patch.object(settings, "API_ACCESS_KEY", "secret-key"), patch.object(

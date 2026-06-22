@@ -1,0 +1,2599 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-06-22",
+  "app_default_locale": "ko",
+  "fallback_locale": "en",
+  "generation_target": "missing_or_nonlocalized_static_information",
+  "merge_mode": "upsert_by_lookup_key",
+  "source_request": "backend/app/data/static_metadata_translation_request.json",
+  "field_path_semantics": {
+    "dot_path": "Keys such as translations.en.display_name are intended to be merged as nested JSON paths.",
+    "simple_field": "Keys such as display_name_ko are intended to be persisted as direct columns or metadata keys.",
+    "related_indicators": "Array of existing indicator keys intended for calendar-event linkage."
+  },
+  "translator_notes": [
+    "Korean label fields were written for Korean-first UI exposure.",
+    "English translation fields were filled only where the request asked for fallback translations.en.* backfill.",
+    "User-facing category_label_ko values are semantic labels; they do not require changing the internal category code.",
+    "Provider labels are display labels, while provider field values use lowercase/stable provider identifiers."
+  ],
+  "collections": [
+    {
+      "entity": "indicator_labels",
+      "source_table": "indicators",
+      "lookup_key": "code",
+      "request_fields": [
+        "display_name_ko",
+        "short_label_ko",
+        "category_label_ko",
+        "provider_label_ko"
+      ],
+      "items": [
+        {
+          "key": "DFF",
+          "field_values": {
+            "display_name_ko": "연방기금금리",
+            "short_label_ko": "연방기금금리",
+            "category_label_ko": "금리",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "DGS2",
+          "field_values": {
+            "display_name_ko": "미국 2년 국채금리",
+            "short_label_ko": "미 2년물",
+            "category_label_ko": "금리",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "DGS10",
+          "field_values": {
+            "display_name_ko": "미국 10년 국채금리",
+            "short_label_ko": "미 10년물",
+            "category_label_ko": "금리",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "DGS30",
+          "field_values": {
+            "display_name_ko": "미국 30년 국채금리",
+            "short_label_ko": "미 30년물",
+            "category_label_ko": "금리",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "T10Y2Y",
+          "field_values": {
+            "display_name_ko": "미국 10년-2년 국채금리 스프레드",
+            "short_label_ko": "10Y-2Y 스프레드",
+            "category_label_ko": "금리",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "SOFR",
+          "field_values": {
+            "display_name_ko": "담보부 익일물 조달금리",
+            "short_label_ko": "SOFR",
+            "category_label_ko": "금리",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "CPIAUCSL",
+          "field_values": {
+            "display_name_ko": "미국 소비자물가지수",
+            "short_label_ko": "CPI",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "PCEPILFE",
+          "field_values": {
+            "display_name_ko": "미국 근원 PCE 물가지수",
+            "short_label_ko": "근원 PCE",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "GDPC1",
+          "field_values": {
+            "display_name_ko": "미국 실질 GDP",
+            "short_label_ko": "실질 GDP",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "UNRATE",
+          "field_values": {
+            "display_name_ko": "미국 실업률",
+            "short_label_ko": "실업률",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "ICSA",
+          "field_values": {
+            "display_name_ko": "미국 신규 실업수당 청구건수",
+            "short_label_ko": "신규 실업수당",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "M2SL",
+          "field_values": {
+            "display_name_ko": "미국 M2 통화량",
+            "short_label_ko": "M2",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "USSLIND",
+          "field_values": {
+            "display_name_ko": "미국 경기선행지수",
+            "short_label_ko": "경기선행",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "MANEMP",
+          "field_values": {
+            "display_name_ko": "미국 제조업 고용",
+            "short_label_ko": "제조업 고용",
+            "category_label_ko": "거시",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "HY_OAS",
+          "field_values": {
+            "display_name_ko": "하이일드 OAS",
+            "short_label_ko": "HY OAS",
+            "category_label_ko": "신용",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "IG_OAS",
+          "field_values": {
+            "display_name_ko": "투자등급 OAS",
+            "short_label_ko": "IG OAS",
+            "category_label_ko": "신용",
+            "provider_label_ko": "FRED"
+          }
+        },
+        {
+          "key": "^GSPC",
+          "field_values": {
+            "display_name_ko": "S&P 500 지수",
+            "short_label_ko": "S&P 500",
+            "category_label_ko": "주식",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^IXIC",
+          "field_values": {
+            "display_name_ko": "나스닥 종합지수",
+            "short_label_ko": "나스닥",
+            "category_label_ko": "주식",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^KS11",
+          "field_values": {
+            "display_name_ko": "코스피 지수",
+            "short_label_ko": "코스피",
+            "category_label_ko": "주식",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^N225",
+          "field_values": {
+            "display_name_ko": "닛케이 225 지수",
+            "short_label_ko": "닛케이 225",
+            "category_label_ko": "주식",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^GDAXI",
+          "field_values": {
+            "display_name_ko": "독일 DAX 지수",
+            "short_label_ko": "DAX",
+            "category_label_ko": "주식",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^SSEC",
+          "field_values": {
+            "display_name_ko": "상하이종합지수",
+            "short_label_ko": "상하이종합",
+            "category_label_ko": "주식",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^VIX",
+          "field_values": {
+            "display_name_ko": "VIX 변동성 지수",
+            "short_label_ko": "VIX",
+            "category_label_ko": "변동성",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "^TNX",
+          "field_values": {
+            "display_name_ko": "미국 10년 국채금리(시장)",
+            "short_label_ko": "미 10년물(시장)",
+            "category_label_ko": "금리",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "DX-Y.NYB",
+          "field_values": {
+            "display_name_ko": "미국 달러지수",
+            "short_label_ko": "DXY",
+            "category_label_ko": "외환",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "CL=F",
+          "field_values": {
+            "display_name_ko": "WTI 원유 선물",
+            "short_label_ko": "WTI",
+            "category_label_ko": "원자재",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "GC=F",
+          "field_values": {
+            "display_name_ko": "금 선물",
+            "short_label_ko": "금",
+            "category_label_ko": "원자재",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "HG=F",
+          "field_values": {
+            "display_name_ko": "구리 선물",
+            "short_label_ko": "구리",
+            "category_label_ko": "원자재",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "USDKRW",
+          "field_values": {
+            "display_name_ko": "달러/원 환율",
+            "short_label_ko": "USD/KRW",
+            "category_label_ko": "외환",
+            "provider_label_ko": "ExchangeRate-API"
+          }
+        },
+        {
+          "key": "EURUSD",
+          "field_values": {
+            "display_name_ko": "유로/달러 환율",
+            "short_label_ko": "EUR/USD",
+            "category_label_ko": "외환",
+            "provider_label_ko": "ExchangeRate-API"
+          }
+        },
+        {
+          "key": "USDJPY",
+          "field_values": {
+            "display_name_ko": "달러/엔 환율",
+            "short_label_ko": "USD/JPY",
+            "category_label_ko": "외환",
+            "provider_label_ko": "ExchangeRate-API"
+          }
+        },
+        {
+          "key": "USDCNY",
+          "field_values": {
+            "display_name_ko": "달러/위안 환율",
+            "short_label_ko": "USD/CNY",
+            "category_label_ko": "외환",
+            "provider_label_ko": "ExchangeRate-API"
+          }
+        },
+        {
+          "key": "USDGBP",
+          "field_values": {
+            "display_name_ko": "달러/파운드 환율",
+            "short_label_ko": "USD/GBP",
+            "category_label_ko": "외환",
+            "provider_label_ko": "ExchangeRate-API"
+          }
+        },
+        {
+          "key": "COPPER_GOLD",
+          "field_values": {
+            "display_name_ko": "구리/금 비율",
+            "short_label_ko": "구리/금",
+            "category_label_ko": "실물",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "WTI_BRENT_SPREAD",
+          "field_values": {
+            "display_name_ko": "WTI-브렌트 스프레드",
+            "short_label_ko": "WTI-브렌트",
+            "category_label_ko": "실물",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLK",
+          "field_values": {
+            "display_name_ko": "기술 섹터",
+            "short_label_ko": "기술",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLF",
+          "field_values": {
+            "display_name_ko": "금융 섹터",
+            "short_label_ko": "금융",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLE",
+          "field_values": {
+            "display_name_ko": "에너지 섹터",
+            "short_label_ko": "에너지",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLV",
+          "field_values": {
+            "display_name_ko": "헬스케어 섹터",
+            "short_label_ko": "헬스케어",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLI",
+          "field_values": {
+            "display_name_ko": "산업재 섹터",
+            "short_label_ko": "산업재",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLY",
+          "field_values": {
+            "display_name_ko": "경기소비재 섹터",
+            "short_label_ko": "경기소비재",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLP",
+          "field_values": {
+            "display_name_ko": "필수소비재 섹터",
+            "short_label_ko": "필수소비재",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLU",
+          "field_values": {
+            "display_name_ko": "유틸리티 섹터",
+            "short_label_ko": "유틸리티",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLB",
+          "field_values": {
+            "display_name_ko": "소재 섹터",
+            "short_label_ko": "소재",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLRE",
+          "field_values": {
+            "display_name_ko": "부동산 섹터",
+            "short_label_ko": "부동산",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        },
+        {
+          "key": "XLC",
+          "field_values": {
+            "display_name_ko": "커뮤니케이션 서비스 섹터",
+            "short_label_ko": "커뮤니케이션",
+            "category_label_ko": "섹터",
+            "provider_label_ko": "Yahoo Finance"
+          }
+        }
+      ]
+    },
+    {
+      "entity": "indicator_explanations",
+      "source_table": "indicator_explanations",
+      "lookup_key": "indicator_key",
+      "request_fields": [
+        "provider",
+        "translations.en.display_name",
+        "translations.en.short_label",
+        "translations.en.description",
+        "translations.en.market_role",
+        "translations.en.higher_meaning",
+        "translations.en.lower_meaning",
+        "translations.en.watch_points"
+      ],
+      "items": [
+        {
+          "key": "DFF",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Federal Funds Rate",
+            "translations.en.short_label": "Fed funds target/effective rate",
+            "translations.en.description": "The overnight rate at which U.S. banks lend reserve balances to each other.",
+            "translations.en.market_role": "It anchors short-term interest rates and reflects the stance of Federal Reserve policy.",
+            "translations.en.higher_meaning": "A higher reading usually points to tighter policy and higher funding costs.",
+            "translations.en.lower_meaning": "A lower reading usually points to easier policy and lower funding costs.",
+            "translations.en.watch_points": "Compare with 2-year Treasury yields, FedWatch probabilities, inflation data, and FOMC guidance."
+          }
+        },
+        {
+          "key": "DGS2",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "2-Year Treasury Yield",
+            "translations.en.short_label": "U.S. 2Y yield",
+            "translations.en.description": "The market yield on the U.S. Treasury note with a two-year maturity.",
+            "translations.en.market_role": "It is one of the most policy-sensitive points on the yield curve.",
+            "translations.en.higher_meaning": "A rise often signals higher policy-rate expectations or tighter financial conditions.",
+            "translations.en.lower_meaning": "A decline often signals lower policy-rate expectations or rising growth concerns.",
+            "translations.en.watch_points": "Watch the spread versus the Fed funds rate, 10-year yield, inflation releases, and FOMC communication."
+          }
+        },
+        {
+          "key": "DGS10",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "10-Year Treasury Yield",
+            "translations.en.short_label": "U.S. 10Y yield",
+            "translations.en.description": "The market yield on the U.S. Treasury note with a ten-year maturity.",
+            "translations.en.market_role": "It is a benchmark for long-term borrowing costs, valuation discount rates, and global risk pricing.",
+            "translations.en.higher_meaning": "A rise can pressure equity valuations and indicate stronger growth, inflation, or term-premium expectations.",
+            "translations.en.lower_meaning": "A decline can support duration assets but may also reflect lower growth or risk-off demand.",
+            "translations.en.watch_points": "Compare with inflation expectations, the 2-year yield, the dollar, equities, and credit spreads."
+          }
+        },
+        {
+          "key": "DGS30",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "30-Year Treasury Yield",
+            "translations.en.short_label": "U.S. 30Y yield",
+            "translations.en.description": "The market yield on the U.S. Treasury bond with a thirty-year maturity.",
+            "translations.en.market_role": "It reflects long-horizon growth, inflation, fiscal, and term-premium expectations.",
+            "translations.en.higher_meaning": "A rise can tighten financial conditions and weigh on long-duration assets.",
+            "translations.en.lower_meaning": "A decline can ease long-term discount rates but may also indicate defensive demand.",
+            "translations.en.watch_points": "Check the 10-year yield, inflation trends, Treasury supply, and curve steepening or flattening."
+          }
+        },
+        {
+          "key": "T10Y2Y",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "10Y-2Y Treasury Spread",
+            "translations.en.short_label": "10Y-2Y spread",
+            "translations.en.description": "The difference between the U.S. 10-year and 2-year Treasury yields.",
+            "translations.en.market_role": "It helps summarize the slope of the yield curve and the market's growth-policy mix.",
+            "translations.en.higher_meaning": "A higher spread usually means curve steepening, often linked to better growth expectations or higher term premium.",
+            "translations.en.lower_meaning": "A lower or negative spread signals flattening or inversion, often linked to tight policy or recession concern.",
+            "translations.en.watch_points": "Interpret alongside the level of yields, Fed policy expectations, inflation data, and credit spreads."
+          }
+        },
+        {
+          "key": "SOFR",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Secured Overnight Financing Rate",
+            "translations.en.short_label": "SOFR",
+            "translations.en.description": "A broad measure of the cost of overnight borrowing collateralized by U.S. Treasury securities.",
+            "translations.en.market_role": "It is a key reference rate for dollar funding and many floating-rate instruments.",
+            "translations.en.higher_meaning": "A higher rate points to tighter short-term funding conditions.",
+            "translations.en.lower_meaning": "A lower rate points to easier short-term funding conditions.",
+            "translations.en.watch_points": "Watch quarter-end effects, repo-market stress, Fed policy, and the spread against policy rates."
+          }
+        },
+        {
+          "key": "CPIAUCSL",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Consumer Price Index",
+            "translations.en.short_label": "CPI",
+            "translations.en.description": "A broad measure of prices paid by U.S. consumers for goods and services.",
+            "translations.en.market_role": "It is a major input for inflation expectations and Federal Reserve policy pricing.",
+            "translations.en.higher_meaning": "A higher reading suggests stronger inflation pressure and can weaken rate-cut expectations.",
+            "translations.en.lower_meaning": "A lower reading suggests easing inflation pressure and can support easier-policy expectations.",
+            "translations.en.watch_points": "Focus on core components, shelter, energy, month-over-month momentum, and market reaction in yields and the dollar."
+          }
+        },
+        {
+          "key": "PCEPILFE",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Core PCE Price Index",
+            "translations.en.short_label": "Core PCE",
+            "translations.en.description": "The personal consumption expenditures price index excluding food and energy.",
+            "translations.en.market_role": "It is the Federal Reserve's preferred inflation gauge.",
+            "translations.en.higher_meaning": "A higher reading can signal persistent inflation and a more restrictive policy path.",
+            "translations.en.lower_meaning": "A lower reading can support confidence that inflation is cooling.",
+            "translations.en.watch_points": "Compare with CPI, wage growth, personal income, spending data, and Fed guidance."
+          }
+        },
+        {
+          "key": "UNRATE",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Unemployment Rate",
+            "translations.en.short_label": "Unemployment",
+            "translations.en.description": "The share of the U.S. labor force that is unemployed and actively seeking work.",
+            "translations.en.market_role": "It is a key measure of labor-market slack and recession risk.",
+            "translations.en.higher_meaning": "A higher rate can indicate labor-market weakening and slower growth.",
+            "translations.en.lower_meaning": "A lower rate can indicate a tight labor market and potential wage pressure.",
+            "translations.en.watch_points": "Interpret with payroll growth, participation, jobless claims, wage growth, and revisions."
+          }
+        },
+        {
+          "key": "ICSA",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Initial Jobless Claims",
+            "translations.en.short_label": "Jobless claims",
+            "translations.en.description": "The weekly number of people filing first-time claims for unemployment insurance.",
+            "translations.en.market_role": "It provides a timely read on labor-market deterioration or resilience.",
+            "translations.en.higher_meaning": "A higher reading can signal rising layoffs and weaker labor demand.",
+            "translations.en.lower_meaning": "A lower reading can signal resilient employment conditions.",
+            "translations.en.watch_points": "Use the four-week average and compare with unemployment, payrolls, and recession-sensitive assets."
+          }
+        },
+        {
+          "key": "USSLIND",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Leading Economic Index",
+            "translations.en.short_label": "Leading index",
+            "translations.en.description": "A composite indicator designed to signal future turns in the U.S. business cycle.",
+            "translations.en.market_role": "It helps investors assess whether growth momentum is improving or weakening.",
+            "translations.en.higher_meaning": "A higher reading suggests improving forward economic momentum.",
+            "translations.en.lower_meaning": "A lower reading suggests weakening forward economic momentum.",
+            "translations.en.watch_points": "Watch the trend over several months and compare with credit spreads, yields, and equity breadth."
+          }
+        },
+        {
+          "key": "M2SL",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "M2 Money Supply",
+            "translations.en.short_label": "M2",
+            "translations.en.description": "A broad measure of U.S. money supply including cash, checking deposits, savings deposits, and similar liquid money.",
+            "translations.en.market_role": "It provides context on liquidity conditions and monetary transmission.",
+            "translations.en.higher_meaning": "Faster growth may indicate improving liquidity, though the market impact depends on inflation and credit conditions.",
+            "translations.en.lower_meaning": "Contraction or slower growth may indicate tighter liquidity and weaker credit creation.",
+            "translations.en.watch_points": "Compare with bank lending, inflation, policy rates, and risk-asset performance."
+          }
+        },
+        {
+          "key": "HY_OAS",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "High Yield Option-Adjusted Spread",
+            "translations.en.short_label": "HY OAS",
+            "translations.en.description": "The option-adjusted spread of U.S. high-yield corporate bonds over comparable Treasuries.",
+            "translations.en.market_role": "It is a key gauge of credit stress and risk appetite.",
+            "translations.en.higher_meaning": "A higher spread indicates rising default concern and weaker risk sentiment.",
+            "translations.en.lower_meaning": "A lower spread indicates stronger credit appetite and easier financing conditions.",
+            "translations.en.watch_points": "Compare with equity volatility, investment-grade spreads, Treasury yields, and recession indicators."
+          }
+        },
+        {
+          "key": "IG_OAS",
+          "field_values": {
+            "provider": "fred",
+            "translations.en.display_name": "Investment Grade Option-Adjusted Spread",
+            "translations.en.short_label": "IG OAS",
+            "translations.en.description": "The option-adjusted spread of U.S. investment-grade corporate bonds over comparable Treasuries.",
+            "translations.en.market_role": "It tracks credit conditions for higher-quality corporate borrowers.",
+            "translations.en.higher_meaning": "A higher spread signals tighter credit conditions and rising risk premia.",
+            "translations.en.lower_meaning": "A lower spread signals easier credit conditions and stronger investor demand.",
+            "translations.en.watch_points": "Watch alongside high-yield spreads, Treasury yields, equity volatility, and liquidity conditions."
+          }
+        },
+        {
+          "key": "^GSPC",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "S&P 500",
+            "translations.en.short_label": "S&P 500",
+            "translations.en.description": "A broad U.S. large-cap equity index.",
+            "translations.en.market_role": "It is the primary benchmark for U.S. equity risk appetite.",
+            "translations.en.higher_meaning": "A higher index level generally reflects stronger equity demand and risk appetite.",
+            "translations.en.lower_meaning": "A lower index level generally reflects weaker risk appetite or earnings/valuation pressure.",
+            "translations.en.watch_points": "Compare with sector leadership, Treasury yields, VIX, credit spreads, and earnings expectations."
+          }
+        },
+        {
+          "key": "^IXIC",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "NASDAQ Composite",
+            "translations.en.short_label": "NASDAQ",
+            "translations.en.description": "A U.S. equity index with heavy exposure to technology and growth companies.",
+            "translations.en.market_role": "It is sensitive to growth expectations, discount rates, and technology-sector sentiment.",
+            "translations.en.higher_meaning": "A rise can indicate strong demand for growth and technology shares.",
+            "translations.en.lower_meaning": "A decline can indicate pressure from higher rates, weaker risk appetite, or tech-specific concerns.",
+            "translations.en.watch_points": "Compare with 10-year yields, XLK, S&P 500, and earnings news."
+          }
+        },
+        {
+          "key": "^KS11",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "KOSPI",
+            "translations.en.short_label": "KOSPI",
+            "translations.en.description": "South Korea's main equity-market index.",
+            "translations.en.market_role": "It reflects Korean equity-market sentiment and global trade-cycle exposure.",
+            "translations.en.higher_meaning": "A rise suggests stronger demand for Korean equities and cyclical exposure.",
+            "translations.en.lower_meaning": "A decline suggests weaker risk appetite or pressure from global growth, FX, or semiconductor cycles.",
+            "translations.en.watch_points": "Watch USD/KRW, global technology shares, China data, and foreign investor flows."
+          }
+        },
+        {
+          "key": "^N225",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Nikkei 225",
+            "translations.en.short_label": "Nikkei 225",
+            "translations.en.description": "A leading Japanese equity index composed of major listed companies.",
+            "translations.en.market_role": "It reflects Japanese equity sentiment and global cyclical risk appetite.",
+            "translations.en.higher_meaning": "A rise suggests stronger investor demand for Japanese equities.",
+            "translations.en.lower_meaning": "A decline suggests weaker equity sentiment or pressure from currency and rate moves.",
+            "translations.en.watch_points": "Compare with USD/JPY, global equities, Bank of Japan expectations, and export-sector trends."
+          }
+        },
+        {
+          "key": "^GDAXI",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "DAX",
+            "translations.en.short_label": "DAX",
+            "translations.en.description": "Germany's major blue-chip equity index.",
+            "translations.en.market_role": "It reflects European cyclical, export, and industrial-market sentiment.",
+            "translations.en.higher_meaning": "A rise suggests stronger European risk appetite and cyclical expectations.",
+            "translations.en.lower_meaning": "A decline suggests weaker growth sentiment or pressure from rates, energy, or currency moves.",
+            "translations.en.watch_points": "Watch EUR/USD, European yields, energy prices, and global manufacturing data."
+          }
+        },
+        {
+          "key": "^SSEC",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Shanghai Composite",
+            "translations.en.short_label": "Shanghai Composite",
+            "translations.en.description": "A broad index of stocks listed on the Shanghai Stock Exchange.",
+            "translations.en.market_role": "It provides a read on mainland China equity sentiment.",
+            "translations.en.higher_meaning": "A rise can indicate stronger domestic risk appetite or policy-support expectations.",
+            "translations.en.lower_meaning": "A decline can indicate weaker growth confidence or policy disappointment.",
+            "translations.en.watch_points": "Compare with China credit data, commodities, USD/CNY, and Asian equity markets."
+          }
+        },
+        {
+          "key": "^VIX",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "VIX Volatility Index",
+            "translations.en.short_label": "VIX",
+            "translations.en.description": "A market-implied measure of expected S&P 500 volatility.",
+            "translations.en.market_role": "It is widely used as a gauge of equity-market fear and hedging demand.",
+            "translations.en.higher_meaning": "A higher VIX usually signals rising uncertainty or risk-off conditions.",
+            "translations.en.lower_meaning": "A lower VIX usually signals calmer markets and lower demand for downside protection.",
+            "translations.en.watch_points": "Compare with S&P 500 moves, credit spreads, event risk, and options-expiration effects."
+          }
+        },
+        {
+          "key": "DX-Y.NYB",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "U.S. Dollar Index",
+            "translations.en.short_label": "DXY",
+            "translations.en.description": "An index measuring the U.S. dollar against a basket of major currencies.",
+            "translations.en.market_role": "It summarizes broad dollar strength and global liquidity pressure.",
+            "translations.en.higher_meaning": "A higher index indicates a stronger dollar, often tightening conditions for global risk assets.",
+            "translations.en.lower_meaning": "A lower index indicates a weaker dollar, often easing pressure on non-U.S. assets.",
+            "translations.en.watch_points": "Compare with U.S. yields, EUR/USD, USD/JPY, commodities, and risk sentiment."
+          }
+        },
+        {
+          "key": "CL=F",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "WTI Crude Oil",
+            "translations.en.short_label": "WTI",
+            "translations.en.description": "The front-month futures price for West Texas Intermediate crude oil.",
+            "translations.en.market_role": "It is a key signal for energy prices, inflation pressure, and global demand expectations.",
+            "translations.en.higher_meaning": "A higher price can reflect stronger demand, supply disruption, or inflation pressure.",
+            "translations.en.lower_meaning": "A lower price can reflect weaker demand, higher supply, or easing inflation pressure.",
+            "translations.en.watch_points": "Compare with Brent, the dollar, inventory data, geopolitical risk, and energy-sector performance."
+          }
+        },
+        {
+          "key": "GC=F",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Gold",
+            "translations.en.short_label": "Gold",
+            "translations.en.description": "The front-month futures price for gold.",
+            "translations.en.market_role": "Gold is watched as a real-rate, dollar, and safe-haven sensitive asset.",
+            "translations.en.higher_meaning": "A higher price can signal stronger safe-haven demand, lower real yields, or a weaker dollar.",
+            "translations.en.lower_meaning": "A lower price can signal higher real yields, a stronger dollar, or reduced defensive demand.",
+            "translations.en.watch_points": "Compare with real yields, DXY, inflation expectations, and risk sentiment."
+          }
+        },
+        {
+          "key": "HG=F",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Copper",
+            "translations.en.short_label": "Copper",
+            "translations.en.description": "The front-month futures price for copper.",
+            "translations.en.market_role": "Copper is a cyclical commodity often used as a gauge of industrial demand.",
+            "translations.en.higher_meaning": "A higher price can signal stronger manufacturing or infrastructure demand.",
+            "translations.en.lower_meaning": "A lower price can signal weaker industrial demand or stronger supply pressure.",
+            "translations.en.watch_points": "Compare with China data, manufacturing PMIs, the dollar, and the copper/gold ratio."
+          }
+        },
+        {
+          "key": "USDKRW",
+          "field_values": {
+            "provider": "exchangerate-api",
+            "translations.en.display_name": "USD/KRW",
+            "translations.en.short_label": "USD/KRW",
+            "translations.en.description": "The exchange rate between the U.S. dollar and the Korean won.",
+            "translations.en.market_role": "It is important for Korean investors because it affects imported inflation, foreign flows, and global risk sensitivity.",
+            "translations.en.higher_meaning": "A higher rate means a stronger dollar or weaker won, often linked to risk-off pressure.",
+            "translations.en.lower_meaning": "A lower rate means a stronger won or weaker dollar, often linked to improved risk appetite.",
+            "translations.en.watch_points": "Compare with DXY, U.S. yields, KOSPI, China data, and foreign investor flows."
+          }
+        },
+        {
+          "key": "EURUSD",
+          "field_values": {
+            "provider": "exchangerate-api",
+            "translations.en.display_name": "EUR/USD",
+            "translations.en.short_label": "EUR/USD",
+            "translations.en.description": "The exchange rate between the euro and the U.S. dollar.",
+            "translations.en.market_role": "It is the main currency pair for comparing euro-area and U.S. macro expectations.",
+            "translations.en.higher_meaning": "A higher rate means a stronger euro or weaker dollar.",
+            "translations.en.lower_meaning": "A lower rate means a weaker euro or stronger dollar.",
+            "translations.en.watch_points": "Watch U.S.-Europe rate differentials, ECB and Fed guidance, DXY, and energy-market pressures."
+          }
+        },
+        {
+          "key": "USDJPY",
+          "field_values": {
+            "provider": "exchangerate-api",
+            "translations.en.display_name": "USD/JPY",
+            "translations.en.short_label": "USD/JPY",
+            "translations.en.description": "The exchange rate between the U.S. dollar and the Japanese yen.",
+            "translations.en.market_role": "It reflects rate differentials, dollar strength, and yen funding conditions.",
+            "translations.en.higher_meaning": "A higher rate means a stronger dollar or weaker yen.",
+            "translations.en.lower_meaning": "A lower rate means a weaker dollar or stronger yen.",
+            "translations.en.watch_points": "Compare with U.S. yields, Bank of Japan expectations, Nikkei performance, and risk sentiment."
+          }
+        },
+        {
+          "key": "COPPER_GOLD",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Copper/Gold Ratio",
+            "translations.en.short_label": "Copper/Gold",
+            "translations.en.description": "A ratio comparing copper prices with gold prices.",
+            "translations.en.market_role": "It is used as a rough gauge of cyclical growth appetite versus defensive demand.",
+            "translations.en.higher_meaning": "A higher ratio suggests stronger cyclical or industrial-demand sentiment.",
+            "translations.en.lower_meaning": "A lower ratio suggests more defensive demand or weaker growth expectations.",
+            "translations.en.watch_points": "Compare with Treasury yields, China data, manufacturing indicators, and equity cyclicals."
+          }
+        },
+        {
+          "key": "WTI_BRENT_SPREAD",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "WTI-Brent Spread",
+            "translations.en.short_label": "WTI-Brent",
+            "translations.en.description": "The price difference between WTI crude and Brent crude.",
+            "translations.en.market_role": "It helps identify relative U.S. versus global crude-market tightness.",
+            "translations.en.higher_meaning": "A higher spread can mean WTI is strengthening versus Brent or the discount is narrowing.",
+            "translations.en.lower_meaning": "A lower spread can mean WTI is weakening versus Brent or the discount is widening.",
+            "translations.en.watch_points": "Check inventory data, export constraints, geopolitics, refinery demand, and the overall oil-price trend."
+          }
+        },
+        {
+          "key": "XLK",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Technology Sector",
+            "translations.en.short_label": "Technology",
+            "translations.en.description": "A U.S. equity sector ETF proxy for technology companies.",
+            "translations.en.market_role": "It shows leadership or weakness in technology shares within the broader market.",
+            "translations.en.higher_meaning": "A rise suggests stronger demand for technology and growth exposure.",
+            "translations.en.lower_meaning": "A decline suggests weaker technology sentiment or pressure from rates and earnings.",
+            "translations.en.watch_points": "Compare with NASDAQ, 10-year yields, semiconductors, and earnings revisions."
+          }
+        },
+        {
+          "key": "XLF",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Financials Sector",
+            "translations.en.short_label": "Financials",
+            "translations.en.description": "A U.S. equity sector ETF proxy for banks, insurers, and financial companies.",
+            "translations.en.market_role": "It reflects credit conditions, yield-curve expectations, and financial-sector sentiment.",
+            "translations.en.higher_meaning": "A rise can signal stronger confidence in banks, credit, or net-interest-margin expectations.",
+            "translations.en.lower_meaning": "A decline can signal concern about credit quality, curve pressure, or financial stress.",
+            "translations.en.watch_points": "Compare with yield-curve slope, credit spreads, bank earnings, and regulatory news."
+          }
+        },
+        {
+          "key": "XLE",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Energy Sector",
+            "translations.en.short_label": "Energy",
+            "translations.en.description": "A U.S. equity sector ETF proxy for energy companies.",
+            "translations.en.market_role": "It tracks equity-market exposure to oil, gas, and energy-cycle expectations.",
+            "translations.en.higher_meaning": "A rise often reflects stronger energy prices or improved energy-sector sentiment.",
+            "translations.en.lower_meaning": "A decline often reflects weaker commodity prices or demand concerns.",
+            "translations.en.watch_points": "Compare with WTI, Brent, the dollar, inventories, and geopolitical risk."
+          }
+        },
+        {
+          "key": "XLV",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Health Care Sector",
+            "translations.en.short_label": "Health Care",
+            "translations.en.description": "A U.S. equity sector ETF proxy for health care companies.",
+            "translations.en.market_role": "It is often viewed as a defensive sector with policy and earnings-specific drivers.",
+            "translations.en.higher_meaning": "A rise can indicate defensive demand or stronger sector fundamentals.",
+            "translations.en.lower_meaning": "A decline can indicate rotation away from defensives or sector-specific pressure.",
+            "translations.en.watch_points": "Compare with broad equity sentiment, policy risk, earnings, and factor rotation."
+          }
+        },
+        {
+          "key": "XLI",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Industrials Sector",
+            "translations.en.short_label": "Industrials",
+            "translations.en.description": "A U.S. equity sector ETF proxy for industrial companies.",
+            "translations.en.market_role": "It reflects cyclical growth, capital spending, and manufacturing expectations.",
+            "translations.en.higher_meaning": "A rise suggests stronger cyclical and industrial demand expectations.",
+            "translations.en.lower_meaning": "A decline suggests weaker manufacturing or capital-spending sentiment.",
+            "translations.en.watch_points": "Compare with ISM data, durable goods, copper, yields, and global trade indicators."
+          }
+        },
+        {
+          "key": "XLY",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Consumer Discretionary Sector",
+            "translations.en.short_label": "Discretionary",
+            "translations.en.description": "A U.S. equity sector ETF proxy for consumer discretionary companies.",
+            "translations.en.market_role": "It reflects consumer confidence, spending appetite, and growth-stock exposure.",
+            "translations.en.higher_meaning": "A rise suggests stronger discretionary spending expectations or risk appetite.",
+            "translations.en.lower_meaning": "A decline suggests consumer caution, rate pressure, or weaker growth expectations.",
+            "translations.en.watch_points": "Compare with retail sales, labor data, consumer sentiment, rates, and earnings."
+          }
+        },
+        {
+          "key": "XLP",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Consumer Staples Sector",
+            "translations.en.short_label": "Staples",
+            "translations.en.description": "A U.S. equity sector ETF proxy for consumer staples companies.",
+            "translations.en.market_role": "It is often used as a defensive equity-sector benchmark.",
+            "translations.en.higher_meaning": "A rise can reflect defensive demand or stable earnings preference.",
+            "translations.en.lower_meaning": "A decline can reflect rotation toward cyclicals or sector-specific weakness.",
+            "translations.en.watch_points": "Compare with XLY, inflation data, margins, and broad risk appetite."
+          }
+        },
+        {
+          "key": "XLU",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Utilities Sector",
+            "translations.en.short_label": "Utilities",
+            "translations.en.description": "A U.S. equity sector ETF proxy for utility companies.",
+            "translations.en.market_role": "It is rate-sensitive and often treated as a defensive, dividend-oriented sector.",
+            "translations.en.higher_meaning": "A rise can indicate defensive demand or lower-yield support.",
+            "translations.en.lower_meaning": "A decline can indicate higher-rate pressure or rotation into cyclicals.",
+            "translations.en.watch_points": "Compare with Treasury yields, dividend factors, risk sentiment, and power-demand trends."
+          }
+        },
+        {
+          "key": "XLB",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Materials Sector",
+            "translations.en.short_label": "Materials",
+            "translations.en.description": "A U.S. equity sector ETF proxy for materials companies.",
+            "translations.en.market_role": "It reflects demand for chemicals, metals, construction inputs, and global cyclical activity.",
+            "translations.en.higher_meaning": "A rise suggests stronger cyclical or commodity-linked demand expectations.",
+            "translations.en.lower_meaning": "A decline suggests weaker global growth or commodity demand expectations.",
+            "translations.en.watch_points": "Compare with copper, China data, manufacturing indicators, and the dollar."
+          }
+        },
+        {
+          "key": "XLRE",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Real Estate Sector",
+            "translations.en.short_label": "Real Estate",
+            "translations.en.description": "A U.S. equity sector ETF proxy for real estate companies and REITs.",
+            "translations.en.market_role": "It is sensitive to interest rates, financing costs, and property-market expectations.",
+            "translations.en.higher_meaning": "A rise can indicate lower-rate support or stronger property-sector sentiment.",
+            "translations.en.lower_meaning": "A decline can indicate higher-rate pressure or concern about real-estate fundamentals.",
+            "translations.en.watch_points": "Compare with 10-year yields, credit conditions, housing data, and dividend factors."
+          }
+        },
+        {
+          "key": "XLC",
+          "field_values": {
+            "provider": "yfinance",
+            "translations.en.display_name": "Communication Services Sector",
+            "translations.en.short_label": "Communication",
+            "translations.en.description": "A U.S. equity sector ETF proxy for communication services companies.",
+            "translations.en.market_role": "It includes media, telecom, and large platform businesses with growth and advertising exposure.",
+            "translations.en.higher_meaning": "A rise suggests stronger demand for communication-platform and media exposure.",
+            "translations.en.lower_meaning": "A decline suggests weaker growth, advertising, or platform-sector sentiment.",
+            "translations.en.watch_points": "Compare with NASDAQ, technology shares, advertising trends, yields, and earnings."
+          }
+        },
+        {
+          "key": "fomc_next_meeting",
+          "field_values": {
+            "provider": "federal_reserve",
+            "translations.en.display_name": "Next FOMC Meeting Date",
+            "translations.en.short_label": "Next Fed decision",
+            "translations.en.description": "The date of the next Federal Open Market Committee meeting that will set the policy-rate decision and guidance.",
+            "translations.en.market_role": "It anchors the timing of policy expectations across rates, FX, equities, and bonds.",
+            "translations.en.higher_meaning": "For a date field, the key signal is not high or low but how close the meeting is and how expectations change before it.",
+            "translations.en.lower_meaning": "For a date field, the key signal is not high or low but how close the meeting is and how expectations change before it.",
+            "translations.en.watch_points": "Around the meeting, track FedWatch probabilities, 2-year yields, statement wording, and press-conference guidance."
+          }
+        },
+        {
+          "key": "fomc_decision_rate",
+          "field_values": {
+            "provider": "federal_reserve",
+            "translations.en.display_name": "FOMC Decision Rate",
+            "translations.en.short_label": "FOMC policy rate",
+            "translations.en.description": "The policy-rate level decided at an FOMC meeting.",
+            "translations.en.market_role": "It allows markets to compare the actual policy decision with expectations priced before the meeting.",
+            "translations.en.higher_meaning": "A higher-than-expected decision is generally a hawkish surprise and can tighten financial conditions.",
+            "translations.en.lower_meaning": "A lower-than-expected decision is generally a dovish surprise and can support liquidity expectations.",
+            "translations.en.watch_points": "The rate level should be read together with the statement, dot plot, press conference, and forward guidance."
+          }
+        },
+        {
+          "key": "fomc_change_bp",
+          "field_values": {
+            "provider": "federal_reserve",
+            "translations.en.display_name": "FOMC Rate Change",
+            "translations.en.short_label": "FOMC change",
+            "translations.en.description": "The size of the policy-rate change at the meeting, measured in basis points.",
+            "translations.en.market_role": "It captures the intensity of the policy move and the surprise versus market expectations.",
+            "translations.en.higher_meaning": "A larger hike or smaller cut than expected can be interpreted as a hawkish surprise.",
+            "translations.en.lower_meaning": "A larger cut or smaller hike than expected can be interpreted as a dovish surprise.",
+            "translations.en.watch_points": "Clearly define the sign convention in the UI and compare with pre-meeting FedWatch pricing."
+          }
+        },
+        {
+          "key": "fedwatch_prob_hold",
+          "field_values": {
+            "provider": "cme_fedwatch",
+            "translations.en.display_name": "FedWatch Hold Probability",
+            "translations.en.short_label": "Hold probability",
+            "translations.en.description": "The market-implied probability that the Fed keeps the policy rate unchanged at a target meeting.",
+            "translations.en.market_role": "It summarizes rate-market expectations before FOMC decisions.",
+            "translations.en.higher_meaning": "A higher probability indicates stronger expectations for no policy-rate change.",
+            "translations.en.lower_meaning": "A lower probability indicates rising expectations for a cut or hike instead of a hold.",
+            "translations.en.watch_points": "Compare with 2-year yields, inflation data, labor data, and Fed communication."
+          }
+        },
+        {
+          "key": "fedwatch_prob_cut",
+          "field_values": {
+            "provider": "cme_fedwatch",
+            "translations.en.display_name": "FedWatch Cut Probability",
+            "translations.en.short_label": "Cut probability",
+            "translations.en.description": "The market-implied probability that the Fed cuts the policy rate at a target meeting.",
+            "translations.en.market_role": "It tracks how strongly markets expect policy easing.",
+            "translations.en.higher_meaning": "A higher probability signals stronger expectations for easier policy.",
+            "translations.en.lower_meaning": "A lower probability signals reduced expectations for easing.",
+            "translations.en.watch_points": "Compare with inflation surprises, labor-market weakness, recession risk, and FOMC communication."
+          }
+        },
+        {
+          "key": "fedwatch_prob_hike",
+          "field_values": {
+            "provider": "cme_fedwatch",
+            "translations.en.display_name": "FedWatch Hike Probability",
+            "translations.en.short_label": "Hike probability",
+            "translations.en.description": "The market-implied probability that the Fed raises the policy rate at a target meeting.",
+            "translations.en.market_role": "It tracks how strongly markets expect policy tightening.",
+            "translations.en.higher_meaning": "A higher probability signals stronger expectations for tighter policy.",
+            "translations.en.lower_meaning": "A lower probability signals reduced expectations for additional tightening.",
+            "translations.en.watch_points": "Compare with inflation pressure, wage data, 2-year yields, and FOMC communication."
+          }
+        }
+      ]
+    },
+    {
+      "entity": "calendar_event_definitions",
+      "source_table": "economic_calendar_events",
+      "lookup_key": "event_key",
+      "request_fields": [
+        "translations.en.display_name",
+        "translations.en.short_label",
+        "translations.en.description",
+        "translations.en.market_role",
+        "translations.en.higher_meaning",
+        "translations.en.lower_meaning",
+        "translations.en.watch_points",
+        "related_indicators"
+      ],
+      "items": [
+        {
+          "key": "US_CPI",
+          "field_values": {
+            "translations.en.display_name": "U.S. CPI",
+            "translations.en.short_label": "CPI",
+            "translations.en.description": "A major inflation release that measures changes in prices paid by consumers for goods and services.",
+            "translations.en.market_role": "Markets watch CPI because high inflation can reduce rate-cut expectations and pressure risk assets.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can be read as persistent inflation pressure and may push yields higher.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can be read as easing inflation pressure and may support easier-policy expectations.",
+            "translations.en.watch_points": "Focus on core CPI, shelter, services inflation, and the immediate reaction in 2-year yields, the dollar, and equity futures.",
+            "related_indicators": [
+              "CPIAUCSL",
+              "PCEPILFE",
+              "DGS2",
+              "DGS10",
+              "DX-Y.NYB",
+              "^GSPC",
+              "fedwatch_prob_cut",
+              "fedwatch_prob_hike"
+            ]
+          }
+        },
+        {
+          "key": "US_PPI",
+          "field_values": {
+            "translations.en.display_name": "U.S. PPI",
+            "translations.en.short_label": "PPI",
+            "translations.en.description": "A producer-price release that measures price changes faced by businesses at the production stage.",
+            "translations.en.market_role": "It helps markets assess whether upstream cost pressure may pass through to consumer inflation.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can raise concern about future inflation pressure.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can suggest easing cost pressure for businesses.",
+            "translations.en.watch_points": "Compare with CPI, commodity prices, Treasury yields, and dollar moves.",
+            "related_indicators": [
+              "CPIAUCSL",
+              "PCEPILFE",
+              "DGS2",
+              "DX-Y.NYB",
+              "CL=F",
+              "HG=F"
+            ]
+          }
+        },
+        {
+          "key": "US_PCE",
+          "field_values": {
+            "translations.en.display_name": "U.S. PCE Inflation / Personal Income and Outlays",
+            "translations.en.short_label": "PCE",
+            "translations.en.description": "A release covering the Fed-preferred PCE inflation measures together with personal income and spending.",
+            "translations.en.market_role": "Core PCE is closely tied to Fed policy assessment, so markets react strongly to surprises.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can make the Fed less confident that inflation is cooling.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can improve confidence that inflation is moving toward target.",
+            "translations.en.watch_points": "Focus on core PCE, income, spending momentum, revisions, FedWatch pricing, and the yield-curve reaction.",
+            "related_indicators": [
+              "PCEPILFE",
+              "CPIAUCSL",
+              "DGS2",
+              "DGS10",
+              "DX-Y.NYB",
+              "fedwatch_prob_cut",
+              "fedwatch_prob_hike"
+            ]
+          }
+        },
+        {
+          "key": "US_EMPLOYMENT_SITUATION",
+          "field_values": {
+            "translations.en.display_name": "U.S. Employment Situation",
+            "translations.en.short_label": "Jobs Report",
+            "translations.en.description": "The main U.S. labor-market release covering nonfarm payrolls, unemployment, and wage growth.",
+            "translations.en.market_role": "It can change expectations for growth, inflation, and the Fed policy path.",
+            "translations.en.higher_meaning": "Stronger job or wage data can signal resilient demand and potential inflation pressure.",
+            "translations.en.lower_meaning": "Weaker job or wage data can signal labor-market cooling and slower growth.",
+            "translations.en.watch_points": "Read payrolls, unemployment, participation, average hourly earnings, revisions, and the reaction in yields and equities together.",
+            "related_indicators": [
+              "UNRATE",
+              "ICSA",
+              "DGS2",
+              "DGS10",
+              "DX-Y.NYB",
+              "^GSPC",
+              "fedwatch_prob_cut"
+            ]
+          }
+        },
+        {
+          "key": "US_JOBLESS_CLAIMS",
+          "field_values": {
+            "translations.en.display_name": "U.S. Initial Jobless Claims",
+            "translations.en.short_label": "Jobless Claims",
+            "translations.en.description": "A weekly release showing first-time filings for unemployment insurance.",
+            "translations.en.market_role": "It is one of the timeliest indicators of labor-market stress.",
+            "translations.en.higher_meaning": "A higher-than-expected reading can point to rising layoffs and weaker labor demand.",
+            "translations.en.lower_meaning": "A lower-than-expected reading can point to resilient labor demand.",
+            "translations.en.watch_points": "Use the four-week average and compare with the unemployment rate, payroll trend, yields, and equity reaction.",
+            "related_indicators": [
+              "ICSA",
+              "UNRATE",
+              "DGS2",
+              "^GSPC",
+              "fedwatch_prob_cut"
+            ]
+          }
+        },
+        {
+          "key": "US_JOLTS",
+          "field_values": {
+            "translations.en.display_name": "U.S. JOLTS",
+            "translations.en.short_label": "JOLTS",
+            "translations.en.description": "A labor-market release covering job openings, quits, hires, and separations.",
+            "translations.en.market_role": "It helps markets assess labor demand and wage-pressure risks beyond payrolls.",
+            "translations.en.higher_meaning": "A stronger-than-expected reading can indicate tight labor conditions.",
+            "translations.en.lower_meaning": "A weaker-than-expected reading can indicate cooling labor demand.",
+            "translations.en.watch_points": "Focus on job openings, quits, revisions, and consistency with claims, unemployment, and wage data.",
+            "related_indicators": [
+              "UNRATE",
+              "ICSA",
+              "DGS2",
+              "^GSPC",
+              "fedwatch_prob_cut"
+            ]
+          }
+        },
+        {
+          "key": "US_GDP",
+          "field_values": {
+            "translations.en.display_name": "U.S. GDP",
+            "translations.en.short_label": "GDP",
+            "translations.en.description": "A broad release measuring the inflation-adjusted value of goods and services produced in the U.S. economy.",
+            "translations.en.market_role": "It is the main benchmark for overall growth momentum.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient growth and support cyclical assets, but may also affect rate expectations.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can signal growth slowdown and increase defensive demand.",
+            "translations.en.watch_points": "Look at real final sales, consumption, inventories, inflation components, revisions, yields, and equity leadership.",
+            "related_indicators": [
+              "GDPC1",
+              "DGS10",
+              "^GSPC",
+              "DX-Y.NYB",
+              "CL=F",
+              "HG=F"
+            ]
+          }
+        },
+        {
+          "key": "US_RETAIL_SALES",
+          "field_values": {
+            "translations.en.display_name": "U.S. Retail Sales",
+            "translations.en.short_label": "Retail Sales",
+            "translations.en.description": "A monthly release tracking sales by retailers and providing a timely view of consumer spending.",
+            "translations.en.market_role": "It is important because consumption is a large part of U.S. economic activity.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient consumer demand.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can signal consumer caution or slowing demand.",
+            "translations.en.watch_points": "Focus on the control group, revisions, inflation effects, consumer discretionary shares, and rates.",
+            "related_indicators": [
+              "GDPC1",
+              "DGS10",
+              "^GSPC",
+              "XLY",
+              "XLP",
+              "USDKRW"
+            ]
+          }
+        },
+        {
+          "key": "US_DURABLE_GOODS",
+          "field_values": {
+            "translations.en.display_name": "U.S. Durable Goods Orders",
+            "translations.en.short_label": "Durable Goods",
+            "translations.en.description": "A release measuring new orders for long-lasting manufactured goods.",
+            "translations.en.market_role": "It helps assess business investment, manufacturing demand, and cyclical momentum.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can indicate improving capital-spending and manufacturing demand.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can indicate softer business investment or manufacturing momentum.",
+            "translations.en.watch_points": "Watch core capital-goods orders, aircraft volatility, revisions, industrials, copper, and yields.",
+            "related_indicators": [
+              "GDPC1",
+              "MANEMP",
+              "DGS10",
+              "XLI",
+              "HG=F"
+            ]
+          }
+        },
+        {
+          "key": "US_HOUSING_STARTS",
+          "field_values": {
+            "translations.en.display_name": "U.S. Housing Starts",
+            "translations.en.short_label": "Housing Starts",
+            "translations.en.description": "A monthly release showing the number of new residential construction projects started.",
+            "translations.en.market_role": "It is a rate-sensitive indicator of housing activity and construction momentum.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can suggest resilient housing demand or construction activity.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can suggest pressure from mortgage rates or slower housing demand.",
+            "translations.en.watch_points": "Compare with permits, mortgage-rate proxies, 10-year yields, homebuilder sentiment, and real-estate equities.",
+            "related_indicators": [
+              "DGS10",
+              "^GSPC",
+              "XLF",
+              "XLRE",
+              "HG=F"
+            ]
+          }
+        },
+        {
+          "key": "US_NEW_HOME_SALES",
+          "field_values": {
+            "translations.en.display_name": "U.S. New Home Sales",
+            "translations.en.short_label": "New Home Sales",
+            "translations.en.description": "A monthly release showing sales of newly built single-family homes.",
+            "translations.en.market_role": "It provides a read on housing demand and household confidence in a rate-sensitive sector.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient housing demand.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can signal affordability pressure or weaker housing activity.",
+            "translations.en.watch_points": "Compare with mortgage-rate proxies, housing starts, homebuilder sentiment, 10-year yields, and real-estate equities.",
+            "related_indicators": [
+              "DGS10",
+              "XLRE",
+              "XLF",
+              "^GSPC",
+              "HG=F"
+            ]
+          }
+        },
+        {
+          "key": "US_ISM_MANUFACTURING",
+          "field_values": {
+            "translations.en.display_name": "U.S. ISM Manufacturing PMI",
+            "translations.en.short_label": "ISM Manufacturing",
+            "translations.en.description": "A survey-based indicator of U.S. manufacturing activity.",
+            "translations.en.market_role": "It is watched for early signals on cyclical growth, orders, prices, and employment.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can indicate improving manufacturing momentum.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can indicate contracting or slowing manufacturing conditions.",
+            "translations.en.watch_points": "Focus on new orders, prices paid, employment, inventories, industrials, copper, and yields.",
+            "related_indicators": [
+              "MANEMP",
+              "GDPC1",
+              "DGS10",
+              "XLI",
+              "HG=F",
+              "DX-Y.NYB"
+            ]
+          }
+        },
+        {
+          "key": "US_ISM_SERVICES",
+          "field_values": {
+            "translations.en.display_name": "U.S. ISM Services PMI",
+            "translations.en.short_label": "ISM Services",
+            "translations.en.description": "A survey-based indicator of U.S. services-sector activity.",
+            "translations.en.market_role": "Services drive a large share of the U.S. economy and inflation pressure.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient demand and possible services inflation pressure.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can signal cooling demand in the services sector.",
+            "translations.en.watch_points": "Focus on business activity, new orders, employment, prices paid, yields, and equity-sector reaction.",
+            "related_indicators": [
+              "GDPC1",
+              "UNRATE",
+              "DGS10",
+              "^GSPC",
+              "XLY",
+              "XLV"
+            ]
+          }
+        },
+        {
+          "key": "FOMC_MEETING",
+          "field_values": {
+            "translations.en.display_name": "FOMC Meeting",
+            "translations.en.short_label": "FOMC",
+            "translations.en.description": "A Federal Reserve policy meeting where the committee sets the policy-rate decision and communicates its outlook.",
+            "translations.en.market_role": "It is one of the most important events for rates, FX, equities, and credit markets.",
+            "translations.en.higher_meaning": "A more hawkish decision or message can tighten financial conditions.",
+            "translations.en.lower_meaning": "A more dovish decision or message can ease financial conditions.",
+            "translations.en.watch_points": "Compare the decision with FedWatch pricing, statement wording, dot plot, press conference, and moves in 2-year yields.",
+            "related_indicators": [
+              "DFF",
+              "DGS2",
+              "DGS10",
+              "T10Y2Y",
+              "fedwatch_prob_hold",
+              "fedwatch_prob_cut",
+              "fedwatch_prob_hike"
+            ]
+          }
+        },
+        {
+          "key": "FOMC_MINUTES",
+          "field_values": {
+            "translations.en.display_name": "FOMC Minutes",
+            "translations.en.short_label": "FOMC Minutes",
+            "translations.en.description": "The detailed record of a previous FOMC meeting's discussion.",
+            "translations.en.market_role": "It helps markets interpret the committee's reaction function and balance of risks.",
+            "translations.en.higher_meaning": "More hawkish minutes can raise expected policy restrictiveness.",
+            "translations.en.lower_meaning": "More dovish minutes can lower expected policy restrictiveness.",
+            "translations.en.watch_points": "Watch language on inflation, labor markets, financial conditions, balance sheet policy, and the reaction in yields and the dollar.",
+            "related_indicators": [
+              "DFF",
+              "DGS2",
+              "DGS10",
+              "T10Y2Y",
+              "^VIX",
+              "fedwatch_prob_cut",
+              "fedwatch_prob_hike"
+            ]
+          }
+        },
+        {
+          "key": "US_MONTHLY_OPEX",
+          "field_values": {
+            "translations.en.display_name": "U.S. Monthly Options Expiration",
+            "translations.en.short_label": "Monthly OPEX",
+            "translations.en.description": "The monthly expiration of listed options contracts, often concentrated on the third Friday of the month.",
+            "translations.en.market_role": "It can affect short-term equity index flows, hedging demand, and volatility around expiration.",
+            "translations.en.higher_meaning": "A larger expiration with strong dealer-positioning effects can amplify short-term moves.",
+            "translations.en.lower_meaning": "A smaller or less concentrated expiration may have a more limited market impact.",
+            "translations.en.watch_points": "Track S&P 500, NASDAQ, VIX, index levels versus large option strikes, and post-expiration liquidity.",
+            "related_indicators": [
+              "^GSPC",
+              "^IXIC",
+              "^VIX",
+              "XLK",
+              "XLF"
+            ]
+          }
+        },
+        {
+          "key": "US_TRIPLE_WITCHING",
+          "field_values": {
+            "translations.en.display_name": "U.S. Triple Witching",
+            "translations.en.short_label": "Triple Witching",
+            "translations.en.description": "A quarterly expiration date when stock options, stock-index futures, and stock-index options expire together.",
+            "translations.en.market_role": "It can increase volume, rebalance flows, and short-term volatility in equity markets.",
+            "translations.en.higher_meaning": "Large positioning into expiration can amplify index or sector moves.",
+            "translations.en.lower_meaning": "Light positioning or offsetting flows can reduce the visible market impact.",
+            "translations.en.watch_points": "Watch S&P 500, NASDAQ, VIX, sector ETFs, futures rolls, and closing-auction volume.",
+            "related_indicators": [
+              "^GSPC",
+              "^IXIC",
+              "^VIX",
+              "XLK",
+              "XLF",
+              "XLE"
+            ]
+          }
+        },
+        {
+          "key": "US_CONSUMER_SENTIMENT",
+          "field_values": {
+            "translations.en.display_name": "U.S. Consumer Sentiment",
+            "translations.en.short_label": "Consumer Sentiment",
+            "translations.en.description": "A survey release measuring households' views on current conditions, expectations, and inflation.",
+            "translations.en.market_role": "It helps markets assess consumer confidence and inflation expectations.",
+            "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient consumer confidence.",
+            "translations.en.lower_meaning": "A weaker-than-expected release can signal consumer caution or weaker spending intentions.",
+            "translations.en.watch_points": "Focus on inflation-expectations components, current conditions, expectations, retail sales, and consumer-discretionary stocks.",
+            "related_indicators": [
+              "GDPC1",
+              "^GSPC",
+              "XLY",
+              "XLP",
+              "DGS10",
+              "CPIAUCSL"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "entity": "communication_static_labels",
+      "source_table": "communication_events",
+      "lookup_key": "event_type",
+      "request_fields": [
+        "event_type_label_ko",
+        "source_label_ko",
+        "institution_label_ko"
+      ],
+      "items": [
+        {
+          "key": "fomc_meeting",
+          "field_values": {
+            "event_type_label_ko": "FOMC 회의",
+            "source_label_ko": "연방준비제도",
+            "institution_label_ko": "연방준비제도"
+          }
+        },
+        {
+          "key": "statement",
+          "field_values": {
+            "event_type_label_ko": "성명서",
+            "source_label_ko": "연방준비제도",
+            "institution_label_ko": "연방준비제도"
+          }
+        },
+        {
+          "key": "speech",
+          "field_values": {
+            "event_type_label_ko": "연설",
+            "source_label_ko": "연방준비제도",
+            "institution_label_ko": "연방준비제도"
+          }
+        },
+        {
+          "key": "testimony",
+          "field_values": {
+            "event_type_label_ko": "의회 증언",
+            "source_label_ko": "연방준비제도",
+            "institution_label_ko": "연방준비제도"
+          }
+        },
+        {
+          "key": "communication",
+          "field_values": {
+            "event_type_label_ko": "커뮤니케이션",
+            "source_label_ko": "연방준비제도",
+            "institution_label_ko": "연방준비제도"
+          }
+        }
+      ]
+    }
+  ],
+  "lookup_maps": {
+    "indicator_labels_by_code": {
+      "DFF": {
+        "display_name_ko": "연방기금금리",
+        "short_label_ko": "연방기금금리",
+        "category_label_ko": "금리",
+        "provider_label_ko": "FRED"
+      },
+      "DGS2": {
+        "display_name_ko": "미국 2년 국채금리",
+        "short_label_ko": "미 2년물",
+        "category_label_ko": "금리",
+        "provider_label_ko": "FRED"
+      },
+      "DGS10": {
+        "display_name_ko": "미국 10년 국채금리",
+        "short_label_ko": "미 10년물",
+        "category_label_ko": "금리",
+        "provider_label_ko": "FRED"
+      },
+      "DGS30": {
+        "display_name_ko": "미국 30년 국채금리",
+        "short_label_ko": "미 30년물",
+        "category_label_ko": "금리",
+        "provider_label_ko": "FRED"
+      },
+      "T10Y2Y": {
+        "display_name_ko": "미국 10년-2년 국채금리 스프레드",
+        "short_label_ko": "10Y-2Y 스프레드",
+        "category_label_ko": "금리",
+        "provider_label_ko": "FRED"
+      },
+      "SOFR": {
+        "display_name_ko": "담보부 익일물 조달금리",
+        "short_label_ko": "SOFR",
+        "category_label_ko": "금리",
+        "provider_label_ko": "FRED"
+      },
+      "CPIAUCSL": {
+        "display_name_ko": "미국 소비자물가지수",
+        "short_label_ko": "CPI",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "PCEPILFE": {
+        "display_name_ko": "미국 근원 PCE 물가지수",
+        "short_label_ko": "근원 PCE",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "GDPC1": {
+        "display_name_ko": "미국 실질 GDP",
+        "short_label_ko": "실질 GDP",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "UNRATE": {
+        "display_name_ko": "미국 실업률",
+        "short_label_ko": "실업률",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "ICSA": {
+        "display_name_ko": "미국 신규 실업수당 청구건수",
+        "short_label_ko": "신규 실업수당",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "M2SL": {
+        "display_name_ko": "미국 M2 통화량",
+        "short_label_ko": "M2",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "USSLIND": {
+        "display_name_ko": "미국 경기선행지수",
+        "short_label_ko": "경기선행",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "MANEMP": {
+        "display_name_ko": "미국 제조업 고용",
+        "short_label_ko": "제조업 고용",
+        "category_label_ko": "거시",
+        "provider_label_ko": "FRED"
+      },
+      "HY_OAS": {
+        "display_name_ko": "하이일드 OAS",
+        "short_label_ko": "HY OAS",
+        "category_label_ko": "신용",
+        "provider_label_ko": "FRED"
+      },
+      "IG_OAS": {
+        "display_name_ko": "투자등급 OAS",
+        "short_label_ko": "IG OAS",
+        "category_label_ko": "신용",
+        "provider_label_ko": "FRED"
+      },
+      "^GSPC": {
+        "display_name_ko": "S&P 500 지수",
+        "short_label_ko": "S&P 500",
+        "category_label_ko": "주식",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^IXIC": {
+        "display_name_ko": "나스닥 종합지수",
+        "short_label_ko": "나스닥",
+        "category_label_ko": "주식",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^KS11": {
+        "display_name_ko": "코스피 지수",
+        "short_label_ko": "코스피",
+        "category_label_ko": "주식",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^N225": {
+        "display_name_ko": "닛케이 225 지수",
+        "short_label_ko": "닛케이 225",
+        "category_label_ko": "주식",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^GDAXI": {
+        "display_name_ko": "독일 DAX 지수",
+        "short_label_ko": "DAX",
+        "category_label_ko": "주식",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^SSEC": {
+        "display_name_ko": "상하이종합지수",
+        "short_label_ko": "상하이종합",
+        "category_label_ko": "주식",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^VIX": {
+        "display_name_ko": "VIX 변동성 지수",
+        "short_label_ko": "VIX",
+        "category_label_ko": "변동성",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "^TNX": {
+        "display_name_ko": "미국 10년 국채금리(시장)",
+        "short_label_ko": "미 10년물(시장)",
+        "category_label_ko": "금리",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "DX-Y.NYB": {
+        "display_name_ko": "미국 달러지수",
+        "short_label_ko": "DXY",
+        "category_label_ko": "외환",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "CL=F": {
+        "display_name_ko": "WTI 원유 선물",
+        "short_label_ko": "WTI",
+        "category_label_ko": "원자재",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "GC=F": {
+        "display_name_ko": "금 선물",
+        "short_label_ko": "금",
+        "category_label_ko": "원자재",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "HG=F": {
+        "display_name_ko": "구리 선물",
+        "short_label_ko": "구리",
+        "category_label_ko": "원자재",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "USDKRW": {
+        "display_name_ko": "달러/원 환율",
+        "short_label_ko": "USD/KRW",
+        "category_label_ko": "외환",
+        "provider_label_ko": "ExchangeRate-API"
+      },
+      "EURUSD": {
+        "display_name_ko": "유로/달러 환율",
+        "short_label_ko": "EUR/USD",
+        "category_label_ko": "외환",
+        "provider_label_ko": "ExchangeRate-API"
+      },
+      "USDJPY": {
+        "display_name_ko": "달러/엔 환율",
+        "short_label_ko": "USD/JPY",
+        "category_label_ko": "외환",
+        "provider_label_ko": "ExchangeRate-API"
+      },
+      "USDCNY": {
+        "display_name_ko": "달러/위안 환율",
+        "short_label_ko": "USD/CNY",
+        "category_label_ko": "외환",
+        "provider_label_ko": "ExchangeRate-API"
+      },
+      "USDGBP": {
+        "display_name_ko": "달러/파운드 환율",
+        "short_label_ko": "USD/GBP",
+        "category_label_ko": "외환",
+        "provider_label_ko": "ExchangeRate-API"
+      },
+      "COPPER_GOLD": {
+        "display_name_ko": "구리/금 비율",
+        "short_label_ko": "구리/금",
+        "category_label_ko": "실물",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "WTI_BRENT_SPREAD": {
+        "display_name_ko": "WTI-브렌트 스프레드",
+        "short_label_ko": "WTI-브렌트",
+        "category_label_ko": "실물",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLK": {
+        "display_name_ko": "기술 섹터",
+        "short_label_ko": "기술",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLF": {
+        "display_name_ko": "금융 섹터",
+        "short_label_ko": "금융",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLE": {
+        "display_name_ko": "에너지 섹터",
+        "short_label_ko": "에너지",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLV": {
+        "display_name_ko": "헬스케어 섹터",
+        "short_label_ko": "헬스케어",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLI": {
+        "display_name_ko": "산업재 섹터",
+        "short_label_ko": "산업재",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLY": {
+        "display_name_ko": "경기소비재 섹터",
+        "short_label_ko": "경기소비재",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLP": {
+        "display_name_ko": "필수소비재 섹터",
+        "short_label_ko": "필수소비재",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLU": {
+        "display_name_ko": "유틸리티 섹터",
+        "short_label_ko": "유틸리티",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLB": {
+        "display_name_ko": "소재 섹터",
+        "short_label_ko": "소재",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLRE": {
+        "display_name_ko": "부동산 섹터",
+        "short_label_ko": "부동산",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      },
+      "XLC": {
+        "display_name_ko": "커뮤니케이션 서비스 섹터",
+        "short_label_ko": "커뮤니케이션",
+        "category_label_ko": "섹터",
+        "provider_label_ko": "Yahoo Finance"
+      }
+    },
+    "indicator_explanations_by_indicator_key": {
+      "DFF": {
+        "provider": "fred",
+        "translations.en.display_name": "Federal Funds Rate",
+        "translations.en.short_label": "Fed funds target/effective rate",
+        "translations.en.description": "The overnight rate at which U.S. banks lend reserve balances to each other.",
+        "translations.en.market_role": "It anchors short-term interest rates and reflects the stance of Federal Reserve policy.",
+        "translations.en.higher_meaning": "A higher reading usually points to tighter policy and higher funding costs.",
+        "translations.en.lower_meaning": "A lower reading usually points to easier policy and lower funding costs.",
+        "translations.en.watch_points": "Compare with 2-year Treasury yields, FedWatch probabilities, inflation data, and FOMC guidance."
+      },
+      "DGS2": {
+        "provider": "fred",
+        "translations.en.display_name": "2-Year Treasury Yield",
+        "translations.en.short_label": "U.S. 2Y yield",
+        "translations.en.description": "The market yield on the U.S. Treasury note with a two-year maturity.",
+        "translations.en.market_role": "It is one of the most policy-sensitive points on the yield curve.",
+        "translations.en.higher_meaning": "A rise often signals higher policy-rate expectations or tighter financial conditions.",
+        "translations.en.lower_meaning": "A decline often signals lower policy-rate expectations or rising growth concerns.",
+        "translations.en.watch_points": "Watch the spread versus the Fed funds rate, 10-year yield, inflation releases, and FOMC communication."
+      },
+      "DGS10": {
+        "provider": "fred",
+        "translations.en.display_name": "10-Year Treasury Yield",
+        "translations.en.short_label": "U.S. 10Y yield",
+        "translations.en.description": "The market yield on the U.S. Treasury note with a ten-year maturity.",
+        "translations.en.market_role": "It is a benchmark for long-term borrowing costs, valuation discount rates, and global risk pricing.",
+        "translations.en.higher_meaning": "A rise can pressure equity valuations and indicate stronger growth, inflation, or term-premium expectations.",
+        "translations.en.lower_meaning": "A decline can support duration assets but may also reflect lower growth or risk-off demand.",
+        "translations.en.watch_points": "Compare with inflation expectations, the 2-year yield, the dollar, equities, and credit spreads."
+      },
+      "DGS30": {
+        "provider": "fred",
+        "translations.en.display_name": "30-Year Treasury Yield",
+        "translations.en.short_label": "U.S. 30Y yield",
+        "translations.en.description": "The market yield on the U.S. Treasury bond with a thirty-year maturity.",
+        "translations.en.market_role": "It reflects long-horizon growth, inflation, fiscal, and term-premium expectations.",
+        "translations.en.higher_meaning": "A rise can tighten financial conditions and weigh on long-duration assets.",
+        "translations.en.lower_meaning": "A decline can ease long-term discount rates but may also indicate defensive demand.",
+        "translations.en.watch_points": "Check the 10-year yield, inflation trends, Treasury supply, and curve steepening or flattening."
+      },
+      "T10Y2Y": {
+        "provider": "fred",
+        "translations.en.display_name": "10Y-2Y Treasury Spread",
+        "translations.en.short_label": "10Y-2Y spread",
+        "translations.en.description": "The difference between the U.S. 10-year and 2-year Treasury yields.",
+        "translations.en.market_role": "It helps summarize the slope of the yield curve and the market's growth-policy mix.",
+        "translations.en.higher_meaning": "A higher spread usually means curve steepening, often linked to better growth expectations or higher term premium.",
+        "translations.en.lower_meaning": "A lower or negative spread signals flattening or inversion, often linked to tight policy or recession concern.",
+        "translations.en.watch_points": "Interpret alongside the level of yields, Fed policy expectations, inflation data, and credit spreads."
+      },
+      "SOFR": {
+        "provider": "fred",
+        "translations.en.display_name": "Secured Overnight Financing Rate",
+        "translations.en.short_label": "SOFR",
+        "translations.en.description": "A broad measure of the cost of overnight borrowing collateralized by U.S. Treasury securities.",
+        "translations.en.market_role": "It is a key reference rate for dollar funding and many floating-rate instruments.",
+        "translations.en.higher_meaning": "A higher rate points to tighter short-term funding conditions.",
+        "translations.en.lower_meaning": "A lower rate points to easier short-term funding conditions.",
+        "translations.en.watch_points": "Watch quarter-end effects, repo-market stress, Fed policy, and the spread against policy rates."
+      },
+      "CPIAUCSL": {
+        "provider": "fred",
+        "translations.en.display_name": "Consumer Price Index",
+        "translations.en.short_label": "CPI",
+        "translations.en.description": "A broad measure of prices paid by U.S. consumers for goods and services.",
+        "translations.en.market_role": "It is a major input for inflation expectations and Federal Reserve policy pricing.",
+        "translations.en.higher_meaning": "A higher reading suggests stronger inflation pressure and can weaken rate-cut expectations.",
+        "translations.en.lower_meaning": "A lower reading suggests easing inflation pressure and can support easier-policy expectations.",
+        "translations.en.watch_points": "Focus on core components, shelter, energy, month-over-month momentum, and market reaction in yields and the dollar."
+      },
+      "PCEPILFE": {
+        "provider": "fred",
+        "translations.en.display_name": "Core PCE Price Index",
+        "translations.en.short_label": "Core PCE",
+        "translations.en.description": "The personal consumption expenditures price index excluding food and energy.",
+        "translations.en.market_role": "It is the Federal Reserve's preferred inflation gauge.",
+        "translations.en.higher_meaning": "A higher reading can signal persistent inflation and a more restrictive policy path.",
+        "translations.en.lower_meaning": "A lower reading can support confidence that inflation is cooling.",
+        "translations.en.watch_points": "Compare with CPI, wage growth, personal income, spending data, and Fed guidance."
+      },
+      "UNRATE": {
+        "provider": "fred",
+        "translations.en.display_name": "Unemployment Rate",
+        "translations.en.short_label": "Unemployment",
+        "translations.en.description": "The share of the U.S. labor force that is unemployed and actively seeking work.",
+        "translations.en.market_role": "It is a key measure of labor-market slack and recession risk.",
+        "translations.en.higher_meaning": "A higher rate can indicate labor-market weakening and slower growth.",
+        "translations.en.lower_meaning": "A lower rate can indicate a tight labor market and potential wage pressure.",
+        "translations.en.watch_points": "Interpret with payroll growth, participation, jobless claims, wage growth, and revisions."
+      },
+      "ICSA": {
+        "provider": "fred",
+        "translations.en.display_name": "Initial Jobless Claims",
+        "translations.en.short_label": "Jobless claims",
+        "translations.en.description": "The weekly number of people filing first-time claims for unemployment insurance.",
+        "translations.en.market_role": "It provides a timely read on labor-market deterioration or resilience.",
+        "translations.en.higher_meaning": "A higher reading can signal rising layoffs and weaker labor demand.",
+        "translations.en.lower_meaning": "A lower reading can signal resilient employment conditions.",
+        "translations.en.watch_points": "Use the four-week average and compare with unemployment, payrolls, and recession-sensitive assets."
+      },
+      "USSLIND": {
+        "provider": "fred",
+        "translations.en.display_name": "Leading Economic Index",
+        "translations.en.short_label": "Leading index",
+        "translations.en.description": "A composite indicator designed to signal future turns in the U.S. business cycle.",
+        "translations.en.market_role": "It helps investors assess whether growth momentum is improving or weakening.",
+        "translations.en.higher_meaning": "A higher reading suggests improving forward economic momentum.",
+        "translations.en.lower_meaning": "A lower reading suggests weakening forward economic momentum.",
+        "translations.en.watch_points": "Watch the trend over several months and compare with credit spreads, yields, and equity breadth."
+      },
+      "M2SL": {
+        "provider": "fred",
+        "translations.en.display_name": "M2 Money Supply",
+        "translations.en.short_label": "M2",
+        "translations.en.description": "A broad measure of U.S. money supply including cash, checking deposits, savings deposits, and similar liquid money.",
+        "translations.en.market_role": "It provides context on liquidity conditions and monetary transmission.",
+        "translations.en.higher_meaning": "Faster growth may indicate improving liquidity, though the market impact depends on inflation and credit conditions.",
+        "translations.en.lower_meaning": "Contraction or slower growth may indicate tighter liquidity and weaker credit creation.",
+        "translations.en.watch_points": "Compare with bank lending, inflation, policy rates, and risk-asset performance."
+      },
+      "HY_OAS": {
+        "provider": "fred",
+        "translations.en.display_name": "High Yield Option-Adjusted Spread",
+        "translations.en.short_label": "HY OAS",
+        "translations.en.description": "The option-adjusted spread of U.S. high-yield corporate bonds over comparable Treasuries.",
+        "translations.en.market_role": "It is a key gauge of credit stress and risk appetite.",
+        "translations.en.higher_meaning": "A higher spread indicates rising default concern and weaker risk sentiment.",
+        "translations.en.lower_meaning": "A lower spread indicates stronger credit appetite and easier financing conditions.",
+        "translations.en.watch_points": "Compare with equity volatility, investment-grade spreads, Treasury yields, and recession indicators."
+      },
+      "IG_OAS": {
+        "provider": "fred",
+        "translations.en.display_name": "Investment Grade Option-Adjusted Spread",
+        "translations.en.short_label": "IG OAS",
+        "translations.en.description": "The option-adjusted spread of U.S. investment-grade corporate bonds over comparable Treasuries.",
+        "translations.en.market_role": "It tracks credit conditions for higher-quality corporate borrowers.",
+        "translations.en.higher_meaning": "A higher spread signals tighter credit conditions and rising risk premia.",
+        "translations.en.lower_meaning": "A lower spread signals easier credit conditions and stronger investor demand.",
+        "translations.en.watch_points": "Watch alongside high-yield spreads, Treasury yields, equity volatility, and liquidity conditions."
+      },
+      "^GSPC": {
+        "provider": "yfinance",
+        "translations.en.display_name": "S&P 500",
+        "translations.en.short_label": "S&P 500",
+        "translations.en.description": "A broad U.S. large-cap equity index.",
+        "translations.en.market_role": "It is the primary benchmark for U.S. equity risk appetite.",
+        "translations.en.higher_meaning": "A higher index level generally reflects stronger equity demand and risk appetite.",
+        "translations.en.lower_meaning": "A lower index level generally reflects weaker risk appetite or earnings/valuation pressure.",
+        "translations.en.watch_points": "Compare with sector leadership, Treasury yields, VIX, credit spreads, and earnings expectations."
+      },
+      "^IXIC": {
+        "provider": "yfinance",
+        "translations.en.display_name": "NASDAQ Composite",
+        "translations.en.short_label": "NASDAQ",
+        "translations.en.description": "A U.S. equity index with heavy exposure to technology and growth companies.",
+        "translations.en.market_role": "It is sensitive to growth expectations, discount rates, and technology-sector sentiment.",
+        "translations.en.higher_meaning": "A rise can indicate strong demand for growth and technology shares.",
+        "translations.en.lower_meaning": "A decline can indicate pressure from higher rates, weaker risk appetite, or tech-specific concerns.",
+        "translations.en.watch_points": "Compare with 10-year yields, XLK, S&P 500, and earnings news."
+      },
+      "^KS11": {
+        "provider": "yfinance",
+        "translations.en.display_name": "KOSPI",
+        "translations.en.short_label": "KOSPI",
+        "translations.en.description": "South Korea's main equity-market index.",
+        "translations.en.market_role": "It reflects Korean equity-market sentiment and global trade-cycle exposure.",
+        "translations.en.higher_meaning": "A rise suggests stronger demand for Korean equities and cyclical exposure.",
+        "translations.en.lower_meaning": "A decline suggests weaker risk appetite or pressure from global growth, FX, or semiconductor cycles.",
+        "translations.en.watch_points": "Watch USD/KRW, global technology shares, China data, and foreign investor flows."
+      },
+      "^N225": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Nikkei 225",
+        "translations.en.short_label": "Nikkei 225",
+        "translations.en.description": "A leading Japanese equity index composed of major listed companies.",
+        "translations.en.market_role": "It reflects Japanese equity sentiment and global cyclical risk appetite.",
+        "translations.en.higher_meaning": "A rise suggests stronger investor demand for Japanese equities.",
+        "translations.en.lower_meaning": "A decline suggests weaker equity sentiment or pressure from currency and rate moves.",
+        "translations.en.watch_points": "Compare with USD/JPY, global equities, Bank of Japan expectations, and export-sector trends."
+      },
+      "^GDAXI": {
+        "provider": "yfinance",
+        "translations.en.display_name": "DAX",
+        "translations.en.short_label": "DAX",
+        "translations.en.description": "Germany's major blue-chip equity index.",
+        "translations.en.market_role": "It reflects European cyclical, export, and industrial-market sentiment.",
+        "translations.en.higher_meaning": "A rise suggests stronger European risk appetite and cyclical expectations.",
+        "translations.en.lower_meaning": "A decline suggests weaker growth sentiment or pressure from rates, energy, or currency moves.",
+        "translations.en.watch_points": "Watch EUR/USD, European yields, energy prices, and global manufacturing data."
+      },
+      "^SSEC": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Shanghai Composite",
+        "translations.en.short_label": "Shanghai Composite",
+        "translations.en.description": "A broad index of stocks listed on the Shanghai Stock Exchange.",
+        "translations.en.market_role": "It provides a read on mainland China equity sentiment.",
+        "translations.en.higher_meaning": "A rise can indicate stronger domestic risk appetite or policy-support expectations.",
+        "translations.en.lower_meaning": "A decline can indicate weaker growth confidence or policy disappointment.",
+        "translations.en.watch_points": "Compare with China credit data, commodities, USD/CNY, and Asian equity markets."
+      },
+      "^VIX": {
+        "provider": "yfinance",
+        "translations.en.display_name": "VIX Volatility Index",
+        "translations.en.short_label": "VIX",
+        "translations.en.description": "A market-implied measure of expected S&P 500 volatility.",
+        "translations.en.market_role": "It is widely used as a gauge of equity-market fear and hedging demand.",
+        "translations.en.higher_meaning": "A higher VIX usually signals rising uncertainty or risk-off conditions.",
+        "translations.en.lower_meaning": "A lower VIX usually signals calmer markets and lower demand for downside protection.",
+        "translations.en.watch_points": "Compare with S&P 500 moves, credit spreads, event risk, and options-expiration effects."
+      },
+      "DX-Y.NYB": {
+        "provider": "yfinance",
+        "translations.en.display_name": "U.S. Dollar Index",
+        "translations.en.short_label": "DXY",
+        "translations.en.description": "An index measuring the U.S. dollar against a basket of major currencies.",
+        "translations.en.market_role": "It summarizes broad dollar strength and global liquidity pressure.",
+        "translations.en.higher_meaning": "A higher index indicates a stronger dollar, often tightening conditions for global risk assets.",
+        "translations.en.lower_meaning": "A lower index indicates a weaker dollar, often easing pressure on non-U.S. assets.",
+        "translations.en.watch_points": "Compare with U.S. yields, EUR/USD, USD/JPY, commodities, and risk sentiment."
+      },
+      "CL=F": {
+        "provider": "yfinance",
+        "translations.en.display_name": "WTI Crude Oil",
+        "translations.en.short_label": "WTI",
+        "translations.en.description": "The front-month futures price for West Texas Intermediate crude oil.",
+        "translations.en.market_role": "It is a key signal for energy prices, inflation pressure, and global demand expectations.",
+        "translations.en.higher_meaning": "A higher price can reflect stronger demand, supply disruption, or inflation pressure.",
+        "translations.en.lower_meaning": "A lower price can reflect weaker demand, higher supply, or easing inflation pressure.",
+        "translations.en.watch_points": "Compare with Brent, the dollar, inventory data, geopolitical risk, and energy-sector performance."
+      },
+      "GC=F": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Gold",
+        "translations.en.short_label": "Gold",
+        "translations.en.description": "The front-month futures price for gold.",
+        "translations.en.market_role": "Gold is watched as a real-rate, dollar, and safe-haven sensitive asset.",
+        "translations.en.higher_meaning": "A higher price can signal stronger safe-haven demand, lower real yields, or a weaker dollar.",
+        "translations.en.lower_meaning": "A lower price can signal higher real yields, a stronger dollar, or reduced defensive demand.",
+        "translations.en.watch_points": "Compare with real yields, DXY, inflation expectations, and risk sentiment."
+      },
+      "HG=F": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Copper",
+        "translations.en.short_label": "Copper",
+        "translations.en.description": "The front-month futures price for copper.",
+        "translations.en.market_role": "Copper is a cyclical commodity often used as a gauge of industrial demand.",
+        "translations.en.higher_meaning": "A higher price can signal stronger manufacturing or infrastructure demand.",
+        "translations.en.lower_meaning": "A lower price can signal weaker industrial demand or stronger supply pressure.",
+        "translations.en.watch_points": "Compare with China data, manufacturing PMIs, the dollar, and the copper/gold ratio."
+      },
+      "USDKRW": {
+        "provider": "exchangerate-api",
+        "translations.en.display_name": "USD/KRW",
+        "translations.en.short_label": "USD/KRW",
+        "translations.en.description": "The exchange rate between the U.S. dollar and the Korean won.",
+        "translations.en.market_role": "It is important for Korean investors because it affects imported inflation, foreign flows, and global risk sensitivity.",
+        "translations.en.higher_meaning": "A higher rate means a stronger dollar or weaker won, often linked to risk-off pressure.",
+        "translations.en.lower_meaning": "A lower rate means a stronger won or weaker dollar, often linked to improved risk appetite.",
+        "translations.en.watch_points": "Compare with DXY, U.S. yields, KOSPI, China data, and foreign investor flows."
+      },
+      "EURUSD": {
+        "provider": "exchangerate-api",
+        "translations.en.display_name": "EUR/USD",
+        "translations.en.short_label": "EUR/USD",
+        "translations.en.description": "The exchange rate between the euro and the U.S. dollar.",
+        "translations.en.market_role": "It is the main currency pair for comparing euro-area and U.S. macro expectations.",
+        "translations.en.higher_meaning": "A higher rate means a stronger euro or weaker dollar.",
+        "translations.en.lower_meaning": "A lower rate means a weaker euro or stronger dollar.",
+        "translations.en.watch_points": "Watch U.S.-Europe rate differentials, ECB and Fed guidance, DXY, and energy-market pressures."
+      },
+      "USDJPY": {
+        "provider": "exchangerate-api",
+        "translations.en.display_name": "USD/JPY",
+        "translations.en.short_label": "USD/JPY",
+        "translations.en.description": "The exchange rate between the U.S. dollar and the Japanese yen.",
+        "translations.en.market_role": "It reflects rate differentials, dollar strength, and yen funding conditions.",
+        "translations.en.higher_meaning": "A higher rate means a stronger dollar or weaker yen.",
+        "translations.en.lower_meaning": "A lower rate means a weaker dollar or stronger yen.",
+        "translations.en.watch_points": "Compare with U.S. yields, Bank of Japan expectations, Nikkei performance, and risk sentiment."
+      },
+      "COPPER_GOLD": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Copper/Gold Ratio",
+        "translations.en.short_label": "Copper/Gold",
+        "translations.en.description": "A ratio comparing copper prices with gold prices.",
+        "translations.en.market_role": "It is used as a rough gauge of cyclical growth appetite versus defensive demand.",
+        "translations.en.higher_meaning": "A higher ratio suggests stronger cyclical or industrial-demand sentiment.",
+        "translations.en.lower_meaning": "A lower ratio suggests more defensive demand or weaker growth expectations.",
+        "translations.en.watch_points": "Compare with Treasury yields, China data, manufacturing indicators, and equity cyclicals."
+      },
+      "WTI_BRENT_SPREAD": {
+        "provider": "yfinance",
+        "translations.en.display_name": "WTI-Brent Spread",
+        "translations.en.short_label": "WTI-Brent",
+        "translations.en.description": "The price difference between WTI crude and Brent crude.",
+        "translations.en.market_role": "It helps identify relative U.S. versus global crude-market tightness.",
+        "translations.en.higher_meaning": "A higher spread can mean WTI is strengthening versus Brent or the discount is narrowing.",
+        "translations.en.lower_meaning": "A lower spread can mean WTI is weakening versus Brent or the discount is widening.",
+        "translations.en.watch_points": "Check inventory data, export constraints, geopolitics, refinery demand, and the overall oil-price trend."
+      },
+      "XLK": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Technology Sector",
+        "translations.en.short_label": "Technology",
+        "translations.en.description": "A U.S. equity sector ETF proxy for technology companies.",
+        "translations.en.market_role": "It shows leadership or weakness in technology shares within the broader market.",
+        "translations.en.higher_meaning": "A rise suggests stronger demand for technology and growth exposure.",
+        "translations.en.lower_meaning": "A decline suggests weaker technology sentiment or pressure from rates and earnings.",
+        "translations.en.watch_points": "Compare with NASDAQ, 10-year yields, semiconductors, and earnings revisions."
+      },
+      "XLF": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Financials Sector",
+        "translations.en.short_label": "Financials",
+        "translations.en.description": "A U.S. equity sector ETF proxy for banks, insurers, and financial companies.",
+        "translations.en.market_role": "It reflects credit conditions, yield-curve expectations, and financial-sector sentiment.",
+        "translations.en.higher_meaning": "A rise can signal stronger confidence in banks, credit, or net-interest-margin expectations.",
+        "translations.en.lower_meaning": "A decline can signal concern about credit quality, curve pressure, or financial stress.",
+        "translations.en.watch_points": "Compare with yield-curve slope, credit spreads, bank earnings, and regulatory news."
+      },
+      "XLE": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Energy Sector",
+        "translations.en.short_label": "Energy",
+        "translations.en.description": "A U.S. equity sector ETF proxy for energy companies.",
+        "translations.en.market_role": "It tracks equity-market exposure to oil, gas, and energy-cycle expectations.",
+        "translations.en.higher_meaning": "A rise often reflects stronger energy prices or improved energy-sector sentiment.",
+        "translations.en.lower_meaning": "A decline often reflects weaker commodity prices or demand concerns.",
+        "translations.en.watch_points": "Compare with WTI, Brent, the dollar, inventories, and geopolitical risk."
+      },
+      "XLV": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Health Care Sector",
+        "translations.en.short_label": "Health Care",
+        "translations.en.description": "A U.S. equity sector ETF proxy for health care companies.",
+        "translations.en.market_role": "It is often viewed as a defensive sector with policy and earnings-specific drivers.",
+        "translations.en.higher_meaning": "A rise can indicate defensive demand or stronger sector fundamentals.",
+        "translations.en.lower_meaning": "A decline can indicate rotation away from defensives or sector-specific pressure.",
+        "translations.en.watch_points": "Compare with broad equity sentiment, policy risk, earnings, and factor rotation."
+      },
+      "XLI": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Industrials Sector",
+        "translations.en.short_label": "Industrials",
+        "translations.en.description": "A U.S. equity sector ETF proxy for industrial companies.",
+        "translations.en.market_role": "It reflects cyclical growth, capital spending, and manufacturing expectations.",
+        "translations.en.higher_meaning": "A rise suggests stronger cyclical and industrial demand expectations.",
+        "translations.en.lower_meaning": "A decline suggests weaker manufacturing or capital-spending sentiment.",
+        "translations.en.watch_points": "Compare with ISM data, durable goods, copper, yields, and global trade indicators."
+      },
+      "XLY": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Consumer Discretionary Sector",
+        "translations.en.short_label": "Discretionary",
+        "translations.en.description": "A U.S. equity sector ETF proxy for consumer discretionary companies.",
+        "translations.en.market_role": "It reflects consumer confidence, spending appetite, and growth-stock exposure.",
+        "translations.en.higher_meaning": "A rise suggests stronger discretionary spending expectations or risk appetite.",
+        "translations.en.lower_meaning": "A decline suggests consumer caution, rate pressure, or weaker growth expectations.",
+        "translations.en.watch_points": "Compare with retail sales, labor data, consumer sentiment, rates, and earnings."
+      },
+      "XLP": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Consumer Staples Sector",
+        "translations.en.short_label": "Staples",
+        "translations.en.description": "A U.S. equity sector ETF proxy for consumer staples companies.",
+        "translations.en.market_role": "It is often used as a defensive equity-sector benchmark.",
+        "translations.en.higher_meaning": "A rise can reflect defensive demand or stable earnings preference.",
+        "translations.en.lower_meaning": "A decline can reflect rotation toward cyclicals or sector-specific weakness.",
+        "translations.en.watch_points": "Compare with XLY, inflation data, margins, and broad risk appetite."
+      },
+      "XLU": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Utilities Sector",
+        "translations.en.short_label": "Utilities",
+        "translations.en.description": "A U.S. equity sector ETF proxy for utility companies.",
+        "translations.en.market_role": "It is rate-sensitive and often treated as a defensive, dividend-oriented sector.",
+        "translations.en.higher_meaning": "A rise can indicate defensive demand or lower-yield support.",
+        "translations.en.lower_meaning": "A decline can indicate higher-rate pressure or rotation into cyclicals.",
+        "translations.en.watch_points": "Compare with Treasury yields, dividend factors, risk sentiment, and power-demand trends."
+      },
+      "XLB": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Materials Sector",
+        "translations.en.short_label": "Materials",
+        "translations.en.description": "A U.S. equity sector ETF proxy for materials companies.",
+        "translations.en.market_role": "It reflects demand for chemicals, metals, construction inputs, and global cyclical activity.",
+        "translations.en.higher_meaning": "A rise suggests stronger cyclical or commodity-linked demand expectations.",
+        "translations.en.lower_meaning": "A decline suggests weaker global growth or commodity demand expectations.",
+        "translations.en.watch_points": "Compare with copper, China data, manufacturing indicators, and the dollar."
+      },
+      "XLRE": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Real Estate Sector",
+        "translations.en.short_label": "Real Estate",
+        "translations.en.description": "A U.S. equity sector ETF proxy for real estate companies and REITs.",
+        "translations.en.market_role": "It is sensitive to interest rates, financing costs, and property-market expectations.",
+        "translations.en.higher_meaning": "A rise can indicate lower-rate support or stronger property-sector sentiment.",
+        "translations.en.lower_meaning": "A decline can indicate higher-rate pressure or concern about real-estate fundamentals.",
+        "translations.en.watch_points": "Compare with 10-year yields, credit conditions, housing data, and dividend factors."
+      },
+      "XLC": {
+        "provider": "yfinance",
+        "translations.en.display_name": "Communication Services Sector",
+        "translations.en.short_label": "Communication",
+        "translations.en.description": "A U.S. equity sector ETF proxy for communication services companies.",
+        "translations.en.market_role": "It includes media, telecom, and large platform businesses with growth and advertising exposure.",
+        "translations.en.higher_meaning": "A rise suggests stronger demand for communication-platform and media exposure.",
+        "translations.en.lower_meaning": "A decline suggests weaker growth, advertising, or platform-sector sentiment.",
+        "translations.en.watch_points": "Compare with NASDAQ, technology shares, advertising trends, yields, and earnings."
+      },
+      "fomc_next_meeting": {
+        "provider": "federal_reserve",
+        "translations.en.display_name": "Next FOMC Meeting Date",
+        "translations.en.short_label": "Next Fed decision",
+        "translations.en.description": "The date of the next Federal Open Market Committee meeting that will set the policy-rate decision and guidance.",
+        "translations.en.market_role": "It anchors the timing of policy expectations across rates, FX, equities, and bonds.",
+        "translations.en.higher_meaning": "For a date field, the key signal is not high or low but how close the meeting is and how expectations change before it.",
+        "translations.en.lower_meaning": "For a date field, the key signal is not high or low but how close the meeting is and how expectations change before it.",
+        "translations.en.watch_points": "Around the meeting, track FedWatch probabilities, 2-year yields, statement wording, and press-conference guidance."
+      },
+      "fomc_decision_rate": {
+        "provider": "federal_reserve",
+        "translations.en.display_name": "FOMC Decision Rate",
+        "translations.en.short_label": "FOMC policy rate",
+        "translations.en.description": "The policy-rate level decided at an FOMC meeting.",
+        "translations.en.market_role": "It allows markets to compare the actual policy decision with expectations priced before the meeting.",
+        "translations.en.higher_meaning": "A higher-than-expected decision is generally a hawkish surprise and can tighten financial conditions.",
+        "translations.en.lower_meaning": "A lower-than-expected decision is generally a dovish surprise and can support liquidity expectations.",
+        "translations.en.watch_points": "The rate level should be read together with the statement, dot plot, press conference, and forward guidance."
+      },
+      "fomc_change_bp": {
+        "provider": "federal_reserve",
+        "translations.en.display_name": "FOMC Rate Change",
+        "translations.en.short_label": "FOMC change",
+        "translations.en.description": "The size of the policy-rate change at the meeting, measured in basis points.",
+        "translations.en.market_role": "It captures the intensity of the policy move and the surprise versus market expectations.",
+        "translations.en.higher_meaning": "A larger hike or smaller cut than expected can be interpreted as a hawkish surprise.",
+        "translations.en.lower_meaning": "A larger cut or smaller hike than expected can be interpreted as a dovish surprise.",
+        "translations.en.watch_points": "Clearly define the sign convention in the UI and compare with pre-meeting FedWatch pricing."
+      },
+      "fedwatch_prob_hold": {
+        "provider": "cme_fedwatch",
+        "translations.en.display_name": "FedWatch Hold Probability",
+        "translations.en.short_label": "Hold probability",
+        "translations.en.description": "The market-implied probability that the Fed keeps the policy rate unchanged at a target meeting.",
+        "translations.en.market_role": "It summarizes rate-market expectations before FOMC decisions.",
+        "translations.en.higher_meaning": "A higher probability indicates stronger expectations for no policy-rate change.",
+        "translations.en.lower_meaning": "A lower probability indicates rising expectations for a cut or hike instead of a hold.",
+        "translations.en.watch_points": "Compare with 2-year yields, inflation data, labor data, and Fed communication."
+      },
+      "fedwatch_prob_cut": {
+        "provider": "cme_fedwatch",
+        "translations.en.display_name": "FedWatch Cut Probability",
+        "translations.en.short_label": "Cut probability",
+        "translations.en.description": "The market-implied probability that the Fed cuts the policy rate at a target meeting.",
+        "translations.en.market_role": "It tracks how strongly markets expect policy easing.",
+        "translations.en.higher_meaning": "A higher probability signals stronger expectations for easier policy.",
+        "translations.en.lower_meaning": "A lower probability signals reduced expectations for easing.",
+        "translations.en.watch_points": "Compare with inflation surprises, labor-market weakness, recession risk, and FOMC communication."
+      },
+      "fedwatch_prob_hike": {
+        "provider": "cme_fedwatch",
+        "translations.en.display_name": "FedWatch Hike Probability",
+        "translations.en.short_label": "Hike probability",
+        "translations.en.description": "The market-implied probability that the Fed raises the policy rate at a target meeting.",
+        "translations.en.market_role": "It tracks how strongly markets expect policy tightening.",
+        "translations.en.higher_meaning": "A higher probability signals stronger expectations for tighter policy.",
+        "translations.en.lower_meaning": "A lower probability signals reduced expectations for additional tightening.",
+        "translations.en.watch_points": "Compare with inflation pressure, wage data, 2-year yields, and FOMC communication."
+      }
+    },
+    "calendar_event_definitions_by_event_key": {
+      "US_CPI": {
+        "translations.en.display_name": "U.S. CPI",
+        "translations.en.short_label": "CPI",
+        "translations.en.description": "A major inflation release that measures changes in prices paid by consumers for goods and services.",
+        "translations.en.market_role": "Markets watch CPI because high inflation can reduce rate-cut expectations and pressure risk assets.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can be read as persistent inflation pressure and may push yields higher.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can be read as easing inflation pressure and may support easier-policy expectations.",
+        "translations.en.watch_points": "Focus on core CPI, shelter, services inflation, and the immediate reaction in 2-year yields, the dollar, and equity futures.",
+        "related_indicators": [
+          "CPIAUCSL",
+          "PCEPILFE",
+          "DGS2",
+          "DGS10",
+          "DX-Y.NYB",
+          "^GSPC",
+          "fedwatch_prob_cut",
+          "fedwatch_prob_hike"
+        ]
+      },
+      "US_PPI": {
+        "translations.en.display_name": "U.S. PPI",
+        "translations.en.short_label": "PPI",
+        "translations.en.description": "A producer-price release that measures price changes faced by businesses at the production stage.",
+        "translations.en.market_role": "It helps markets assess whether upstream cost pressure may pass through to consumer inflation.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can raise concern about future inflation pressure.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can suggest easing cost pressure for businesses.",
+        "translations.en.watch_points": "Compare with CPI, commodity prices, Treasury yields, and dollar moves.",
+        "related_indicators": [
+          "CPIAUCSL",
+          "PCEPILFE",
+          "DGS2",
+          "DX-Y.NYB",
+          "CL=F",
+          "HG=F"
+        ]
+      },
+      "US_PCE": {
+        "translations.en.display_name": "U.S. PCE Inflation / Personal Income and Outlays",
+        "translations.en.short_label": "PCE",
+        "translations.en.description": "A release covering the Fed-preferred PCE inflation measures together with personal income and spending.",
+        "translations.en.market_role": "Core PCE is closely tied to Fed policy assessment, so markets react strongly to surprises.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can make the Fed less confident that inflation is cooling.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can improve confidence that inflation is moving toward target.",
+        "translations.en.watch_points": "Focus on core PCE, income, spending momentum, revisions, FedWatch pricing, and the yield-curve reaction.",
+        "related_indicators": [
+          "PCEPILFE",
+          "CPIAUCSL",
+          "DGS2",
+          "DGS10",
+          "DX-Y.NYB",
+          "fedwatch_prob_cut",
+          "fedwatch_prob_hike"
+        ]
+      },
+      "US_EMPLOYMENT_SITUATION": {
+        "translations.en.display_name": "U.S. Employment Situation",
+        "translations.en.short_label": "Jobs Report",
+        "translations.en.description": "The main U.S. labor-market release covering nonfarm payrolls, unemployment, and wage growth.",
+        "translations.en.market_role": "It can change expectations for growth, inflation, and the Fed policy path.",
+        "translations.en.higher_meaning": "Stronger job or wage data can signal resilient demand and potential inflation pressure.",
+        "translations.en.lower_meaning": "Weaker job or wage data can signal labor-market cooling and slower growth.",
+        "translations.en.watch_points": "Read payrolls, unemployment, participation, average hourly earnings, revisions, and the reaction in yields and equities together.",
+        "related_indicators": [
+          "UNRATE",
+          "ICSA",
+          "DGS2",
+          "DGS10",
+          "DX-Y.NYB",
+          "^GSPC",
+          "fedwatch_prob_cut"
+        ]
+      },
+      "US_JOBLESS_CLAIMS": {
+        "translations.en.display_name": "U.S. Initial Jobless Claims",
+        "translations.en.short_label": "Jobless Claims",
+        "translations.en.description": "A weekly release showing first-time filings for unemployment insurance.",
+        "translations.en.market_role": "It is one of the timeliest indicators of labor-market stress.",
+        "translations.en.higher_meaning": "A higher-than-expected reading can point to rising layoffs and weaker labor demand.",
+        "translations.en.lower_meaning": "A lower-than-expected reading can point to resilient labor demand.",
+        "translations.en.watch_points": "Use the four-week average and compare with the unemployment rate, payroll trend, yields, and equity reaction.",
+        "related_indicators": [
+          "ICSA",
+          "UNRATE",
+          "DGS2",
+          "^GSPC",
+          "fedwatch_prob_cut"
+        ]
+      },
+      "US_JOLTS": {
+        "translations.en.display_name": "U.S. JOLTS",
+        "translations.en.short_label": "JOLTS",
+        "translations.en.description": "A labor-market release covering job openings, quits, hires, and separations.",
+        "translations.en.market_role": "It helps markets assess labor demand and wage-pressure risks beyond payrolls.",
+        "translations.en.higher_meaning": "A stronger-than-expected reading can indicate tight labor conditions.",
+        "translations.en.lower_meaning": "A weaker-than-expected reading can indicate cooling labor demand.",
+        "translations.en.watch_points": "Focus on job openings, quits, revisions, and consistency with claims, unemployment, and wage data.",
+        "related_indicators": [
+          "UNRATE",
+          "ICSA",
+          "DGS2",
+          "^GSPC",
+          "fedwatch_prob_cut"
+        ]
+      },
+      "US_GDP": {
+        "translations.en.display_name": "U.S. GDP",
+        "translations.en.short_label": "GDP",
+        "translations.en.description": "A broad release measuring the inflation-adjusted value of goods and services produced in the U.S. economy.",
+        "translations.en.market_role": "It is the main benchmark for overall growth momentum.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient growth and support cyclical assets, but may also affect rate expectations.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can signal growth slowdown and increase defensive demand.",
+        "translations.en.watch_points": "Look at real final sales, consumption, inventories, inflation components, revisions, yields, and equity leadership.",
+        "related_indicators": [
+          "GDPC1",
+          "DGS10",
+          "^GSPC",
+          "DX-Y.NYB",
+          "CL=F",
+          "HG=F"
+        ]
+      },
+      "US_RETAIL_SALES": {
+        "translations.en.display_name": "U.S. Retail Sales",
+        "translations.en.short_label": "Retail Sales",
+        "translations.en.description": "A monthly release tracking sales by retailers and providing a timely view of consumer spending.",
+        "translations.en.market_role": "It is important because consumption is a large part of U.S. economic activity.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient consumer demand.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can signal consumer caution or slowing demand.",
+        "translations.en.watch_points": "Focus on the control group, revisions, inflation effects, consumer discretionary shares, and rates.",
+        "related_indicators": [
+          "GDPC1",
+          "DGS10",
+          "^GSPC",
+          "XLY",
+          "XLP",
+          "USDKRW"
+        ]
+      },
+      "US_DURABLE_GOODS": {
+        "translations.en.display_name": "U.S. Durable Goods Orders",
+        "translations.en.short_label": "Durable Goods",
+        "translations.en.description": "A release measuring new orders for long-lasting manufactured goods.",
+        "translations.en.market_role": "It helps assess business investment, manufacturing demand, and cyclical momentum.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can indicate improving capital-spending and manufacturing demand.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can indicate softer business investment or manufacturing momentum.",
+        "translations.en.watch_points": "Watch core capital-goods orders, aircraft volatility, revisions, industrials, copper, and yields.",
+        "related_indicators": [
+          "GDPC1",
+          "MANEMP",
+          "DGS10",
+          "XLI",
+          "HG=F"
+        ]
+      },
+      "US_HOUSING_STARTS": {
+        "translations.en.display_name": "U.S. Housing Starts",
+        "translations.en.short_label": "Housing Starts",
+        "translations.en.description": "A monthly release showing the number of new residential construction projects started.",
+        "translations.en.market_role": "It is a rate-sensitive indicator of housing activity and construction momentum.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can suggest resilient housing demand or construction activity.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can suggest pressure from mortgage rates or slower housing demand.",
+        "translations.en.watch_points": "Compare with permits, mortgage-rate proxies, 10-year yields, homebuilder sentiment, and real-estate equities.",
+        "related_indicators": [
+          "DGS10",
+          "^GSPC",
+          "XLF",
+          "XLRE",
+          "HG=F"
+        ]
+      },
+      "US_NEW_HOME_SALES": {
+        "translations.en.display_name": "U.S. New Home Sales",
+        "translations.en.short_label": "New Home Sales",
+        "translations.en.description": "A monthly release showing sales of newly built single-family homes.",
+        "translations.en.market_role": "It provides a read on housing demand and household confidence in a rate-sensitive sector.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient housing demand.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can signal affordability pressure or weaker housing activity.",
+        "translations.en.watch_points": "Compare with mortgage-rate proxies, housing starts, homebuilder sentiment, 10-year yields, and real-estate equities.",
+        "related_indicators": [
+          "DGS10",
+          "XLRE",
+          "XLF",
+          "^GSPC",
+          "HG=F"
+        ]
+      },
+      "US_ISM_MANUFACTURING": {
+        "translations.en.display_name": "U.S. ISM Manufacturing PMI",
+        "translations.en.short_label": "ISM Manufacturing",
+        "translations.en.description": "A survey-based indicator of U.S. manufacturing activity.",
+        "translations.en.market_role": "It is watched for early signals on cyclical growth, orders, prices, and employment.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can indicate improving manufacturing momentum.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can indicate contracting or slowing manufacturing conditions.",
+        "translations.en.watch_points": "Focus on new orders, prices paid, employment, inventories, industrials, copper, and yields.",
+        "related_indicators": [
+          "MANEMP",
+          "GDPC1",
+          "DGS10",
+          "XLI",
+          "HG=F",
+          "DX-Y.NYB"
+        ]
+      },
+      "US_ISM_SERVICES": {
+        "translations.en.display_name": "U.S. ISM Services PMI",
+        "translations.en.short_label": "ISM Services",
+        "translations.en.description": "A survey-based indicator of U.S. services-sector activity.",
+        "translations.en.market_role": "Services drive a large share of the U.S. economy and inflation pressure.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient demand and possible services inflation pressure.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can signal cooling demand in the services sector.",
+        "translations.en.watch_points": "Focus on business activity, new orders, employment, prices paid, yields, and equity-sector reaction.",
+        "related_indicators": [
+          "GDPC1",
+          "UNRATE",
+          "DGS10",
+          "^GSPC",
+          "XLY",
+          "XLV"
+        ]
+      },
+      "FOMC_MEETING": {
+        "translations.en.display_name": "FOMC Meeting",
+        "translations.en.short_label": "FOMC",
+        "translations.en.description": "A Federal Reserve policy meeting where the committee sets the policy-rate decision and communicates its outlook.",
+        "translations.en.market_role": "It is one of the most important events for rates, FX, equities, and credit markets.",
+        "translations.en.higher_meaning": "A more hawkish decision or message can tighten financial conditions.",
+        "translations.en.lower_meaning": "A more dovish decision or message can ease financial conditions.",
+        "translations.en.watch_points": "Compare the decision with FedWatch pricing, statement wording, dot plot, press conference, and moves in 2-year yields.",
+        "related_indicators": [
+          "DFF",
+          "DGS2",
+          "DGS10",
+          "T10Y2Y",
+          "fedwatch_prob_hold",
+          "fedwatch_prob_cut",
+          "fedwatch_prob_hike"
+        ]
+      },
+      "FOMC_MINUTES": {
+        "translations.en.display_name": "FOMC Minutes",
+        "translations.en.short_label": "FOMC Minutes",
+        "translations.en.description": "The detailed record of a previous FOMC meeting's discussion.",
+        "translations.en.market_role": "It helps markets interpret the committee's reaction function and balance of risks.",
+        "translations.en.higher_meaning": "More hawkish minutes can raise expected policy restrictiveness.",
+        "translations.en.lower_meaning": "More dovish minutes can lower expected policy restrictiveness.",
+        "translations.en.watch_points": "Watch language on inflation, labor markets, financial conditions, balance sheet policy, and the reaction in yields and the dollar.",
+        "related_indicators": [
+          "DFF",
+          "DGS2",
+          "DGS10",
+          "T10Y2Y",
+          "^VIX",
+          "fedwatch_prob_cut",
+          "fedwatch_prob_hike"
+        ]
+      },
+      "US_MONTHLY_OPEX": {
+        "translations.en.display_name": "U.S. Monthly Options Expiration",
+        "translations.en.short_label": "Monthly OPEX",
+        "translations.en.description": "The monthly expiration of listed options contracts, often concentrated on the third Friday of the month.",
+        "translations.en.market_role": "It can affect short-term equity index flows, hedging demand, and volatility around expiration.",
+        "translations.en.higher_meaning": "A larger expiration with strong dealer-positioning effects can amplify short-term moves.",
+        "translations.en.lower_meaning": "A smaller or less concentrated expiration may have a more limited market impact.",
+        "translations.en.watch_points": "Track S&P 500, NASDAQ, VIX, index levels versus large option strikes, and post-expiration liquidity.",
+        "related_indicators": [
+          "^GSPC",
+          "^IXIC",
+          "^VIX",
+          "XLK",
+          "XLF"
+        ]
+      },
+      "US_TRIPLE_WITCHING": {
+        "translations.en.display_name": "U.S. Triple Witching",
+        "translations.en.short_label": "Triple Witching",
+        "translations.en.description": "A quarterly expiration date when stock options, stock-index futures, and stock-index options expire together.",
+        "translations.en.market_role": "It can increase volume, rebalance flows, and short-term volatility in equity markets.",
+        "translations.en.higher_meaning": "Large positioning into expiration can amplify index or sector moves.",
+        "translations.en.lower_meaning": "Light positioning or offsetting flows can reduce the visible market impact.",
+        "translations.en.watch_points": "Watch S&P 500, NASDAQ, VIX, sector ETFs, futures rolls, and closing-auction volume.",
+        "related_indicators": [
+          "^GSPC",
+          "^IXIC",
+          "^VIX",
+          "XLK",
+          "XLF",
+          "XLE"
+        ]
+      },
+      "US_CONSUMER_SENTIMENT": {
+        "translations.en.display_name": "U.S. Consumer Sentiment",
+        "translations.en.short_label": "Consumer Sentiment",
+        "translations.en.description": "A survey release measuring households' views on current conditions, expectations, and inflation.",
+        "translations.en.market_role": "It helps markets assess consumer confidence and inflation expectations.",
+        "translations.en.higher_meaning": "A stronger-than-expected release can signal resilient consumer confidence.",
+        "translations.en.lower_meaning": "A weaker-than-expected release can signal consumer caution or weaker spending intentions.",
+        "translations.en.watch_points": "Focus on inflation-expectations components, current conditions, expectations, retail sales, and consumer-discretionary stocks.",
+        "related_indicators": [
+          "GDPC1",
+          "^GSPC",
+          "XLY",
+          "XLP",
+          "DGS10",
+          "CPIAUCSL"
+        ]
+      }
+    },
+    "communication_static_labels_by_event_type": {
+      "fomc_meeting": {
+        "event_type_label_ko": "FOMC 회의",
+        "source_label_ko": "연방준비제도",
+        "institution_label_ko": "연방준비제도"
+      },
+      "statement": {
+        "event_type_label_ko": "성명서",
+        "source_label_ko": "연방준비제도",
+        "institution_label_ko": "연방준비제도"
+      },
+      "speech": {
+        "event_type_label_ko": "연설",
+        "source_label_ko": "연방준비제도",
+        "institution_label_ko": "연방준비제도"
+      },
+      "testimony": {
+        "event_type_label_ko": "의회 증언",
+        "source_label_ko": "연방준비제도",
+        "institution_label_ko": "연방준비제도"
+      },
+      "communication": {
+        "event_type_label_ko": "커뮤니케이션",
+        "source_label_ko": "연방준비제도",
+        "institution_label_ko": "연방준비제도"
+      }
+    }
+  },
+  "validation_summary": {
+    "indicator_labels_count": 46,
+    "indicator_explanations_count": 47,
+    "calendar_event_definitions_count": 18,
+    "communication_static_labels_count": 5
+  }
+}

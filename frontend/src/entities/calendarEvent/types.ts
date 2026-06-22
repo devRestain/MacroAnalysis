@@ -4,14 +4,19 @@ export interface CalendarEvent {
   displayName: string
   shortName?: string | null
   eventType: string
+  eventTypeLabel?: string | null
   category: string
+  categoryLabel?: string | null
   importance: 'low' | 'medium' | 'high' | string
+  importanceLabel?: string | null
   eventDateTimeUtc?: string | null
   eventDateLocal?: string | null
   eventTimeLocal?: string | null
   displayTime?: string | null
   status?: string | null
+  statusLabel?: string | null
   source?: string | null
+  sourceLabel?: string | null
   beginnerDescription?: string | null
   whyItMatters?: string | null
   watchItems: string[]
@@ -43,4 +48,3 @@ export interface FomcOverview {
   meetings: FomcMeeting[]
   fedwatch: FomcWatch | null
 }
-

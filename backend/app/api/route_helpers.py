@@ -5,12 +5,13 @@ from datetime import timezone
 
 from ..models import ChangeSnapshot, DailyInsight, EconomicCalendarEvent, NewsItem
 from ..core.config import settings
+from ..services.localization import localize_calendar_event_dict, localize_snapshot_dict
 
 logger = logging.getLogger(__name__)
 
 
-def snap_to_dict(snapshot: ChangeSnapshot) -> dict:
-    return {
+def snap_to_dict(snapshot: ChangeSnapshot, *, locale: str = "ko") -> dict:
+    payload = {
         "key": snapshot.indicator_key,
         "label": snapshot.label,
         "category": snapshot.category,
@@ -26,6 +27,7 @@ def snap_to_dict(snapshot: ChangeSnapshot) -> dict:
         "signal": snapshot.signal,
         "date": str(snapshot.snapshot_date),
     }
+    return localize_snapshot_dict(payload, locale=locale)
 
 
 def news_to_dict(item: NewsItem) -> dict:
@@ -57,7 +59,7 @@ def enqueue_daily_insight_if_missing() -> None:
         logger.warning("Failed to enqueue daily insight ensure task: %s", exc)
 
 
-def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: bool) -> dict:
+def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: bool, locale: str = "ko") -> dict:
     event_dt = event.event_datetime_utc or event.event_date
     if event_dt.tzinfo is None:
         event_utc = event_dt.replace(tzinfo=timezone.utc).isoformat()
@@ -126,7 +128,7 @@ def calendar_event_to_dict(event: EconomicCalendarEvent, *, include_details: boo
                 "has_sep": event.fomc_detail.has_sep,
             }
         }
-    return payload
+    return localize_calendar_event_dict(payload, locale=locale)
 
 
 def _build_display_time(local_time: str | None, timezone_name: str | None) -> str | None:

@@ -470,7 +470,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "기준금리",
+          "short_label": "연준의 단기 금리 기준점",
+          "description": "미국 연방기금 실효금리로, 은행 간 초단기 자금 거래에서 실제로 형성된 금리를 나타낸다.",
+          "market_role": "금융시장 전체의 할인율, 대출금리, 달러 유동성 판단의 출발점으로 쓰인다.",
+          "higher_meaning": "긴축적 금융환경을 시사하며 성장주와 고위험 자산에는 부담이 될 수 있다.",
+          "lower_meaning": "완화적 금융환경을 시사하며 유동성 개선 기대를 높일 수 있다.",
+          "watch_points": "명목 수준보다 향후 인하·인상 기대, 물가 둔화 속도, 장단기 금리와 함께 해석하는 것이 중요하다."
+        },
+        "en": {
+          "display_name": "Federal Funds Rate",
+          "short_label": "Fed funds target/effective rate",
+          "description": "The overnight rate at which U.S. banks lend reserve balances to each other.",
+          "market_role": "It anchors short-term interest rates and reflects the stance of Federal Reserve policy.",
+          "higher_meaning": "A higher reading usually points to tighter policy and higher funding costs.",
+          "lower_meaning": "A lower reading usually points to easier policy and lower funding costs.",
+          "watch_points": "Compare with 2-year Treasury yields, FedWatch probabilities, inflation data, and FOMC guidance."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "DGS2",
@@ -526,7 +547,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "2Y 국채",
+          "short_label": "정책금리 기대에 민감한 금리",
+          "description": "미국 2년 만기 국채 수익률로, 가까운 통화정책 경로에 특히 민감하게 반응한다.",
+          "market_role": "시장이 연준의 금리 인하·인상 가능성을 어떻게 가격에 반영하는지 보여준다.",
+          "higher_meaning": "긴축 지속 또는 인하 지연 기대가 강해졌다는 신호일 수 있다.",
+          "lower_meaning": "금리 인하 기대, 성장 둔화 우려, 안전자산 선호가 반영될 수 있다.",
+          "watch_points": "단독 수치보다 기준금리, 10년물 금리, FedWatch 확률과 함께 봐야 한다."
+        },
+        "en": {
+          "display_name": "2-Year Treasury Yield",
+          "short_label": "U.S. 2Y yield",
+          "description": "The market yield on the U.S. Treasury note with a two-year maturity.",
+          "market_role": "It is one of the most policy-sensitive points on the yield curve.",
+          "higher_meaning": "A rise often signals higher policy-rate expectations or tighter financial conditions.",
+          "lower_meaning": "A decline often signals lower policy-rate expectations or rising growth concerns.",
+          "watch_points": "Watch the spread versus the Fed funds rate, 10-year yield, inflation releases, and FOMC communication."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "DGS10",
@@ -584,7 +626,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "10Y 국채",
+          "short_label": "장기 성장·물가 기대의 핵심 금리",
+          "description": "미국 10년 만기 국채 수익률로, 장기 성장률과 물가 기대, 기간프리미엄이 함께 반영된다.",
+          "market_role": "주식 할인율, 주택담보대출 금리, 글로벌 자산가격의 기준 금리로 널리 활용된다.",
+          "higher_meaning": "성장·물가 기대 또는 국채 공급 부담이 커졌다는 해석이 가능하다.",
+          "lower_meaning": "경기 둔화 우려, 물가 안정 기대, 안전자산 수요 증가가 반영될 수 있다.",
+          "watch_points": "상승 원인이 성장 기대인지 인플레이션 우려인지에 따라 시장 반응이 달라진다."
+        },
+        "en": {
+          "display_name": "10-Year Treasury Yield",
+          "short_label": "U.S. 10Y yield",
+          "description": "The market yield on the U.S. Treasury note with a ten-year maturity.",
+          "market_role": "It is a benchmark for long-term borrowing costs, valuation discount rates, and global risk pricing.",
+          "higher_meaning": "A rise can pressure equity valuations and indicate stronger growth, inflation, or term-premium expectations.",
+          "lower_meaning": "A decline can support duration assets but may also reflect lower growth or risk-off demand.",
+          "watch_points": "Compare with inflation expectations, the 2-year yield, the dollar, equities, and credit spreads."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "DGS30",
@@ -638,7 +701,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "30Y 국채",
+          "short_label": "장기 금리와 기간프리미엄 지표",
+          "description": "미국 30년 만기 국채 수익률로, 매우 긴 기간의 성장·물가 기대와 기간프리미엄을 반영한다.",
+          "market_role": "장기 자금조달 비용과 연금·보험 등 장기 투자자의 수요 변화를 읽는 데 활용된다.",
+          "higher_meaning": "장기 인플레이션 우려, 국채 공급 부담, 기간프리미엄 상승을 시사할 수 있다.",
+          "lower_meaning": "장기 성장 기대 둔화 또는 안전자산 수요 증가를 시사할 수 있다.",
+          "watch_points": "10년물과의 움직임 차이를 보면 수익률곡선의 장기 구간 변화를 파악할 수 있다."
+        },
+        "en": {
+          "display_name": "30-Year Treasury Yield",
+          "short_label": "U.S. 30Y yield",
+          "description": "The market yield on the U.S. Treasury bond with a thirty-year maturity.",
+          "market_role": "It reflects long-horizon growth, inflation, fiscal, and term-premium expectations.",
+          "higher_meaning": "A rise can tighten financial conditions and weigh on long-duration assets.",
+          "lower_meaning": "A decline can ease long-term discount rates but may also indicate defensive demand.",
+          "watch_points": "Check the 10-year yield, inflation trends, Treasury supply, and curve steepening or flattening."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "T10Y2Y",
@@ -694,7 +778,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "10Y-2Y 스프레드",
+          "short_label": "장단기 금리차로 보는 경기 신호",
+          "description": "미국 10년물 금리에서 2년물 금리를 뺀 값으로, 수익률곡선의 기울기를 나타낸다.",
+          "market_role": "경기 확장·둔화 기대와 통화정책 부담을 함께 보여주는 대표적인 매크로 지표다.",
+          "higher_meaning": "곡선이 가팔라지며 장기 성장·물가 기대가 높아졌거나 단기 인하 기대가 커졌을 수 있다.",
+          "lower_meaning": "곡선이 평탄화 또는 역전되며 긴축 부담과 경기 둔화 우려가 커졌을 수 있다.",
+          "watch_points": "역전 자체보다 역전 폭의 확대·축소와 재가팔라짐의 원인을 구분해야 한다."
+        },
+        "en": {
+          "display_name": "10Y-2Y Treasury Spread",
+          "short_label": "10Y-2Y spread",
+          "description": "The difference between the U.S. 10-year and 2-year Treasury yields.",
+          "market_role": "It helps summarize the slope of the yield curve and the market's growth-policy mix.",
+          "higher_meaning": "A higher spread usually means curve steepening, often linked to better growth expectations or higher term premium.",
+          "lower_meaning": "A lower or negative spread signals flattening or inversion, often linked to tight policy or recession concern.",
+          "watch_points": "Interpret alongside the level of yields, Fed policy expectations, inflation data, and credit spreads."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "SOFR",
@@ -748,7 +853,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "SOFR",
+          "short_label": "달러 단기자금 시장 금리",
+          "description": "미국 국채 담보 익일 환매조건부 거래를 기반으로 산출되는 단기 기준금리다.",
+          "market_role": "달러 단기 유동성, 담보시장 안정성, 파생상품 기준금리의 흐름을 확인하는 데 쓰인다.",
+          "higher_meaning": "단기자금 조달 비용 상승 또는 유동성 압박이 반영될 수 있다.",
+          "lower_meaning": "단기자금 시장의 부담 완화나 정책금리 인하 기대가 반영될 수 있다.",
+          "watch_points": "일시적 분기말·연말 효과와 구조적 유동성 압박을 구분해야 한다."
+        },
+        "en": {
+          "display_name": "Secured Overnight Financing Rate",
+          "short_label": "SOFR",
+          "description": "A broad measure of the cost of overnight borrowing collateralized by U.S. Treasury securities.",
+          "market_role": "It is a key reference rate for dollar funding and many floating-rate instruments.",
+          "higher_meaning": "A higher rate points to tighter short-term funding conditions.",
+          "lower_meaning": "A lower rate points to easier short-term funding conditions.",
+          "watch_points": "Watch quarter-end effects, repo-market stress, Fed policy, and the spread against policy rates."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "CPIAUCSL",
@@ -804,7 +930,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "CPI",
+          "short_label": "소비자물가의 대표 지표",
+          "description": "미국 도시 소비자가 구매하는 상품과 서비스 가격의 전반적인 변화를 보여주는 물가지수다.",
+          "market_role": "연준의 정책 기대, 실질소득, 채권금리, 주식 할인율에 직접적인 영향을 준다.",
+          "higher_meaning": "물가 압력이 강해져 긴축 유지 또는 인하 지연 가능성이 커질 수 있다.",
+          "lower_meaning": "인플레이션 부담 완화와 금리 인하 기대를 뒷받침할 수 있다.",
+          "watch_points": "전월비, 전년비, 근원물가, 주거비 흐름을 함께 확인해야 한다."
+        },
+        "en": {
+          "display_name": "Consumer Price Index",
+          "short_label": "CPI",
+          "description": "A broad measure of prices paid by U.S. consumers for goods and services.",
+          "market_role": "It is a major input for inflation expectations and Federal Reserve policy pricing.",
+          "higher_meaning": "A higher reading suggests stronger inflation pressure and can weaken rate-cut expectations.",
+          "lower_meaning": "A lower reading suggests easing inflation pressure and can support easier-policy expectations.",
+          "watch_points": "Focus on core components, shelter, energy, month-over-month momentum, and market reaction in yields and the dollar."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "PCEPILFE",
@@ -860,7 +1007,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Core PCE",
+          "short_label": "연준이 중시하는 근원 물가",
+          "description": "식품과 에너지를 제외한 개인소비지출 물가지수로, 기조적인 물가 압력을 보는 데 사용된다.",
+          "market_role": "연준의 물가 판단과 통화정책 기대에 큰 영향을 주는 핵심 인플레이션 지표다.",
+          "higher_meaning": "기조적 물가 압력이 남아 있어 긴축적 정책이 오래 유지될 수 있음을 시사한다.",
+          "lower_meaning": "물가 안정이 진전되며 정책 완화 기대가 커질 수 있다.",
+          "watch_points": "CPI와 발표 시점·구성 차이가 있어 두 지표가 다른 신호를 줄 수 있다."
+        },
+        "en": {
+          "display_name": "Core PCE Price Index",
+          "short_label": "Core PCE",
+          "description": "The personal consumption expenditures price index excluding food and energy.",
+          "market_role": "It is the Federal Reserve's preferred inflation gauge.",
+          "higher_meaning": "A higher reading can signal persistent inflation and a more restrictive policy path.",
+          "lower_meaning": "A lower reading can support confidence that inflation is cooling.",
+          "watch_points": "Compare with CPI, wage growth, personal income, spending data, and Fed guidance."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "UNRATE",
@@ -916,7 +1084,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "실업률",
+          "short_label": "노동시장 냉각 여부",
+          "description": "경제활동인구 중 실업 상태에 있는 사람의 비율을 나타내는 대표적인 고용 지표다.",
+          "market_role": "경기 모멘텀, 소비 여력, 연준의 고용 책무와 정책 전환 가능성을 판단하는 데 쓰인다.",
+          "higher_meaning": "노동시장 둔화와 경기 하방 압력이 커졌다는 신호일 수 있다.",
+          "lower_meaning": "고용 여건이 견조하고 소비 기반이 유지되고 있음을 시사할 수 있다.",
+          "watch_points": "참가율, 임금상승률, 신규 실업수당 청구와 함께 봐야 왜곡을 줄일 수 있다."
+        },
+        "en": {
+          "display_name": "Unemployment Rate",
+          "short_label": "Unemployment",
+          "description": "The share of the U.S. labor force that is unemployed and actively seeking work.",
+          "market_role": "It is a key measure of labor-market slack and recession risk.",
+          "higher_meaning": "A higher rate can indicate labor-market weakening and slower growth.",
+          "lower_meaning": "A lower rate can indicate a tight labor market and potential wage pressure.",
+          "watch_points": "Interpret with payroll growth, participation, jobless claims, wage growth, and revisions."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "ICSA",
@@ -970,7 +1159,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "실업수당 청구",
+          "short_label": "고용 둔화의 빠른 신호",
+          "description": "미국에서 처음으로 실업수당을 신청한 사람 수를 나타내는 주간 고용 지표다.",
+          "market_role": "월간 고용지표보다 빠르게 노동시장 변화 가능성을 확인하는 데 활용된다.",
+          "higher_meaning": "해고 증가와 노동시장 둔화 가능성을 시사한다.",
+          "lower_meaning": "기업의 고용 유지가 견조하고 노동 수요가 안정적일 수 있음을 시사한다.",
+          "watch_points": "주간 변동성이 크므로 4주 이동평균과 추세 확인이 중요하다."
+        },
+        "en": {
+          "display_name": "Initial Jobless Claims",
+          "short_label": "Jobless claims",
+          "description": "The weekly number of people filing first-time claims for unemployment insurance.",
+          "market_role": "It provides a timely read on labor-market deterioration or resilience.",
+          "higher_meaning": "A higher reading can signal rising layoffs and weaker labor demand.",
+          "lower_meaning": "A lower reading can signal resilient employment conditions.",
+          "watch_points": "Use the four-week average and compare with unemployment, payrolls, and recession-sensitive assets."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "USSLIND",
@@ -1026,7 +1236,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "LEI",
+          "short_label": "경기 전환점을 보는 선행지표",
+          "description": "미국 경기의 향후 방향을 가늠하기 위해 여러 선행 변수를 종합한 지표다.",
+          "market_role": "경기 확장·둔화 가능성과 위험자산의 이익 전망을 함께 판단하는 데 쓰인다.",
+          "higher_meaning": "향후 경기 모멘텀이 개선될 가능성을 시사한다.",
+          "lower_meaning": "경기 둔화 또는 침체 가능성에 대한 경계가 커질 수 있다.",
+          "watch_points": "단월 변화보다 연속적인 개선·악화 여부가 더 중요하다."
+        },
+        "en": {
+          "display_name": "Leading Economic Index",
+          "short_label": "Leading index",
+          "description": "A composite indicator designed to signal future turns in the U.S. business cycle.",
+          "market_role": "It helps investors assess whether growth momentum is improving or weakening.",
+          "higher_meaning": "A higher reading suggests improving forward economic momentum.",
+          "lower_meaning": "A lower reading suggests weakening forward economic momentum.",
+          "watch_points": "Watch the trend over several months and compare with credit spreads, yields, and equity breadth."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "M2SL",
@@ -1082,7 +1313,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "M2 통화량",
+          "short_label": "경제 내 넓은 의미의 유동성",
+          "description": "현금, 요구불예금, 저축성 예금 등 경제 내 넓은 범위의 통화량을 나타낸다.",
+          "market_role": "유동성 환경, 소비·투자 여력, 자산가격 압력의 배경을 확인하는 데 활용된다.",
+          "higher_meaning": "유동성 공급이 늘며 소비·투자와 자산가격을 지지할 수 있다.",
+          "lower_meaning": "유동성 축소와 금융환경 긴축 가능성을 시사할 수 있다.",
+          "watch_points": "통화량 변화가 실제 신용창출과 자산시장으로 이어지는지 함께 확인해야 한다."
+        },
+        "en": {
+          "display_name": "M2 Money Supply",
+          "short_label": "M2",
+          "description": "A broad measure of U.S. money supply including cash, checking deposits, savings deposits, and similar liquid money.",
+          "market_role": "It provides context on liquidity conditions and monetary transmission.",
+          "higher_meaning": "Faster growth may indicate improving liquidity, though the market impact depends on inflation and credit conditions.",
+          "lower_meaning": "Contraction or slower growth may indicate tighter liquidity and weaker credit creation.",
+          "watch_points": "Compare with bank lending, inflation, policy rates, and risk-asset performance."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "HY_OAS",
@@ -1138,7 +1390,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "HY 크레딧 스프레드",
+          "short_label": "고위험 회사채의 위험 프리미엄",
+          "description": "하이일드 회사채 수익률이 같은 만기의 국채보다 얼마나 높은지를 나타내는 스프레드다.",
+          "market_role": "기업 신용위험과 금융시장 스트레스 수준을 빠르게 보여주는 지표다.",
+          "higher_meaning": "부도 위험, 경기 둔화, 위험회피 심리가 커졌다는 신호일 수 있다.",
+          "lower_meaning": "신용위험 우려가 완화되고 위험선호가 개선되고 있음을 시사할 수 있다.",
+          "watch_points": "주식 하락과 동반 확대되는지, 유동성 요인인지 펀더멘털 우려인지 구분해야 한다."
+        },
+        "en": {
+          "display_name": "High Yield Option-Adjusted Spread",
+          "short_label": "HY OAS",
+          "description": "The option-adjusted spread of U.S. high-yield corporate bonds over comparable Treasuries.",
+          "market_role": "It is a key gauge of credit stress and risk appetite.",
+          "higher_meaning": "A higher spread indicates rising default concern and weaker risk sentiment.",
+          "lower_meaning": "A lower spread indicates stronger credit appetite and easier financing conditions.",
+          "watch_points": "Compare with equity volatility, investment-grade spreads, Treasury yields, and recession indicators."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "IG_OAS",
@@ -1192,7 +1465,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "IG 크레딧 스프레드",
+          "short_label": "우량 회사채의 신용 프리미엄",
+          "description": "투자등급 회사채 수익률이 같은 만기의 국채보다 얼마나 높은지를 나타내는 스프레드다.",
+          "market_role": "우량 기업의 자금조달 환경과 신용시장 전반의 안정성을 확인하는 데 쓰인다.",
+          "higher_meaning": "신용위험 경계감 또는 회사채 수요 약화가 커졌음을 시사할 수 있다.",
+          "lower_meaning": "신용시장 안정과 기업 자금조달 여건 개선을 시사할 수 있다.",
+          "watch_points": "하이일드 스프레드보다 느리게 반응할 수 있어 두 지표의 괴리를 함께 봐야 한다."
+        },
+        "en": {
+          "display_name": "Investment Grade Option-Adjusted Spread",
+          "short_label": "IG OAS",
+          "description": "The option-adjusted spread of U.S. investment-grade corporate bonds over comparable Treasuries.",
+          "market_role": "It tracks credit conditions for higher-quality corporate borrowers.",
+          "higher_meaning": "A higher spread signals tighter credit conditions and rising risk premia.",
+          "lower_meaning": "A lower spread signals easier credit conditions and stronger investor demand.",
+          "watch_points": "Watch alongside high-yield spreads, Treasury yields, equity volatility, and liquidity conditions."
+        }
+      },
+      "provider": "fred"
     },
     {
       "key": "^GSPC",
@@ -1250,7 +1544,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "S&P 500",
+          "short_label": "미국 대형주 전반의 대표 지수",
+          "description": "미국 주요 대형주 500개 기업의 주가 흐름을 반영하는 대표 주가지수다.",
+          "market_role": "글로벌 위험선호, 기업이익 기대, 미국 증시 전반의 방향성을 판단하는 핵심 지표다.",
+          "higher_meaning": "기업이익 기대와 위험선호가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "성장 둔화, 금리 부담, 위험회피 심리가 커졌을 수 있다.",
+          "watch_points": "지수 상승이 일부 대형 기술주에 집중되는지, 섹터 전반으로 확산되는지 확인해야 한다."
+        },
+        "en": {
+          "display_name": "S&P 500",
+          "short_label": "S&P 500",
+          "description": "A broad U.S. large-cap equity index.",
+          "market_role": "It is the primary benchmark for U.S. equity risk appetite.",
+          "higher_meaning": "A higher index level generally reflects stronger equity demand and risk appetite.",
+          "lower_meaning": "A lower index level generally reflects weaker risk appetite or earnings/valuation pressure.",
+          "watch_points": "Compare with sector leadership, Treasury yields, VIX, credit spreads, and earnings expectations."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "^IXIC",
@@ -1306,7 +1621,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "NASDAQ",
+          "short_label": "기술주 중심 성장주 지수",
+          "description": "나스닥 상장 기업 중심의 주가지수로, 기술주와 성장주의 비중이 높다.",
+          "market_role": "금리 변화와 성장주 선호, 기술 섹터 기대를 읽는 데 유용하다.",
+          "higher_meaning": "성장주 선호와 기술기업 이익 기대가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "금리 상승 부담, 성장주 밸류에이션 조정, 위험회피가 반영될 수 있다.",
+          "watch_points": "10년물 금리와 대형 기술주 실적 기대를 함께 확인해야 한다."
+        },
+        "en": {
+          "display_name": "NASDAQ Composite",
+          "short_label": "NASDAQ",
+          "description": "A U.S. equity index with heavy exposure to technology and growth companies.",
+          "market_role": "It is sensitive to growth expectations, discount rates, and technology-sector sentiment.",
+          "higher_meaning": "A rise can indicate strong demand for growth and technology shares.",
+          "lower_meaning": "A decline can indicate pressure from higher rates, weaker risk appetite, or tech-specific concerns.",
+          "watch_points": "Compare with 10-year yields, XLK, S&P 500, and earnings news."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "^KS11",
@@ -1362,7 +1698,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "KOSPI",
+          "short_label": "한국 주식시장 대표 지수",
+          "description": "한국 유가증권시장 주요 종목의 주가 흐름을 반영하는 대표 지수다.",
+          "market_role": "수출 경기, 반도체 사이클, 원화 흐름, 글로벌 위험선호를 함께 보여준다.",
+          "higher_meaning": "한국 기업이익 기대와 외국인 위험선호가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "수출 경기 둔화, 원화 약세 부담, 글로벌 위험회피가 반영될 수 있다.",
+          "watch_points": "USD/KRW, 나스닥, 반도체 관련 대형주의 영향이 크다."
+        },
+        "en": {
+          "display_name": "KOSPI",
+          "short_label": "KOSPI",
+          "description": "South Korea's main equity-market index.",
+          "market_role": "It reflects Korean equity-market sentiment and global trade-cycle exposure.",
+          "higher_meaning": "A rise suggests stronger demand for Korean equities and cyclical exposure.",
+          "lower_meaning": "A decline suggests weaker risk appetite or pressure from global growth, FX, or semiconductor cycles.",
+          "watch_points": "Watch USD/KRW, global technology shares, China data, and foreign investor flows."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "^N225",
@@ -1416,7 +1773,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Nikkei 225",
+          "short_label": "일본 대형주 대표 지수",
+          "description": "일본 주요 225개 기업의 주가 흐름을 반영하는 대표 지수다.",
+          "market_role": "엔화 흐름, 일본 기업이익 기대, 아시아 위험선호를 확인하는 데 사용된다.",
+          "higher_meaning": "일본 기업이익 기대와 글로벌 위험선호가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "엔화 급등 부담, 경기 둔화 우려, 위험회피가 반영될 수 있다.",
+          "watch_points": "USD/JPY와 일본 수출주 흐름의 영향을 크게 받을 수 있다."
+        },
+        "en": {
+          "display_name": "Nikkei 225",
+          "short_label": "Nikkei 225",
+          "description": "A leading Japanese equity index composed of major listed companies.",
+          "market_role": "It reflects Japanese equity sentiment and global cyclical risk appetite.",
+          "higher_meaning": "A rise suggests stronger investor demand for Japanese equities.",
+          "lower_meaning": "A decline suggests weaker equity sentiment or pressure from currency and rate moves.",
+          "watch_points": "Compare with USD/JPY, global equities, Bank of Japan expectations, and export-sector trends."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "^GDAXI",
@@ -1472,7 +1850,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "DAX",
+          "short_label": "독일 대형주 대표 지수",
+          "description": "독일 주요 대형 상장기업의 주가 흐름을 반영하는 지수다.",
+          "market_role": "유럽 경기, 제조업 사이클, 글로벌 교역 기대를 확인하는 데 활용된다.",
+          "higher_meaning": "유럽 경기와 수출기업 이익 기대가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "제조업 둔화, 에너지 비용 부담, 유럽 경기 우려가 반영될 수 있다.",
+          "watch_points": "EUR/USD, 에너지 가격, 중국 수요와 함께 해석하는 것이 좋다."
+        },
+        "en": {
+          "display_name": "DAX",
+          "short_label": "DAX",
+          "description": "Germany's major blue-chip equity index.",
+          "market_role": "It reflects European cyclical, export, and industrial-market sentiment.",
+          "higher_meaning": "A rise suggests stronger European risk appetite and cyclical expectations.",
+          "lower_meaning": "A decline suggests weaker growth sentiment or pressure from rates, energy, or currency moves.",
+          "watch_points": "Watch EUR/USD, European yields, energy prices, and global manufacturing data."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "^SSEC",
@@ -1528,7 +1927,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Shanghai",
+          "short_label": "중국 본토 증시 대표 지수",
+          "description": "상하이증권거래소 상장 종목의 주가 흐름을 반영하는 중국 본토 대표 지수다.",
+          "market_role": "중국 경기 기대, 정책 부양 기대, 원자재 수요 전망을 확인하는 데 쓰인다.",
+          "higher_meaning": "중국 경기 개선 또는 정책 지원 기대가 커졌음을 시사할 수 있다.",
+          "lower_meaning": "성장 둔화, 부동산·신용 우려, 투자심리 약화가 반영될 수 있다.",
+          "watch_points": "구리, 원유, 아시아 증시와의 동조 여부를 함께 확인해야 한다."
+        },
+        "en": {
+          "display_name": "Shanghai Composite",
+          "short_label": "Shanghai Composite",
+          "description": "A broad index of stocks listed on the Shanghai Stock Exchange.",
+          "market_role": "It provides a read on mainland China equity sentiment.",
+          "higher_meaning": "A rise can indicate stronger domestic risk appetite or policy-support expectations.",
+          "lower_meaning": "A decline can indicate weaker growth confidence or policy disappointment.",
+          "watch_points": "Compare with China credit data, commodities, USD/CNY, and Asian equity markets."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "^VIX",
@@ -1584,7 +2004,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "VIX",
+          "short_label": "미국 증시 변동성 기대",
+          "description": "S&P 500 옵션 가격에 반영된 향후 변동성 기대를 나타내는 지수다.",
+          "market_role": "시장 불안, 헤지 수요, 단기 위험회피 심리를 빠르게 보여준다.",
+          "higher_meaning": "투자자들이 더 큰 변동성과 하락 위험에 대비하고 있음을 시사한다.",
+          "lower_meaning": "시장 불안이 완화되고 위험선호가 회복되고 있음을 시사할 수 있다.",
+          "watch_points": "낮은 VIX가 항상 안전을 뜻하지는 않으며, 과도한 안도감일 수도 있다."
+        },
+        "en": {
+          "display_name": "VIX Volatility Index",
+          "short_label": "VIX",
+          "description": "A market-implied measure of expected S&P 500 volatility.",
+          "market_role": "It is widely used as a gauge of equity-market fear and hedging demand.",
+          "higher_meaning": "A higher VIX usually signals rising uncertainty or risk-off conditions.",
+          "lower_meaning": "A lower VIX usually signals calmer markets and lower demand for downside protection.",
+          "watch_points": "Compare with S&P 500 moves, credit spreads, event risk, and options-expiration effects."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "DX-Y.NYB",
@@ -1642,7 +2083,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "DXY",
+          "short_label": "달러 강세를 보는 지수",
+          "description": "주요 통화 대비 미국 달러의 상대적 가치를 나타내는 달러 지수다.",
+          "market_role": "글로벌 유동성, 미국 금리 기대, 신흥국 부담, 원자재 가격 압력을 판단하는 데 쓰인다.",
+          "higher_meaning": "달러 강세와 글로벌 유동성 압박, 미국 금리 우위가 반영될 수 있다.",
+          "lower_meaning": "달러 약세와 위험선호 개선, 미국 금리 부담 완화가 반영될 수 있다.",
+          "watch_points": "달러 강세가 안전자산 선호 때문인지 미국 성장 우위 때문인지 구분해야 한다."
+        },
+        "en": {
+          "display_name": "U.S. Dollar Index",
+          "short_label": "DXY",
+          "description": "An index measuring the U.S. dollar against a basket of major currencies.",
+          "market_role": "It summarizes broad dollar strength and global liquidity pressure.",
+          "higher_meaning": "A higher index indicates a stronger dollar, often tightening conditions for global risk assets.",
+          "lower_meaning": "A lower index indicates a weaker dollar, often easing pressure on non-U.S. assets.",
+          "watch_points": "Compare with U.S. yields, EUR/USD, USD/JPY, commodities, and risk sentiment."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "CL=F",
@@ -1698,7 +2160,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "WTI 원유",
+          "short_label": "미국 원유 가격 기준",
+          "description": "미국 서부텍사스산 원유 선물 가격으로, 에너지 가격과 원유 수급을 반영한다.",
+          "market_role": "물가 압력, 에너지 섹터 이익, 글로벌 수요 전망을 판단하는 데 활용된다.",
+          "higher_meaning": "원유 수요 개선, 공급 차질, 지정학적 리스크가 반영될 수 있다.",
+          "lower_meaning": "수요 둔화 우려 또는 공급 여건 완화가 반영될 수 있다.",
+          "watch_points": "가격 상승이 경기 개선 때문인지 공급 충격 때문인지에 따라 시장 해석이 달라진다."
+        },
+        "en": {
+          "display_name": "WTI Crude Oil",
+          "short_label": "WTI",
+          "description": "The front-month futures price for West Texas Intermediate crude oil.",
+          "market_role": "It is a key signal for energy prices, inflation pressure, and global demand expectations.",
+          "higher_meaning": "A higher price can reflect stronger demand, supply disruption, or inflation pressure.",
+          "lower_meaning": "A lower price can reflect weaker demand, higher supply, or easing inflation pressure.",
+          "watch_points": "Compare with Brent, the dollar, inventory data, geopolitical risk, and energy-sector performance."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "GC=F",
@@ -1754,7 +2237,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "금",
+          "short_label": "실질금리와 안전자산 수요",
+          "description": "금 선물 가격으로, 안전자산 수요와 실질금리·달러 흐름에 민감하게 반응한다.",
+          "market_role": "시장 불안, 인플레이션 헤지 수요, 달러와 실질금리 변화의 영향을 확인하는 데 쓰인다.",
+          "higher_meaning": "안전자산 수요, 달러 약세, 실질금리 하락 기대가 반영될 수 있다.",
+          "lower_meaning": "위험선호 개선, 달러 강세, 실질금리 상승 부담이 반영될 수 있다.",
+          "watch_points": "금 상승이 위험회피 때문인지 통화가치 우려 때문인지 구분해야 한다."
+        },
+        "en": {
+          "display_name": "Gold",
+          "short_label": "Gold",
+          "description": "The front-month futures price for gold.",
+          "market_role": "Gold is watched as a real-rate, dollar, and safe-haven sensitive asset.",
+          "higher_meaning": "A higher price can signal stronger safe-haven demand, lower real yields, or a weaker dollar.",
+          "lower_meaning": "A lower price can signal higher real yields, a stronger dollar, or reduced defensive demand.",
+          "watch_points": "Compare with real yields, DXY, inflation expectations, and risk sentiment."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "HG=F",
@@ -1810,7 +2314,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "구리",
+          "short_label": "경기민감 원자재 가격",
+          "description": "구리 선물 가격으로, 제조업·건설·전력망 수요와 글로벌 경기 기대에 민감하다.",
+          "market_role": "산업 수요와 중국 경기 기대를 읽는 대표적인 경기민감 원자재 지표다.",
+          "higher_meaning": "글로벌 제조업·인프라 수요 개선 기대가 반영될 수 있다.",
+          "lower_meaning": "경기 둔화 우려 또는 산업 수요 약화가 반영될 수 있다.",
+          "watch_points": "중국 정책 기대, 달러 강세, 재고 변화의 영향을 함께 봐야 한다."
+        },
+        "en": {
+          "display_name": "Copper",
+          "short_label": "Copper",
+          "description": "The front-month futures price for copper.",
+          "market_role": "Copper is a cyclical commodity often used as a gauge of industrial demand.",
+          "higher_meaning": "A higher price can signal stronger manufacturing or infrastructure demand.",
+          "lower_meaning": "A lower price can signal weaker industrial demand or stronger supply pressure.",
+          "watch_points": "Compare with China data, manufacturing PMIs, the dollar, and the copper/gold ratio."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "USDKRW",
@@ -1866,7 +2391,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "USD/KRW",
+          "short_label": "원화 대비 달러 환율",
+          "description": "미국 달러 1달러를 사는 데 필요한 원화 가격을 나타내는 환율이다.",
+          "market_role": "한국 시장의 외국인 수급, 수입물가, 달러 유동성 부담을 판단하는 데 중요하다.",
+          "higher_meaning": "원화 약세와 달러 선호가 강해졌음을 시사하며 한국 자산에는 부담이 될 수 있다.",
+          "lower_meaning": "원화 강세와 외국인 위험선호 개선 가능성을 시사할 수 있다.",
+          "watch_points": "DXY, 미 국채금리, KOSPI 외국인 수급과 함께 해석해야 한다."
+        },
+        "en": {
+          "display_name": "USD/KRW",
+          "short_label": "USD/KRW",
+          "description": "The exchange rate between the U.S. dollar and the Korean won.",
+          "market_role": "It is important for Korean investors because it affects imported inflation, foreign flows, and global risk sensitivity.",
+          "higher_meaning": "A higher rate means a stronger dollar or weaker won, often linked to risk-off pressure.",
+          "lower_meaning": "A lower rate means a stronger won or weaker dollar, often linked to improved risk appetite.",
+          "watch_points": "Compare with DXY, U.S. yields, KOSPI, China data, and foreign investor flows."
+        }
+      },
+      "provider": "exchangerate-api"
     },
     {
       "key": "EURUSD",
@@ -1920,7 +2466,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "EUR/USD",
+          "short_label": "유로 대비 달러 흐름",
+          "description": "1유로가 몇 달러에 거래되는지를 나타내는 주요 환율이다.",
+          "market_role": "달러 강세·약세, 유럽 경기와 미국·유럽 금리차 기대를 확인하는 데 쓰인다.",
+          "higher_meaning": "유로 강세 또는 달러 약세가 반영되며 유럽 경기 기대가 개선됐을 수 있다.",
+          "lower_meaning": "달러 강세 또는 유로 약세가 반영되며 유럽 경기 우려가 커졌을 수 있다.",
+          "watch_points": "DXY와 반대로 움직이는 경우가 많지만 유럽 고유 요인도 확인해야 한다."
+        },
+        "en": {
+          "display_name": "EUR/USD",
+          "short_label": "EUR/USD",
+          "description": "The exchange rate between the euro and the U.S. dollar.",
+          "market_role": "It is the main currency pair for comparing euro-area and U.S. macro expectations.",
+          "higher_meaning": "A higher rate means a stronger euro or weaker dollar.",
+          "lower_meaning": "A lower rate means a weaker euro or stronger dollar.",
+          "watch_points": "Watch U.S.-Europe rate differentials, ECB and Fed guidance, DXY, and energy-market pressures."
+        }
+      },
+      "provider": "exchangerate-api"
     },
     {
       "key": "USDJPY",
@@ -1976,7 +2543,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "USD/JPY",
+          "short_label": "엔화 대비 달러 환율",
+          "description": "미국 달러 1달러를 사는 데 필요한 일본 엔화 가격을 나타내는 환율이다.",
+          "market_role": "미일 금리차, 엔화 안전자산 수요, 일본 수출주 환경을 판단하는 데 쓰인다.",
+          "higher_meaning": "엔화 약세와 달러 강세, 미일 금리차 확대 기대가 반영될 수 있다.",
+          "lower_meaning": "엔화 강세, 안전자산 수요, 미 금리 하락 기대가 반영될 수 있다.",
+          "watch_points": "일본 정책 변화와 미국 장기금리 움직임을 함께 확인해야 한다."
+        },
+        "en": {
+          "display_name": "USD/JPY",
+          "short_label": "USD/JPY",
+          "description": "The exchange rate between the U.S. dollar and the Japanese yen.",
+          "market_role": "It reflects rate differentials, dollar strength, and yen funding conditions.",
+          "higher_meaning": "A higher rate means a stronger dollar or weaker yen.",
+          "lower_meaning": "A lower rate means a weaker dollar or stronger yen.",
+          "watch_points": "Compare with U.S. yields, Bank of Japan expectations, Nikkei performance, and risk sentiment."
+        }
+      },
+      "provider": "exchangerate-api"
     },
     {
       "key": "COPPER_GOLD",
@@ -2032,7 +2620,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "구리/금 비율",
+          "short_label": "성장 기대와 방어 심리의 상대 비교",
+          "description": "경기민감 원자재인 구리 가격을 방어적 성격의 금 가격과 비교한 비율이다.",
+          "market_role": "글로벌 성장 기대가 안전자산 선호보다 강한지 판단하는 보조 지표로 활용된다.",
+          "higher_meaning": "성장 기대와 경기민감 자산 선호가 강화되고 있음을 시사할 수 있다.",
+          "lower_meaning": "방어적 심리 또는 경기 둔화 우려가 커졌음을 시사할 수 있다.",
+          "watch_points": "구리와 금 각각의 독립 요인 때문에 비율 변화의 원인을 분해해 봐야 한다."
+        },
+        "en": {
+          "display_name": "Copper/Gold Ratio",
+          "short_label": "Copper/Gold",
+          "description": "A ratio comparing copper prices with gold prices.",
+          "market_role": "It is used as a rough gauge of cyclical growth appetite versus defensive demand.",
+          "higher_meaning": "A higher ratio suggests stronger cyclical or industrial-demand sentiment.",
+          "lower_meaning": "A lower ratio suggests more defensive demand or weaker growth expectations.",
+          "watch_points": "Compare with Treasury yields, China data, manufacturing indicators, and equity cyclicals."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "WTI_BRENT_SPREAD",
@@ -2086,7 +2695,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "WTI-Brent 스프레드",
+          "short_label": "미국 원유와 글로벌 원유 가격 차이",
+          "description": "WTI 가격과 Brent 가격의 차이로, 지역별 원유 수급과 운송·재고 여건을 반영한다.",
+          "market_role": "미국 원유시장과 글로벌 원유시장 간 수급 불균형을 확인하는 데 쓰인다.",
+          "higher_meaning": "WTI가 Brent 대비 강해졌거나 미국 내 수급이 상대적으로 타이트해졌을 수 있다.",
+          "lower_meaning": "WTI가 Brent 대비 약해졌거나 미국 내 공급 부담이 커졌을 수 있다.",
+          "watch_points": "스프레드 방향은 계산 방식에 따라 해석이 달라질 수 있어 백엔드 정의를 UI에 명시하는 것이 좋다."
+        },
+        "en": {
+          "display_name": "WTI-Brent Spread",
+          "short_label": "WTI-Brent",
+          "description": "The price difference between WTI crude and Brent crude.",
+          "market_role": "It helps identify relative U.S. versus global crude-market tightness.",
+          "higher_meaning": "A higher spread can mean WTI is strengthening versus Brent or the discount is narrowing.",
+          "lower_meaning": "A lower spread can mean WTI is weakening versus Brent or the discount is widening.",
+          "watch_points": "Check inventory data, export constraints, geopolitics, refinery demand, and the overall oil-price trend."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLK",
@@ -2140,7 +2770,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Technology",
+          "short_label": "기술 섹터 주가 흐름",
+          "description": "미국 기술 섹터 ETF로, 소프트웨어·하드웨어·반도체 등 기술 기업의 흐름을 반영한다.",
+          "market_role": "성장주 선호, AI·반도체 기대, 금리 민감도를 확인하는 데 활용된다.",
+          "higher_meaning": "기술기업 이익 기대와 성장주 선호가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "금리 부담, 밸류에이션 조정, 기술주 기대 약화가 반영될 수 있다.",
+          "watch_points": "소수 대형주의 비중이 높아 섹터 전체 확산 여부를 함께 봐야 한다."
+        },
+        "en": {
+          "display_name": "Technology Sector",
+          "short_label": "Technology",
+          "description": "A U.S. equity sector ETF proxy for technology companies.",
+          "market_role": "It shows leadership or weakness in technology shares within the broader market.",
+          "higher_meaning": "A rise suggests stronger demand for technology and growth exposure.",
+          "lower_meaning": "A decline suggests weaker technology sentiment or pressure from rates and earnings.",
+          "watch_points": "Compare with NASDAQ, 10-year yields, semiconductors, and earnings revisions."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLF",
@@ -2196,7 +2847,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Financials",
+          "short_label": "금융 섹터 주가 흐름",
+          "description": "미국 금융 섹터 ETF로, 은행·보험·자본시장 관련 기업의 흐름을 반영한다.",
+          "market_role": "금리곡선, 신용환경, 경기 기대가 금융주에 어떻게 반영되는지 보여준다.",
+          "higher_meaning": "경기 기대, 대출 성장, 수익성 개선 기대가 반영될 수 있다.",
+          "lower_meaning": "신용손실 우려, 금리곡선 부담, 금융시스템 경계가 반영될 수 있다.",
+          "watch_points": "장단기 금리차와 크레딧 스프레드를 함께 봐야 해석력이 높아진다."
+        },
+        "en": {
+          "display_name": "Financials Sector",
+          "short_label": "Financials",
+          "description": "A U.S. equity sector ETF proxy for banks, insurers, and financial companies.",
+          "market_role": "It reflects credit conditions, yield-curve expectations, and financial-sector sentiment.",
+          "higher_meaning": "A rise can signal stronger confidence in banks, credit, or net-interest-margin expectations.",
+          "lower_meaning": "A decline can signal concern about credit quality, curve pressure, or financial stress.",
+          "watch_points": "Compare with yield-curve slope, credit spreads, bank earnings, and regulatory news."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLE",
@@ -2250,7 +2922,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Energy",
+          "short_label": "에너지 섹터 주가 흐름",
+          "description": "미국 에너지 섹터 ETF로, 석유·가스 관련 기업의 주가 흐름을 반영한다.",
+          "market_role": "원유 가격, 에너지 수급, 인플레이션 압력과 기업이익 기대를 연결해 보여준다.",
+          "higher_meaning": "원유 가격 강세 또는 에너지 기업 이익 기대가 개선됐을 수 있다.",
+          "lower_meaning": "원유 수요 둔화 또는 에너지 가격 약세 우려가 반영될 수 있다.",
+          "watch_points": "유가 상승 원인이 수요 개선인지 공급 충격인지 구분해야 한다."
+        },
+        "en": {
+          "display_name": "Energy Sector",
+          "short_label": "Energy",
+          "description": "A U.S. equity sector ETF proxy for energy companies.",
+          "market_role": "It tracks equity-market exposure to oil, gas, and energy-cycle expectations.",
+          "higher_meaning": "A rise often reflects stronger energy prices or improved energy-sector sentiment.",
+          "lower_meaning": "A decline often reflects weaker commodity prices or demand concerns.",
+          "watch_points": "Compare with WTI, Brent, the dollar, inventories, and geopolitical risk."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLV",
@@ -2306,7 +2999,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Health Care",
+          "short_label": "헬스케어 섹터 주가 흐름",
+          "description": "미국 헬스케어 섹터 ETF로, 제약·바이오·의료장비·보험 관련 기업을 포함한다.",
+          "market_role": "방어적 섹터 선호와 안정적 이익 기대를 확인하는 데 활용된다.",
+          "higher_meaning": "방어적 자금 유입 또는 헬스케어 이익 기대 개선이 반영될 수 있다.",
+          "lower_meaning": "정책 리스크, 성장 기대 약화, 섹터 선호 하락이 반영될 수 있다.",
+          "watch_points": "시장 전체가 하락할 때 상대적으로 버티는지 보는 것이 중요하다."
+        },
+        "en": {
+          "display_name": "Health Care Sector",
+          "short_label": "Health Care",
+          "description": "A U.S. equity sector ETF proxy for health care companies.",
+          "market_role": "It is often viewed as a defensive sector with policy and earnings-specific drivers.",
+          "higher_meaning": "A rise can indicate defensive demand or stronger sector fundamentals.",
+          "lower_meaning": "A decline can indicate rotation away from defensives or sector-specific pressure.",
+          "watch_points": "Compare with broad equity sentiment, policy risk, earnings, and factor rotation."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLI",
@@ -2362,7 +3076,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Industrials",
+          "short_label": "산업재 섹터 주가 흐름",
+          "description": "미국 산업재 섹터 ETF로, 운송·기계·방산·상업서비스 기업의 흐름을 반영한다.",
+          "market_role": "기업 투자, 제조업 경기, 인프라 수요 기대를 확인하는 데 쓰인다.",
+          "higher_meaning": "경기 확장과 설비투자 기대가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "제조업 둔화나 기업 투자 위축 우려가 반영될 수 있다.",
+          "watch_points": "구리, 유가, 장기금리와 함께 경기민감 흐름을 비교하면 좋다."
+        },
+        "en": {
+          "display_name": "Industrials Sector",
+          "short_label": "Industrials",
+          "description": "A U.S. equity sector ETF proxy for industrial companies.",
+          "market_role": "It reflects cyclical growth, capital spending, and manufacturing expectations.",
+          "higher_meaning": "A rise suggests stronger cyclical and industrial demand expectations.",
+          "lower_meaning": "A decline suggests weaker manufacturing or capital-spending sentiment.",
+          "watch_points": "Compare with ISM data, durable goods, copper, yields, and global trade indicators."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLY",
@@ -2418,7 +3153,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Consumer Disc.",
+          "short_label": "임의소비재 섹터 주가 흐름",
+          "description": "미국 임의소비재 섹터 ETF로, 자동차·리테일·여가 등 선택 소비 관련 기업을 포함한다.",
+          "market_role": "소비 여력, 경기 기대, 가계 부담 변화를 확인하는 데 활용된다.",
+          "higher_meaning": "소비 경기와 가계 지출 기대가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "소비 둔화, 금리 부담, 실질소득 압박이 반영될 수 있다.",
+          "watch_points": "고용, 물가, 금리와 함께 소비 지속 가능성을 확인해야 한다."
+        },
+        "en": {
+          "display_name": "Consumer Discretionary Sector",
+          "short_label": "Discretionary",
+          "description": "A U.S. equity sector ETF proxy for consumer discretionary companies.",
+          "market_role": "It reflects consumer confidence, spending appetite, and growth-stock exposure.",
+          "higher_meaning": "A rise suggests stronger discretionary spending expectations or risk appetite.",
+          "lower_meaning": "A decline suggests consumer caution, rate pressure, or weaker growth expectations.",
+          "watch_points": "Compare with retail sales, labor data, consumer sentiment, rates, and earnings."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLP",
@@ -2474,7 +3230,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Consumer Staples",
+          "short_label": "필수소비재 섹터 주가 흐름",
+          "description": "미국 필수소비재 섹터 ETF로, 음식료·생활용품 등 경기 방어적 소비 기업을 포함한다.",
+          "market_role": "방어적 자금 흐름과 경기 둔화 우려를 확인하는 데 쓰인다.",
+          "higher_meaning": "안정적 이익 선호 또는 방어적 포지션 선호가 강해졌을 수 있다.",
+          "lower_meaning": "위험선호가 성장·경기민감 섹터로 이동했을 수 있다.",
+          "watch_points": "절대 상승보다 S&P 500 대비 상대성과가 더 중요한 경우가 많다."
+        },
+        "en": {
+          "display_name": "Consumer Staples Sector",
+          "short_label": "Staples",
+          "description": "A U.S. equity sector ETF proxy for consumer staples companies.",
+          "market_role": "It is often used as a defensive equity-sector benchmark.",
+          "higher_meaning": "A rise can reflect defensive demand or stable earnings preference.",
+          "lower_meaning": "A decline can reflect rotation toward cyclicals or sector-specific weakness.",
+          "watch_points": "Compare with XLY, inflation data, margins, and broad risk appetite."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLU",
@@ -2530,7 +3307,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Utilities",
+          "short_label": "유틸리티 섹터 주가 흐름",
+          "description": "미국 유틸리티 섹터 ETF로, 전력·가스 등 안정적 현금흐름 기업을 포함한다.",
+          "market_role": "방어적 선호, 배당주 수요, 금리 민감도를 확인하는 데 활용된다.",
+          "higher_meaning": "방어적 수요나 금리 하락 기대가 반영될 수 있다.",
+          "lower_meaning": "금리 상승 부담 또는 위험선호가 경기민감 섹터로 이동했을 수 있다.",
+          "watch_points": "장기금리 상승기에는 배당 매력이 약해질 수 있다."
+        },
+        "en": {
+          "display_name": "Utilities Sector",
+          "short_label": "Utilities",
+          "description": "A U.S. equity sector ETF proxy for utility companies.",
+          "market_role": "It is rate-sensitive and often treated as a defensive, dividend-oriented sector.",
+          "higher_meaning": "A rise can indicate defensive demand or lower-yield support.",
+          "lower_meaning": "A decline can indicate higher-rate pressure or rotation into cyclicals.",
+          "watch_points": "Compare with Treasury yields, dividend factors, risk sentiment, and power-demand trends."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLB",
@@ -2586,7 +3384,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Materials",
+          "short_label": "소재 섹터 주가 흐름",
+          "description": "미국 소재 섹터 ETF로, 화학·금속·광산·포장재 기업의 흐름을 반영한다.",
+          "market_role": "원자재 수요, 제조업 경기, 중국 수요 기대를 확인하는 데 쓰인다.",
+          "higher_meaning": "산업 수요와 원자재 가격 기대가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "제조업 둔화나 원자재 수요 약화 우려가 반영될 수 있다.",
+          "watch_points": "구리, 중국 증시, 달러 흐름을 함께 봐야 해석력이 높아진다."
+        },
+        "en": {
+          "display_name": "Materials Sector",
+          "short_label": "Materials",
+          "description": "A U.S. equity sector ETF proxy for materials companies.",
+          "market_role": "It reflects demand for chemicals, metals, construction inputs, and global cyclical activity.",
+          "higher_meaning": "A rise suggests stronger cyclical or commodity-linked demand expectations.",
+          "lower_meaning": "A decline suggests weaker global growth or commodity demand expectations.",
+          "watch_points": "Compare with copper, China data, manufacturing indicators, and the dollar."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLRE",
@@ -2642,7 +3461,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Real Estate",
+          "short_label": "부동산 섹터 주가 흐름",
+          "description": "미국 부동산 섹터 ETF로, 리츠와 부동산 관련 기업의 주가 흐름을 반영한다.",
+          "market_role": "금리 부담, 배당 매력, 상업용 부동산 리스크를 확인하는 데 활용된다.",
+          "higher_meaning": "금리 부담 완화 또는 배당형 자산 선호가 개선됐을 수 있다.",
+          "lower_meaning": "장기금리 상승, 자금조달 비용 증가, 부동산 수요 둔화가 반영될 수 있다.",
+          "watch_points": "10년물 금리와 신용 스프레드 변화에 민감하게 반응할 수 있다."
+        },
+        "en": {
+          "display_name": "Real Estate Sector",
+          "short_label": "Real Estate",
+          "description": "A U.S. equity sector ETF proxy for real estate companies and REITs.",
+          "market_role": "It is sensitive to interest rates, financing costs, and property-market expectations.",
+          "higher_meaning": "A rise can indicate lower-rate support or stronger property-sector sentiment.",
+          "lower_meaning": "A decline can indicate higher-rate pressure or concern about real-estate fundamentals.",
+          "watch_points": "Compare with 10-year yields, credit conditions, housing data, and dividend factors."
+        }
+      },
+      "provider": "yfinance"
     },
     {
       "key": "XLC",
@@ -2698,7 +3538,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "Communication",
+          "short_label": "커뮤니케이션 섹터 주가 흐름",
+          "description": "미국 커뮤니케이션 서비스 섹터 ETF로, 플랫폼·미디어·통신 기업의 흐름을 반영한다.",
+          "market_role": "대형 플랫폼 기업 기대, 광고 경기, 소비·기술 수요를 함께 확인하는 데 쓰인다.",
+          "higher_meaning": "플랫폼 기업 이익 기대와 광고·콘텐츠 수요가 개선되고 있음을 시사할 수 있다.",
+          "lower_meaning": "광고 경기 둔화, 규제 우려, 대형 플랫폼 선호 약화가 반영될 수 있다.",
+          "watch_points": "기술주와 유사하게 움직일 수 있어 XLK·NASDAQ과 비교하는 것이 좋다."
+        },
+        "en": {
+          "display_name": "Communication Services Sector",
+          "short_label": "Communication",
+          "description": "A U.S. equity sector ETF proxy for communication services companies.",
+          "market_role": "It includes media, telecom, and large platform businesses with growth and advertising exposure.",
+          "higher_meaning": "A rise suggests stronger demand for communication-platform and media exposure.",
+          "lower_meaning": "A decline suggests weaker growth, advertising, or platform-sector sentiment.",
+          "watch_points": "Compare with NASDAQ, technology shares, advertising trends, yields, and earnings."
+        }
+      },
+      "provider": "yfinance"
     }
   ],
   "non_series_display_metrics": [
@@ -2758,7 +3619,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "다음 FOMC 회의일",
+          "short_label": "다음 연준 정책 결정 일정",
+          "description": "연방공개시장위원회가 기준금리와 정책 방향을 결정하는 다음 회의 날짜다.",
+          "market_role": "금리, 환율, 주식, 채권시장이 정책 이벤트를 앞두고 기대를 조정하는 기준점이다.",
+          "higher_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+          "lower_meaning": "날짜형 항목이므로 높고 낮음보다 회의까지 남은 기간과 시장 기대 변화가 중요하다.",
+          "watch_points": "회의 전후로 FedWatch 확률, 2년물 금리, FOMC 성명 문구 변화가 함께 움직일 수 있다."
+        },
+        "en": {
+          "display_name": "Next FOMC Meeting Date",
+          "short_label": "Next Fed decision",
+          "description": "The date of the next Federal Open Market Committee meeting that will set the policy-rate decision and guidance.",
+          "market_role": "It anchors the timing of policy expectations across rates, FX, equities, and bonds.",
+          "higher_meaning": "For a date field, the key signal is not high or low but how close the meeting is and how expectations change before it.",
+          "lower_meaning": "For a date field, the key signal is not high or low but how close the meeting is and how expectations change before it.",
+          "watch_points": "Around the meeting, track FedWatch probabilities, 2-year yields, statement wording, and press-conference guidance."
+        }
+      },
+      "provider": "federal_reserve"
     },
     {
       "key": "fomc_decision_rate",
@@ -2816,7 +3698,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "FOMC 결정 금리",
+          "short_label": "FOMC가 결정한 정책금리 수준",
+          "description": "FOMC 회의에서 결정된 기준금리 수준을 나타낸다.",
+          "market_role": "정책금리의 실제 변화와 시장 기대의 차이를 확인하는 기준이 된다.",
+          "higher_meaning": "정책이 더 긴축적이라는 신호로, 금융환경에 부담이 될 수 있다.",
+          "lower_meaning": "정책 완화가 진행되고 있다는 신호로, 유동성 기대를 높일 수 있다.",
+          "watch_points": "금리 수준뿐 아니라 성명서, 점도표, 기자회견의 향후 경로 신호가 중요하다."
+        },
+        "en": {
+          "display_name": "FOMC Decision Rate",
+          "short_label": "FOMC policy rate",
+          "description": "The policy-rate level decided at an FOMC meeting.",
+          "market_role": "It allows markets to compare the actual policy decision with expectations priced before the meeting.",
+          "higher_meaning": "A higher-than-expected decision is generally a hawkish surprise and can tighten financial conditions.",
+          "lower_meaning": "A lower-than-expected decision is generally a dovish surprise and can support liquidity expectations.",
+          "watch_points": "The rate level should be read together with the statement, dot plot, press conference, and forward guidance."
+        }
+      },
+      "provider": "federal_reserve"
     },
     {
       "key": "fomc_change_bp",
@@ -2874,7 +3777,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "FOMC 변동폭",
+          "short_label": "이번 회의의 금리 변화 폭",
+          "description": "FOMC가 이전 회의 대비 기준금리를 몇 bp 조정했는지를 나타낸다.",
+          "market_role": "정책 변화의 강도와 시장 예상 대비 서프라이즈를 판단하는 데 쓰인다.",
+          "higher_meaning": "인상 폭이 크거나 인하 폭이 작다면 긴축적 서프라이즈로 해석될 수 있다.",
+          "lower_meaning": "인하 폭이 크거나 인상 폭이 작다면 완화적 서프라이즈로 해석될 수 있다.",
+          "watch_points": "부호 정의를 UI에 명확히 표시하고, 시장 예상과의 차이를 함께 보여주는 것이 좋다."
+        },
+        "en": {
+          "display_name": "FOMC Rate Change",
+          "short_label": "FOMC change",
+          "description": "The size of the policy-rate change at the meeting, measured in basis points.",
+          "market_role": "It captures the intensity of the policy move and the surprise versus market expectations.",
+          "higher_meaning": "A larger hike or smaller cut than expected can be interpreted as a hawkish surprise.",
+          "lower_meaning": "A larger cut or smaller hike than expected can be interpreted as a dovish surprise.",
+          "watch_points": "Clearly define the sign convention in the UI and compare with pre-meeting FedWatch pricing."
+        }
+      },
+      "provider": "federal_reserve"
     },
     {
       "key": "fedwatch_prob_hold",
@@ -2930,7 +3854,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "FOMC 동결 확률",
+          "short_label": "시장이 보는 금리 동결 가능성",
+          "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 동결 가능성이다.",
+          "market_role": "현재 시장이 정책 변화를 얼마나 예상하는지 빠르게 확인하는 데 쓰인다.",
+          "higher_meaning": "정책 변화보다 현 수준 유지 기대가 강하다는 뜻이다.",
+          "lower_meaning": "인하 또는 인상 같은 정책 변화 가능성이 상대적으로 커졌다는 뜻이다.",
+          "watch_points": "인하 확률과 인상 확률 중 어느 쪽으로 이동했는지를 함께 확인해야 한다."
+        },
+        "en": {
+          "display_name": "FedWatch Hold Probability",
+          "short_label": "Hold probability",
+          "description": "The market-implied probability that the Fed keeps the policy rate unchanged at a target meeting.",
+          "market_role": "It summarizes rate-market expectations before FOMC decisions.",
+          "higher_meaning": "A higher probability indicates stronger expectations for no policy-rate change.",
+          "lower_meaning": "A lower probability indicates rising expectations for a cut or hike instead of a hold.",
+          "watch_points": "Compare with 2-year yields, inflation data, labor data, and Fed communication."
+        }
+      },
+      "provider": "cme_fedwatch"
     },
     {
       "key": "fedwatch_prob_cut",
@@ -2988,7 +3933,28 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "FOMC 인하 확률",
+          "short_label": "시장이 보는 금리 인하 가능성",
+          "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인하 가능성이다.",
+          "market_role": "정책 완화 기대와 경기·물가 둔화 해석이 시장에 얼마나 반영됐는지 보여준다.",
+          "higher_meaning": "금리 인하 기대가 강해졌음을 뜻하며, 원인은 물가 안정 또는 경기 둔화일 수 있다.",
+          "lower_meaning": "인하 기대가 약해지고 긴축 유지 가능성이 커졌음을 시사할 수 있다.",
+          "watch_points": "인하 기대가 위험자산에 우호적인지, 경기침체 우려 때문인지 구분해야 한다."
+        },
+        "en": {
+          "display_name": "FedWatch Cut Probability",
+          "short_label": "Cut probability",
+          "description": "The market-implied probability that the Fed cuts the policy rate at a target meeting.",
+          "market_role": "It tracks how strongly markets expect policy easing.",
+          "higher_meaning": "A higher probability signals stronger expectations for easier policy.",
+          "lower_meaning": "A lower probability signals reduced expectations for easing.",
+          "watch_points": "Compare with inflation surprises, labor-market weakness, recession risk, and FOMC communication."
+        }
+      },
+      "provider": "cme_fedwatch"
     },
     {
       "key": "fedwatch_prob_hike",
@@ -3046,7 +4012,32 @@
           ],
           "caveat": "정적 expectation 해석 축이며, 현재 워크플로우에서 계산된 expectation 결과가 아니다."
         }
-      }
+      },
+      "translations": {
+        "ko": {
+          "display_name": "FOMC 인상 확률",
+          "short_label": "시장이 보는 금리 인상 가능성",
+          "description": "선물시장 가격을 바탕으로 추정한 다음 FOMC 회의의 금리 인상 가능성이다.",
+          "market_role": "물가 재가속 또는 긴축 강화 가능성이 시장에 얼마나 반영됐는지 보여준다.",
+          "higher_meaning": "추가 긴축 우려가 커졌으며 금리 민감 자산에 부담이 될 수 있다.",
+          "lower_meaning": "추가 인상 부담이 완화되고 정책 불확실성이 줄어들 수 있다.",
+          "watch_points": "물가 지표, 임금, 2년물 금리 상승과 함께 나타나는지 확인해야 한다."
+        },
+        "en": {
+          "display_name": "FedWatch Hike Probability",
+          "short_label": "Hike probability",
+          "description": "The market-implied probability that the Fed raises the policy rate at a target meeting.",
+          "market_role": "It tracks how strongly markets expect policy tightening.",
+          "higher_meaning": "A higher probability signals stronger expectations for tighter policy.",
+          "lower_meaning": "A lower probability signals reduced expectations for additional tightening.",
+          "watch_points": "Compare with inflation pressure, wage data, 2-year yields, and FOMC communication."
+        }
+      },
+      "provider": "cme_fedwatch"
     }
+  ],
+  "supported_locales": [
+    "ko",
+    "en"
   ]
 }

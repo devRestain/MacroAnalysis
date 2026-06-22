@@ -1,3 +1,5 @@
+import { getActiveLocale } from '../i18n'
+
 export type ApiErrorKind =
   | 'network'
   | 'not_found'
@@ -41,6 +43,12 @@ async function parseJson<T>(res: Response): Promise<T> {
   return JSON.parse(text) as T
 }
 
+function withLocaleQuery(path: string): string {
+  if (/(^|[?&])lang=/.test(path)) return path
+  const separator = path.includes('?') ? '&' : '?'
+  return `${path}${separator}lang=${encodeURIComponent(getActiveLocale())}`
+}
+
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
   if (!headers.has('Content-Type') && options.body) {
@@ -69,7 +77,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
 }
 
 export function apiGet<T>(path: string): Promise<T> {
-  return apiRequest<T>(path)
+  return apiRequest<T>(withLocaleQuery(path))
 }
 
 export function apiPost<T>(path: string, body: unknown, options: RequestInit = {}): Promise<T> {
@@ -92,4 +100,3 @@ export async function optionalApi<T>(request: () => Promise<T>): Promise<T | Api
     return new ApiError(error instanceof Error ? error.message : 'Unknown optional API error', 'unknown')
   }
 }
-

@@ -11,7 +11,9 @@ class IndicatorExplanationResponse(BaseModel):
     indicator_key: str
     display_name: str
     category: str | None = None
+    category_label: str | None = None
     provider: str | None = None
+    provider_label: str | None = None
     description: str | None = None
     short_label: str | None = None
     market_role: str | None = None

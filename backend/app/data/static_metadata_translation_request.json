@@ -1,0 +1,763 @@
+{
+  "schema_version": "1.0.0",
+  "app_default_locale": "ko",
+  "fallback_locale": "en",
+  "generation_target": "missing_or_nonlocalized_static_information",
+  "collections": [
+    {
+      "entity": "indicator_labels",
+      "source_table": "indicators",
+      "lookup_key": "code",
+      "request_fields": [
+        "display_name_ko",
+        "short_label_ko",
+        "category_label_ko",
+        "provider_label_ko"
+      ],
+      "items": [
+        {
+          "key": "DFF",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Fed Funds Rate, category=rates, provider=fred."
+        },
+        {
+          "key": "DGS2",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=2Y Treasury Yield, category=rates, provider=fred."
+        },
+        {
+          "key": "DGS10",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=10Y Treasury Yield, category=rates, provider=fred."
+        },
+        {
+          "key": "DGS30",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=30Y Treasury Yield, category=rates, provider=fred."
+        },
+        {
+          "key": "T10Y2Y",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=10Y-2Y Spread, category=rates, provider=fred."
+        },
+        {
+          "key": "SOFR",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=SOFR, category=rates, provider=fred."
+        },
+        {
+          "key": "CPIAUCSL",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=CPI, category=macro, provider=fred."
+        },
+        {
+          "key": "PCEPILFE",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Core PCE, category=macro, provider=fred."
+        },
+        {
+          "key": "GDPC1",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Real GDP, category=macro, provider=fred."
+        },
+        {
+          "key": "UNRATE",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Unemployment Rate, category=macro, provider=fred."
+        },
+        {
+          "key": "ICSA",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Initial Jobless Claims, category=macro, provider=fred."
+        },
+        {
+          "key": "M2SL",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=M2 Money Supply, category=macro, provider=fred."
+        },
+        {
+          "key": "USSLIND",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Leading Economic Index, category=macro, provider=fred."
+        },
+        {
+          "key": "MANEMP",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Manufacturing Employment, category=macro, provider=fred."
+        },
+        {
+          "key": "HY_OAS",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=HY OAS, category=credit, provider=fred."
+        },
+        {
+          "key": "IG_OAS",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=IG OAS, category=credit, provider=fred."
+        },
+        {
+          "key": "^GSPC",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=S&P 500, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^IXIC",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=NASDAQ, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^KS11",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=KOSPI, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^N225",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Nikkei 225, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^GDAXI",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=DAX, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^SSEC",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Shanghai Composite, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^VIX",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=VIX, category=equity, provider=yfinance."
+        },
+        {
+          "key": "^TNX",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=10Y Treasury Yield (Market), category=rates, provider=yfinance."
+        },
+        {
+          "key": "DX-Y.NYB",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=DXY, category=equity, provider=yfinance."
+        },
+        {
+          "key": "CL=F",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=WTI Crude, category=equity, provider=yfinance."
+        },
+        {
+          "key": "GC=F",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Gold, category=equity, provider=yfinance."
+        },
+        {
+          "key": "HG=F",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Copper, category=equity, provider=yfinance."
+        },
+        {
+          "key": "USDKRW",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=USD/KRW, category=fx, provider=exchangerate-api."
+        },
+        {
+          "key": "EURUSD",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=EUR/USD, category=fx, provider=exchangerate-api."
+        },
+        {
+          "key": "USDJPY",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=USD/JPY, category=fx, provider=exchangerate-api."
+        },
+        {
+          "key": "USDCNY",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=USD/CNY, category=fx, provider=exchangerate-api."
+        },
+        {
+          "key": "USDGBP",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=USD/GBP, category=fx, provider=exchangerate-api."
+        },
+        {
+          "key": "COPPER_GOLD",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Copper/Gold Ratio, category=real, provider=yfinance."
+        },
+        {
+          "key": "WTI_BRENT_SPREAD",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=WTI-Brent Spread, category=real, provider=yfinance."
+        },
+        {
+          "key": "XLK",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Technology, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLF",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Financials, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLE",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Energy, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLV",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Health Care, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLI",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Industrials, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLY",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Consumer Discretionary, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLP",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Consumer Staples, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLU",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Utilities, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLB",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Materials, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLRE",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Real Estate, category=sector, provider=yfinance."
+        },
+        {
+          "key": "XLC",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/services/indicator_registry.py::INDICATOR_SPECS",
+          "notes": "Current indicator label is English-based: name=Communication, category=sector, provider=yfinance."
+        }
+      ]
+    },
+    {
+      "entity": "indicator_explanations",
+      "source_table": "indicator_explanations",
+      "lookup_key": "indicator_key",
+      "request_fields": [
+        "provider",
+        "translations.en.display_name",
+        "translations.en.short_label",
+        "translations.en.description",
+        "translations.en.market_role",
+        "translations.en.higher_meaning",
+        "translations.en.lower_meaning",
+        "translations.en.watch_points"
+      ],
+      "items": [
+        {
+          "key": "DFF",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "DGS2",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "DGS10",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "DGS30",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "T10Y2Y",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "SOFR",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "CPIAUCSL",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "PCEPILFE",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "UNRATE",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "ICSA",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "USSLIND",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "M2SL",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "HY_OAS",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "IG_OAS",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^GSPC",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^IXIC",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^KS11",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^N225",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^GDAXI",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^SSEC",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "^VIX",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "DX-Y.NYB",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "CL=F",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "GC=F",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "HG=F",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "USDKRW",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "EURUSD",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "USDJPY",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "COPPER_GOLD",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "WTI_BRENT_SPREAD",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLK",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLF",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLE",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLV",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLI",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLY",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLP",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLU",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLB",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLRE",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "XLC",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "fomc_next_meeting",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "fomc_decision_rate",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "fomc_change_bp",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "fedwatch_prob_hold",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "fedwatch_prob_cut",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        },
+        {
+          "key": "fedwatch_prob_hike",
+          "current_status": "missing",
+          "current_source": "backend/app/data/indicator_explanations_v1_1_workflow_aware.json",
+          "notes": "Korean static explanation exists. provider is missing and English translation backfill is still empty."
+        }
+      ]
+    },
+    {
+      "entity": "calendar_event_definitions",
+      "source_table": "economic_calendar_events",
+      "lookup_key": "event_key",
+      "request_fields": [
+        "translations.en.display_name",
+        "translations.en.short_label",
+        "translations.en.description",
+        "translations.en.market_role",
+        "translations.en.higher_meaning",
+        "translations.en.lower_meaning",
+        "translations.en.watch_points",
+        "related_indicators"
+      ],
+      "items": [
+        {
+          "key": "US_CPI",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_PPI",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_PCE",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_EMPLOYMENT_SITUATION",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_JOBLESS_CLAIMS",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_JOLTS",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_GDP",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_RETAIL_SALES",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_DURABLE_GOODS",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_HOUSING_STARTS",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_NEW_HOME_SALES",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_ISM_MANUFACTURING",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_ISM_SERVICES",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "FOMC_MEETING",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "FOMC_MINUTES",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        },
+        {
+          "key": "US_MONTHLY_OPEX",
+          "current_status": "missing",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "related_indicators is missing."
+        },
+        {
+          "key": "US_TRIPLE_WITCHING",
+          "current_status": "missing",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "related_indicators is missing."
+        },
+        {
+          "key": "US_CONSUMER_SENTIMENT",
+          "current_status": "needs_en_backfill",
+          "current_source": "backend/app/data/calendar_event_definitions.json",
+          "notes": "Korean calendar explanation exists. English translation backfill is still empty."
+        }
+      ]
+    },
+    {
+      "entity": "communication_static_labels",
+      "source_table": "communication_events",
+      "lookup_key": "event_type",
+      "request_fields": [
+        "event_type_label_ko",
+        "source_label_ko",
+        "institution_label_ko"
+      ],
+      "items": [
+        {
+          "key": "fomc_meeting",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/collectors/communication_collector.py + backend/app/collectors/fomc_collector.py",
+          "notes": "event_type is code-level English and source/institution currently default to Federal Reserve."
+        },
+        {
+          "key": "statement",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/collectors/communication_collector.py + backend/app/collectors/fomc_collector.py",
+          "notes": "event_type is code-level English and source/institution currently default to Federal Reserve."
+        },
+        {
+          "key": "speech",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/collectors/communication_collector.py + backend/app/collectors/fomc_collector.py",
+          "notes": "event_type is code-level English and source/institution currently default to Federal Reserve."
+        },
+        {
+          "key": "testimony",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/collectors/communication_collector.py + backend/app/collectors/fomc_collector.py",
+          "notes": "event_type is code-level English and source/institution currently default to Federal Reserve."
+        },
+        {
+          "key": "communication",
+          "current_status": "needs_ko_translation",
+          "current_source": "backend/app/collectors/communication_collector.py + backend/app/collectors/fomc_collector.py",
+          "notes": "event_type is code-level English and source/institution currently default to Federal Reserve."
+        }
+      ]
+    }
+  ]
+}

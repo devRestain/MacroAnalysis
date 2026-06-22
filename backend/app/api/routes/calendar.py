@@ -9,6 +9,7 @@ from ...core.cache import cache_get, cache_set
 from ...core.database import get_db
 from ...models import CommunicationEvent, EconomicCalendarEvent
 from ...services.calendar_query_service import get_latest_fedwatch, get_latest_fedwatch_for_meeting
+from ...services.localization import localize_fomc_overview_payload, normalize_locale
 from ..calendar_schemas import CalendarEventListResponse, CalendarEventResponse
 from ..route_helpers import calendar_event_to_dict
 
@@ -25,13 +26,15 @@ async def get_calendar_events(
     importance: str | None = None,
     country: str = "US",
     include_details: bool = False,
+    lang: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
+    locale = normalize_locale(lang)
     start = datetime.fromisoformat(from_date) if from_date else datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     end = datetime.fromisoformat(to_date) + timedelta(days=1) if to_date else start + timedelta(days=days)
     cache_key = (
         f"calendar:events:{start.date().isoformat()}:{end.date().isoformat()}:"
-        f"{category}:{event_type}:{importance}:{country}:{include_details}"
+        f"{category}:{event_type}:{importance}:{country}:{include_details}:{locale}"
     )
     cached = await cache_get(cache_key)
     if cached:
@@ -51,7 +54,7 @@ async def get_calendar_events(
 
     events = query.order_by(EconomicCalendarEvent.event_date).all()
     payload = {
-        "events": [calendar_event_to_dict(event, include_details=include_details) for event in events],
+        "events": [calendar_event_to_dict(event, include_details=include_details, locale=locale) for event in events],
         "count": len(events),
     }
     await cache_set(cache_key, payload, ttl=1800)
@@ -62,9 +65,11 @@ async def get_calendar_events(
 async def get_calendar_event_detail(
     event_id: int,
     include_details: bool = True,
+    lang: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
-    cache_key = f"calendar:event:{event_id}:{include_details}"
+    locale = normalize_locale(lang)
+    cache_key = f"calendar:event:{event_id}:{include_details}:{locale}"
     cached = await cache_get(cache_key)
     if cached:
         return cached
@@ -77,13 +82,14 @@ async def get_calendar_event_detail(
     if event is None:
         raise HTTPException(status_code=404, detail="Calendar event not found")
 
-    payload = calendar_event_to_dict(event, include_details=include_details)
+    payload = calendar_event_to_dict(event, include_details=include_details, locale=locale)
     await cache_set(cache_key, payload, ttl=1800)
     return payload
 
 
 @router.get("/fomc")
-async def get_fomc(db: Session = Depends(get_db)):
+async def get_fomc(lang: str | None = Query(None), db: Session = Depends(get_db)):
+    locale = normalize_locale(lang)
     calendar_events = (
         db.query(EconomicCalendarEvent)
         .filter(EconomicCalendarEvent.event_key == "FOMC_MEETING")
@@ -102,7 +108,7 @@ async def get_fomc(db: Session = Depends(get_db)):
                 "timezone": event.timezone,
                 "rate": event.fomc_detail.decision_rate if event.fomc_detail else None,
                 "change_bp": event.fomc_detail.change_bp if event.fomc_detail else None,
-                "details": calendar_event_to_dict(event, include_details=True).get("details"),
+                "details": calendar_event_to_dict(event, include_details=True, locale=locale).get("details"),
             }
             for event in calendar_events
         ]
@@ -128,7 +134,7 @@ async def get_fomc(db: Session = Depends(get_db)):
         )
 
     fedwatch = get_latest_fedwatch_for_meeting(db, next_meeting_date) or get_latest_fedwatch(db)
-    return {
+    payload = {
         "meetings": meetings,
         "fedwatch": {
             "prob_hold": fedwatch.prob_hold if fedwatch else None,
@@ -137,3 +143,4 @@ async def get_fomc(db: Session = Depends(get_db)):
             "prob_method": "fed_funds_futures_estimate",
         } if fedwatch else None,
     }
+    return localize_fomc_overview_payload(payload, locale=locale)
