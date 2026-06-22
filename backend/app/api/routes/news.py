@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from ...core.database import get_db
 from ...models import NewsItem
-from ..route_helpers import news_to_dict
 
 router = APIRouter(prefix="/api")
 
@@ -21,4 +20,16 @@ async def get_news(
     if category and category != "all":
         query = query.filter(NewsItem.category == category)
     items = query.limit(limit).all()
-    return {"news": [news_to_dict(item) for item in items]}
+    return {"news": [_news_to_dict(item) for item in items]}
+
+
+def _news_to_dict(item: NewsItem) -> dict:
+    return {
+        "id": item.id,
+        "source": item.source,
+        "title": item.title,
+        "summary": item.summary,
+        "url": item.url,
+        "category": item.category,
+        "published_at": str(item.published_at) if item.published_at else None,
+    }

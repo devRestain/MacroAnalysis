@@ -1,4 +1,4 @@
-.PHONY: help doctor check-docker check-env up down build logs collect collect-fed collect-calendar collect-morning collect-noon collect-evening collect-weekly collect-all-batched collect-sentiment ensure-ai-insight shell shell-db migrate db-stats db-size db-cleanup db-deduplicate-check test test-container
+.PHONY: help doctor check-docker check-env up down build logs collect collect-fed collect-calendar collect-morning collect-noon collect-evening collect-weekly collect-all-batched collect-sentiment ensure-ai-insight shell shell-db migrate db-stats db-size db-cleanup db-deduplicate-check
 
 COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
@@ -26,8 +26,6 @@ help:
 	@echo "  make db-size     DB 크기와 큰 테이블 요약"
 	@echo "  make db-cleanup  retention cleanup 수동 실행"
 	@echo "  make db-deduplicate-check  중복 후보 read-only 점검"
-	@echo "  make test        로컬 unittest 실행"
-	@echo "  make test-container  backend 컨테이너 안에서 unittest 실행"
 	@echo "  make shell       백엔드 컨테이너 쉘 접속"
 	@echo "  make shell-db    PostgreSQL 접속"
 	@echo ""
@@ -135,9 +133,3 @@ db-cleanup: check-docker check-env
 
 db-deduplicate-check: check-docker check-env
 	$(COMPOSE) exec backend python -m app.commands.db_deduplicate_check --sample-limit 5
-
-test:
-	cd backend && ../.venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
-
-test-container: check-docker check-env
-	$(COMPOSE) exec backend python -m unittest discover -s tests -p 'test_*.py' -v

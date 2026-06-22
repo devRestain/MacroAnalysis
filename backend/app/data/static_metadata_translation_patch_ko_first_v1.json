@@ -5,7 +5,6 @@
   "fallback_locale": "en",
   "generation_target": "missing_or_nonlocalized_static_information",
   "merge_mode": "upsert_by_lookup_key",
-  "source_request": "backend/app/data/static_metadata_translation_request.json",
   "field_path_semantics": {
     "dot_path": "Keys such as translations.en.display_name are intended to be merged as nested JSON paths.",
     "simple_field": "Keys such as display_name_ko are intended to be persisted as direct columns or metadata keys.",

@@ -2,16 +2,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes.ai import router as ai_router
+from .api.routes.calendar import router as calendar_router
+from .api.routes.indicators import router as indicators_router
+from .api.routes.news import router as news_router
+from .api.routes.sentiment import router as sentiment_router
+from .api.routes.summary import router as summary_router
 from .core.config import settings
 from .core.database import init_db
-from .api.routes import (
-    ai_router,
-    calendar_router,
-    indicators_router,
-    news_router,
-    sentiment_router,
-    summary_router,
-)
 
 app = FastAPI(
     title="MacroAnalysis API",

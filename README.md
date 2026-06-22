@@ -50,7 +50,6 @@ MacroAnalysis/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── dependencies.py
-│   │   │   ├── route_helpers.py
 │   │   │   ├── indicator_schemas.py
 │   │   │   ├── calendar_schemas.py
 │   │   │   ├── ai_schemas.py
@@ -72,12 +71,15 @@ MacroAnalysis/
 │   │   ├── workers/
 │   │   └── main.py
 │   ├── requirements.txt
-│   └── tests/
 ├── frontend/
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   ├── package.json
 │   └── src/
+│       ├── App.tsx
+│       ├── main.tsx
+│       ├── pages/
+│       └── shared/
 ```
 
 ### Backend Domain Boundaries
@@ -113,7 +115,6 @@ MacroAnalysis/
   - `/api/changes`
 - Fallback order is: requested locale -> opposite locale -> existing DB/static value -> key/code.
 - Dynamic content such as news headlines, AI summary body text, daily insight prose, and communication full text is intentionally left untranslated in this phase.
-- The current static metadata request artifact for ChatGPT-assisted backfill lives at `backend/app/data/static_metadata_translation_request.json`.
 
 ## Database Model and Migration Policy
 
@@ -282,8 +283,6 @@ make db-stats
 make db-size
 make db-cleanup
 make db-deduplicate-check
-make test
-make test-container
 ```
 
 ### Batch Collection Commands
@@ -453,28 +452,6 @@ curl "http://localhost:8000/api/sentiment/signals?limit=50"
 
 Communication events can also feed this pipeline directly. The normalized source type stored in `sentiment_signals.source_type` is `communication_event`.
 
-## Testing
-
-Local unittest run:
-
-```bash
-make test
-```
-
-Container run:
-
-```bash
-make test-container
-```
-
-Focused examples:
-
-```bash
-cd backend
-../.venv/bin/python -m unittest tests.test_observation_pipeline -v
-../.venv/bin/python -m unittest tests.test_cache_resilience tests.test_api_security -v
-```
-
 ## Contribution Notes
 
 - Keep model definitions in the correct domain file under `backend/app/models/`.
@@ -482,8 +459,7 @@ cd backend
 - Any schema change requires:
   1. model update
   2. Alembic revision
-  3. test update
-  4. README update if the operation surface changed
+  3. README update if the operation surface changed
 - Do not reintroduce legacy per-domain time-series tables.
 - Prefer using `indicator_registry` and observation upserts for new time-series collectors.
 - Prefer `CommunicationEvent` over FOMC-specific ad hoc models for new central-bank content.
@@ -494,4 +470,3 @@ cd backend
 - Add first-class vintage/revision support if historical revisions become product-critical.
 - Expand FOMC sentiment beyond statement text into speeches and other unstructured Fed communication.
 - Extend frontend to consume more of the expectation/divergence APIs directly.
-- Add CI automation that explicitly runs `alembic upgrade head` before application tests.
