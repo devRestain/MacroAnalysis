@@ -56,3 +56,48 @@ class CalendarEventListResponse(BaseModel):
 
     events: list[CalendarEventResponse]
     count: int
+
+
+class CalendarMonthTopEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    display_name: str
+    short_name: str | None = None
+    importance: str
+    category: str
+    event_time_local: str | None = None
+    display_time: str | None = None
+
+
+class CalendarMonthDaySummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    date: date
+    in_month: bool
+    is_today: bool
+    is_weekend: bool
+    event_count: int
+    high_count: int
+    medium_count: int
+    categories: list[str]
+    top_events: list[CalendarMonthTopEvent]
+
+
+class CalendarMonthRange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    start_date: date
+    end_date: date
+    grid_start_date: date
+    grid_end_date: date
+
+
+class CalendarMonthResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    month: str
+    today_basis: str
+    today_date: date
+    range: CalendarMonthRange
+    days: list[CalendarMonthDaySummary]

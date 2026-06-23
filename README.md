@@ -108,6 +108,7 @@ MacroAnalysis/
 - Static-text APIs accept `lang=ko|en` and currently apply locale overlay to:
   - `/api/indicator-explanations`
   - `/api/indicator-explanations/{indicator_key}`
+  - `/api/calendar/month`
   - `/api/calendar/events`
   - `/api/calendar/events/{event_id}`
   - `/api/fomc`
@@ -151,6 +152,16 @@ Older environments that were created during the `create_all()` era may have real
 ## Economic Calendar
 
 Calendar is a standalone domain for core macro events, not a generic market-event scraper. It keeps a fixed allowlist, stores human-readable metadata alongside each event, and uses FRED release dates plus static timing to avoid extra vendor dependencies.
+
+The frontend now uses two calendar views on top of the same domain data:
+
+- Dashboard `Calendar Watch`: a compact monthly grid with today highlighting and selected-day agenda.
+- Calendar page: a larger monthly grid with day agenda, FOMC watch, and FOMC detail side panels.
+
+To support that, the backend exposes both:
+
+- `/api/calendar/events` for detailed event payloads and selected-day agenda queries
+- `/api/calendar/month` for fixed 7x6 monthly grid summaries grouped by `event_date_local`
 
 ### Calendar Sources
 
@@ -386,7 +397,9 @@ curl "http://localhost:8000/api/indicators/history/DGS10?period=3m"
 ### Calendar
 
 ```bash
+curl "http://localhost:8000/api/calendar/month?month=2026-06&today_basis=market"
 curl "http://localhost:8000/api/calendar/events?days=30&include_details=true"
+curl "http://localhost:8000/api/calendar/events?from=2026-06-23&to=2026-06-23&include_details=true"
 curl http://localhost:8000/api/fomc
 ```
 

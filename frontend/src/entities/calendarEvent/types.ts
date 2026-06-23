@@ -24,6 +24,45 @@ export interface CalendarEvent {
   details?: Record<string, unknown> | null
 }
 
+export type CalendarTodayBasis = 'market' | 'local'
+
+export interface CalendarMonthTopEvent {
+  id: number
+  displayName: string
+  shortName?: string | null
+  importance: 'low' | 'medium' | 'high' | string
+  category: string
+  eventTimeLocal?: string | null
+  displayTime?: string | null
+}
+
+export interface CalendarMonthDaySummary {
+  date: string
+  inMonth: boolean
+  isToday: boolean
+  isWeekend: boolean
+  eventCount: number
+  highCount: number
+  mediumCount: number
+  categories: string[]
+  topEvents: CalendarMonthTopEvent[]
+}
+
+export interface CalendarMonthRange {
+  startDate: string
+  endDate: string
+  gridStartDate: string
+  gridEndDate: string
+}
+
+export interface CalendarMonthResponse {
+  month: string
+  todayBasis: CalendarTodayBasis
+  todayDate: string
+  range: CalendarMonthRange
+  days: CalendarMonthDaySummary[]
+}
+
 export interface FomcMeeting {
   id?: number | string
   date: string

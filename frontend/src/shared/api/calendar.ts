@@ -1,4 +1,10 @@
-import { CalendarEvent, FomcOverview } from '../../entities/calendarEvent/types'
+import {
+  CalendarEvent,
+  CalendarMonthResponse,
+  CalendarMonthTopEvent,
+  CalendarTodayBasis,
+  FomcOverview,
+} from '../../entities/calendarEvent/types'
 import { apiGet } from './client'
 
 interface CalendarEventResponse {
@@ -32,6 +38,41 @@ interface CalendarEventResponse {
 interface CalendarEventListResponse {
   events?: CalendarEventResponse[]
   count?: number
+}
+
+interface CalendarMonthTopEventResponse {
+  id: number
+  display_name: string
+  short_name?: string | null
+  importance: string
+  category: string
+  event_time_local?: string | null
+  display_time?: string | null
+}
+
+interface CalendarMonthDaySummaryResponse {
+  date: string
+  in_month: boolean
+  is_today: boolean
+  is_weekend: boolean
+  event_count: number
+  high_count: number
+  medium_count: number
+  categories: string[]
+  top_events: CalendarMonthTopEventResponse[]
+}
+
+interface CalendarMonthResponseBody {
+  month: string
+  today_basis: CalendarTodayBasis
+  today_date: string
+  range: {
+    start_date: string
+    end_date: string
+    grid_start_date: string
+    grid_end_date: string
+  }
+  days: CalendarMonthDaySummaryResponse[]
 }
 
 interface FomcResponse {
@@ -109,11 +150,100 @@ function normalizeFomc(row: FomcResponse): FomcOverview {
   }
 }
 
-export async function getCalendarEvents(days = 30, includeDetails = true): Promise<CalendarEvent[]> {
-  const response = await apiGet<CalendarEventListResponse>(
-    `/calendar/events?days=${days}&include_details=${includeDetails ? 'true' : 'false'}`
-  )
+function normalizeMonthTopEvent(row: CalendarMonthTopEventResponse): CalendarMonthTopEvent {
+  return {
+    id: row.id,
+    displayName: row.display_name,
+    shortName: row.short_name,
+    importance: row.importance,
+    category: row.category,
+    eventTimeLocal: row.event_time_local,
+    displayTime: row.display_time,
+  }
+}
+
+function normalizeCalendarMonth(row: CalendarMonthResponseBody): CalendarMonthResponse {
+  return {
+    month: row.month,
+    todayBasis: row.today_basis,
+    todayDate: row.today_date,
+    range: {
+      startDate: row.range.start_date,
+      endDate: row.range.end_date,
+      gridStartDate: row.range.grid_start_date,
+      gridEndDate: row.range.grid_end_date,
+    },
+    days: row.days.map((day) => ({
+      date: day.date,
+      inMonth: day.in_month,
+      isToday: day.is_today,
+      isWeekend: day.is_weekend,
+      eventCount: day.event_count,
+      highCount: day.high_count,
+      mediumCount: day.medium_count,
+      categories: day.categories ?? [],
+      topEvents: (day.top_events ?? []).map(normalizeMonthTopEvent),
+    })),
+  }
+}
+
+function buildQuery(params: Record<string, string | number | boolean | undefined | null>): string {
+  const search = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return
+    search.set(key, String(value))
+  })
+  const query = search.toString()
+  return query ? `?${query}` : ''
+}
+
+export interface CalendarEventQuery {
+  from?: string
+  to?: string
+  days?: number
+  includeDetails?: boolean
+  importance?: string
+  category?: string
+  country?: string
+}
+
+export interface CalendarMonthQuery {
+  month: string
+  importance?: string
+  category?: string
+  country?: string
+  todayBasis?: CalendarTodayBasis
+  todayTz?: string
+}
+
+export async function getCalendarEvents(options: number | CalendarEventQuery = 30, includeDetails = true): Promise<CalendarEvent[]> {
+  const query = typeof options === 'number'
+    ? buildQuery({ days: options, include_details: includeDetails })
+    : buildQuery({
+        from: options.from,
+        to: options.to,
+        days: options.days ?? 30,
+        include_details: options.includeDetails ?? true,
+        importance: options.importance,
+        category: options.category,
+        country: options.country,
+      })
+  const response = await apiGet<CalendarEventListResponse>(`/calendar/events${query}`)
   return (response.events ?? []).map(normalizeCalendarEvent)
+}
+
+export async function getCalendarMonth(options: CalendarMonthQuery): Promise<CalendarMonthResponse> {
+  const response = await apiGet<CalendarMonthResponseBody>(
+    `/calendar/month${buildQuery({
+      month: options.month,
+      importance: options.importance,
+      category: options.category,
+      country: options.country,
+      today_basis: options.todayBasis ?? 'market',
+      today_tz: options.todayTz,
+    })}`
+  )
+  return normalizeCalendarMonth(response)
 }
 
 export async function getFomcOverview(): Promise<FomcOverview> {
