@@ -27,10 +27,6 @@ export function IndicatorsPage() {
 
   return (
     <Frame>
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">{t('indicators.title')}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">{t('indicators.description')}</p>
-      </div>
       <div className="space-y-5">
         {categories.map((category) => (
           <Card key={category} title={label('category', category, category)} eyebrow={t('indicators.categoryEyebrow')} tone="blue">

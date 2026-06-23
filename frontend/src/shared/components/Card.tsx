@@ -40,18 +40,20 @@ const toneStyles = {
 export function Card({ title, eyebrow, action, children, className = '', tone = 'default' }: CardProps) {
   const style = toneStyles[tone]
   return (
-    <section className={`min-w-0 overflow-hidden rounded-[22px] border shadow-[0_12px_30px_-24px_rgba(20,34,56,0.18)] ${style.shell} ${className}`}>
-      <div className={`entity-strip mx-5 mt-4 ${style.accent}`} />
+    <section className={`min-w-0 overflow-hidden rounded-[18px] border shadow-[0_8px_24px_-24px_rgba(15,23,42,0.22)] ${style.shell} ${className}`}>
       {(title || eyebrow || action) && (
-        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-surface-border px-5 py-4">
+        <div className="flex min-w-0 items-start justify-between gap-3 border-b border-surface-border px-3.5 py-2.5 lg:px-3.5">
           <div className="min-w-0">
-            {eyebrow && <div className={`truncate text-[11px] font-bold uppercase tracking-[0.18em] ${style.text}`}>{eyebrow}</div>}
-            {title && <h2 className="mt-1 truncate text-lg font-bold tracking-[-0.02em] text-text-primary">{title}</h2>}
+            <div className="flex items-center gap-1.5">
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${style.accent}`} />
+              {eyebrow && <div className={`truncate text-[10px] font-bold uppercase tracking-[0.16em] ${style.text}`}>{eyebrow}</div>}
+            </div>
+            {title && <h2 className="mt-0.5 truncate text-[15px] font-bold tracking-[-0.02em] text-text-primary lg:text-base">{title}</h2>}
           </div>
           {action}
         </div>
       )}
-      <div className="min-w-0 p-5 text-safe">{children}</div>
+      <div className="min-w-0 px-3.5 pb-3.5 pt-3 text-safe lg:px-3.5 lg:pb-3.5">{children}</div>
     </section>
   )
 }

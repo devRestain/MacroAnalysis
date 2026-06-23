@@ -19,11 +19,6 @@ export function NewsPage() {
 
   return (
     <div className="page-shell animate-fade-up">
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">{t('news.title')}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">{t('news.description')}</p>
-      </div>
-
       <div className="mb-4 flex flex-wrap gap-2">
         {categories.map((item) => (
           <button key={item} onClick={() => setCategory(item)} className={`filter-chip ${category === item ? 'filter-chip-active' : ''}`}>

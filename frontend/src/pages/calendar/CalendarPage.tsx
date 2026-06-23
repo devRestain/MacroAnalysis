@@ -28,13 +28,6 @@ export function CalendarPage() {
 
   return (
     <div className="page-shell animate-fade-up">
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">{t('calendar.title')}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
-          {t('calendar.description')}
-        </p>
-      </div>
-
       <div className="mb-5 flex flex-wrap items-center gap-2">
         {['all', 'high', 'medium', 'low'].map((item) => (
           <button key={item} onClick={() => setImportance(item)} className={`filter-chip ${importance === item ? 'filter-chip-active' : ''}`}>

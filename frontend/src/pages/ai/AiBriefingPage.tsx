@@ -18,10 +18,6 @@ export function AiBriefingPage() {
   const { t } = useLanguage()
   return (
     <div className="page-shell animate-fade-up">
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">{t('ai.title')}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">{t('ai.description')}</p>
-      </div>
       <div className="grid gap-4 xl:grid-cols-2">
         {summaryConfigs.map((config) => <SummaryCard key={`${config.type}-${config.targetKey ?? 'all'}`} {...config} />)}
         <AiChatPanel />

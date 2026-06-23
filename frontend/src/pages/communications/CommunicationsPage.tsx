@@ -19,11 +19,6 @@ export function CommunicationsPage() {
 
   return (
     <div className="page-shell animate-fade-up">
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-[-0.04em]">{t('communications.title')}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">{t('communications.description')}</p>
-      </div>
-
       <div className="grid gap-4 xl:grid-cols-2">
         <Card title={t('communications.card.context')} eyebrow={t('communications.card.contextEyebrow')} tone="rose">
           {fomc.state.status === 'success' ? (
